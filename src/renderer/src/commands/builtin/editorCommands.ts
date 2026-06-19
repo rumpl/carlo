@@ -3,6 +3,7 @@ import { toggleSoftWrapEnabled } from '../../editor/editorOptions';
 import { getModel } from '../../editor/models';
 import { navigateBack, navigateForward } from '../../editor/navigationHistory';
 import { ensureLanguageClient } from '../../lsp/LanguageClientService';
+import { isMarkdownTab, markdownPreviewUri } from '../../markdown/previewTabs';
 import { activeTab, useEditorStore } from '../../store/useEditorStore';
 import { useSettingsStore } from '../../store/useSettingsStore';
 import { registerCommand } from '../registry';
@@ -69,6 +70,34 @@ function toggleSoftWrap(): void {
   setEditorsSoftWrap(toggleSoftWrapEnabled());
 }
 
+function titleFromPath(path: string): string {
+  return path.split(/[\\/]/).pop() ?? path;
+}
+
+function openMarkdownPreviewToSide(): void {
+  const tab = activeTab();
+  if (!isMarkdownTab(tab)) {
+    window.alert('Open a Markdown file first.');
+    return;
+  }
+
+  const store = useEditorStore.getState();
+  const sourceGroupId = store.activeGroupId;
+  const sideGroup = store.groups.find((group) => group.id !== sourceGroupId);
+  if (sideGroup) {
+    store.setActiveGroup(sideGroup.id);
+  } else {
+    store.splitActive('vertical');
+  }
+
+  useEditorStore.getState().openFile({
+    uri: markdownPreviewUri(tab.uri),
+    path: tab.path,
+    languageId: 'markdown',
+    title: `Preview ${titleFromPath(tab.path)}`,
+  });
+}
+
 async function runEditorAction(actionId: string): Promise<void> {
   const editor = getEditor();
   if (!editor) return;
@@ -131,6 +160,12 @@ export function registerEditorCommands(): void {
     id: 'editor.toggleSoftWrap',
     title: 'Editor: Toggle Soft Wrap',
     run: toggleSoftWrap,
+  });
+  registerCommand({
+    id: 'markdown.showPreviewToSide',
+    title: 'Markdown: Open Preview to the Side',
+    keybinding: 'Ctrl+Shift+V',
+    run: openMarkdownPreviewToSide,
   });
   registerCommand({
     id: 'actions.find',

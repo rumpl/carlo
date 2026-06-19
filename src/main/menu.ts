@@ -145,6 +145,12 @@ export function installAppMenu(): void {
           click: () => sendCommand('workbench.panel.problems.toggle'),
         },
         { type: 'separator' },
+        {
+          label: 'Markdown Preview to Side',
+          accelerator: 'CmdOrCtrl+Shift+V',
+          click: () => sendCommand('markdown.showPreviewToSide'),
+        },
+        { type: 'separator' },
         { role: 'toggleDevTools' },
       ],
     },

@@ -1,6 +1,8 @@
 import { type MouseEvent, useEffect, useState } from 'react';
 import type { EditorTab } from '../store/useEditorStore';
 import { useEditorStore } from '../store/useEditorStore';
+import { isMarkdownTab } from '../markdown/previewTabs';
+import { runCommand } from '../commands/registry';
 import { Tab } from './Tab';
 
 interface TabContextMenu {
@@ -126,6 +128,14 @@ export function TabBar({ groupId }: Props) {
           onClick={(event) => event.stopPropagation()}
           onContextMenu={(event) => event.preventDefault()}
         >
+          {isMarkdownTab(contextMenu.tab) ? (
+            <>
+              <button type="button" onClick={() => runContextAction(() => runCommand('markdown.showPreviewToSide'))}>
+                Open Markdown Preview to Side
+              </button>
+              <div className="tab-context-separator" />
+            </>
+          ) : null}
           <button type="button" onClick={() => runContextAction(() => closeTabsWithPrompt([contextMenu.tab]))}>
             Close
           </button>

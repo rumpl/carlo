@@ -9,6 +9,129 @@
   min-width: 0;
   min-height: 0;
 }
+.markdown-preview {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+.markdown-preview.empty,
+.markdown-preview-error {
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  color: color-mix(in srgb, var(--fg) 68%, transparent);
+}
+.markdown-preview-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  height: 32px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  font-size: 12px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--fg) 82%, transparent);
+}
+.markdown-preview-path {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 400;
+  color: color-mix(in srgb, var(--fg) 52%, transparent);
+}
+.markdown-preview-content {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: 28px clamp(24px, 5vw, 64px) 56px;
+  line-height: 1.65;
+}
+.markdown-preview-content > :first-child {
+  margin-top: 0;
+}
+.markdown-preview-content > :last-child {
+  margin-bottom: 0;
+}
+.markdown-preview-content h1,
+.markdown-preview-content h2,
+.markdown-preview-content h3,
+.markdown-preview-content h4,
+.markdown-preview-content h5,
+.markdown-preview-content h6 {
+  margin: 1.45em 0 0.55em;
+  line-height: 1.25;
+}
+.markdown-preview-content h1,
+.markdown-preview-content h2 {
+  padding-bottom: 0.22em;
+  border-bottom: 1px solid var(--border);
+}
+.markdown-preview-content h1 {
+  font-size: 2em;
+}
+.markdown-preview-content h2 {
+  font-size: 1.55em;
+}
+.markdown-preview-content h3 {
+  font-size: 1.25em;
+}
+.markdown-preview-content p,
+.markdown-preview-content ul,
+.markdown-preview-content ol,
+.markdown-preview-content blockquote,
+.markdown-preview-content pre {
+  margin: 0 0 1em;
+}
+.markdown-preview-content ul,
+.markdown-preview-content ol {
+  padding-left: 1.6em;
+}
+.markdown-preview-content blockquote {
+  padding: 0.1em 1em;
+  border-left: 4px solid var(--border);
+  color: color-mix(in srgb, var(--fg) 72%, transparent);
+}
+.markdown-preview-content code {
+  padding: 0.12em 0.35em;
+  border-radius: 4px;
+  background: var(--panel);
+  font-family: var(--editor-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+  font-size: 0.92em;
+}
+.markdown-preview-content pre {
+  overflow: auto;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+}
+.markdown-preview-content pre code {
+  padding: 0;
+  background: transparent;
+}
+.markdown-preview-content a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.markdown-preview-content a:hover {
+  text-decoration: underline;
+}
+.markdown-preview-content img {
+  max-width: 100%;
+}
+.markdown-preview-content hr {
+  height: 1px;
+  border: 0;
+  margin: 1.6em 0;
+  background: var(--border);
+}
 .welcome-screen {
   position: absolute;
   inset: 0;

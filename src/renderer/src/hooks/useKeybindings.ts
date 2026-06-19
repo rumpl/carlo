@@ -42,6 +42,11 @@ export function useKeybindings(): void {
         event.stopPropagation();
         void runCommand('actions.find');
       }
+      if (mod && event.shiftKey && event.key.toLowerCase() === 'v') {
+        event.preventDefault();
+        event.stopPropagation();
+        void runCommand('markdown.showPreviewToSide');
+      }
       if (mod && event.key.toLowerCase() === 'h') {
         event.preventDefault();
         event.stopPropagation();
