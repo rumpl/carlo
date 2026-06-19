@@ -11,18 +11,32 @@ export function SettingsPanel() {
   const saveSettings = useSettingsStore((state) => state.saveSettings);
   const [mainViewFont, setMainViewFont] = useState(config.mainView.fontFamily);
   const [treeViewFont, setTreeViewFont] = useState(config.treeView.fontFamily);
+  const [fontSize, setFontSize] = useState(String(config.mainView.fontSize));
+  const [tabSize, setTabSize] = useState(String(config.mainView.tabSize));
+  const [wordWrap, setWordWrap] = useState(config.mainView.wordWrap);
+  const [formatOnSave, setFormatOnSave] = useState(config.mainView.formatOnSave);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
     setMainViewFont(config.mainView.fontFamily);
     setTreeViewFont(config.treeView.fontFamily);
+    setFontSize(String(config.mainView.fontSize));
+    setTabSize(String(config.mainView.tabSize));
+    setWordWrap(config.mainView.wordWrap);
+    setFormatOnSave(config.mainView.formatOnSave);
   }, [config, isOpen]);
 
   if (!isOpen) return null;
 
   const draft: CarloUserConfig = {
-    mainView: { fontFamily: mainViewFont },
+    mainView: {
+      fontFamily: mainViewFont,
+      fontSize: Number(fontSize),
+      tabSize: Number(tabSize),
+      wordWrap,
+      formatOnSave,
+    },
     treeView: { fontFamily: treeViewFont },
   };
 
@@ -43,6 +57,10 @@ export function SettingsPanel() {
     const defaults = defaultUserConfig();
     setMainViewFont(defaults.mainView.fontFamily);
     setTreeViewFont(defaults.treeView.fontFamily);
+    setFontSize(String(defaults.mainView.fontSize));
+    setTabSize(String(defaults.mainView.tabSize));
+    setWordWrap(defaults.mainView.wordWrap);
+    setFormatOnSave(defaults.mainView.formatOnSave);
   }
 
   return (
@@ -57,7 +75,7 @@ export function SettingsPanel() {
         <header className="settings-header">
           <div>
             <h2 id="settings-title">Settings</h2>
-            <p>Configure the two user fonts Carlo currently supports.</p>
+            <p>Configure the editor basics Carlo supports.</p>
           </div>
           <button className="settings-close" onClick={closeSettings} title="Close">
             ×
@@ -75,6 +93,32 @@ export function SettingsPanel() {
           />
         </label>
 
+        <div className="settings-grid">
+          <label className="settings-field">
+            <span>Editor font size</span>
+            <input
+              disabled={isLoading || isSaving}
+              max={40}
+              min={8}
+              onChange={(event) => setFontSize(event.target.value)}
+              type="number"
+              value={fontSize}
+            />
+          </label>
+
+          <label className="settings-field">
+            <span>Tab size</span>
+            <input
+              disabled={isLoading || isSaving}
+              max={12}
+              min={1}
+              onChange={(event) => setTabSize(event.target.value)}
+              type="number"
+              value={tabSize}
+            />
+          </label>
+        </div>
+
         <label className="settings-field">
           <span>Tree view font</span>
           <input
@@ -83,6 +127,26 @@ export function SettingsPanel() {
             placeholder="Font family"
             value={treeViewFont}
           />
+        </label>
+
+        <label className="settings-checkbox">
+          <input
+            checked={wordWrap}
+            disabled={isLoading || isSaving}
+            onChange={(event) => setWordWrap(event.target.checked)}
+            type="checkbox"
+          />
+          <span>Word wrap</span>
+        </label>
+
+        <label className="settings-checkbox">
+          <input
+            checked={formatOnSave}
+            disabled={isLoading || isSaving}
+            onChange={(event) => setFormatOnSave(event.target.checked)}
+            type="checkbox"
+          />
+          <span>Format on save</span>
         </label>
 
         {configPath ? <p className="settings-path">Config file: {configPath}</p> : null}

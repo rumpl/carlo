@@ -2,6 +2,8 @@ import * as monaco from '@codingame/monaco-vscode-editor-api';
 
 const softWrapStorageKey = 'carlo.softWrap';
 
+const defaultEditorFontSize = 14;
+const defaultTabSize = 2;
 const defaultEditorFontFamily =
   "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace";
 
@@ -39,9 +41,25 @@ export function setEditorFontFamily(fontFamily: string): void {
   editorOptions.fontFamily = fontFamily;
 }
 
+export function setEditorFontSize(fontSize: number): void {
+  editorOptions.fontSize = fontSize;
+}
+
+export function setEditorTabSize(tabSize: number): void {
+  editorOptions.tabSize = tabSize;
+}
+
+export function setEditorWordWrap(enabled: boolean): void {
+  setSoftWrapEnabled(enabled);
+}
+
 export const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
   automaticLayout: true,
   fontFamily: defaultEditorFontFamily,
+  fontSize: defaultEditorFontSize,
+  tabSize: defaultTabSize,
+  insertSpaces: true,
+  detectIndentation: false,
   wordWrap: wordWrapValue(softWrapEnabled()),
   minimap: { enabled: false },
   quickSuggestions: false,

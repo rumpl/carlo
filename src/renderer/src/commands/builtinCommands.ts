@@ -76,6 +76,7 @@ async function sourceAction(): Promise<void> {
 }
 
 async function formatDocumentForSave(): Promise<void> {
+  if (!useSettingsStore.getState().config.mainView.formatOnSave) return;
   await formatDocument().catch((error) => console.error('Format on save failed', error));
 }
 

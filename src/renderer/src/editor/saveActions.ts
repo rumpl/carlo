@@ -1,4 +1,5 @@
 import type { EditorTab } from '../store/useEditorStore';
+import { useSettingsStore } from '../store/useSettingsStore';
 import { activeTab, useEditorStore } from '../store/useEditorStore';
 import { disposeModel, getModel, replaceModelUri } from './models';
 
@@ -28,7 +29,9 @@ export async function saveTab(tab: EditorTab): Promise<void> {
     return;
   }
 
-  await formatActiveTabForSave(tab);
+  if (useSettingsStore.getState().config.mainView.formatOnSave) {
+    await formatActiveTabForSave(tab);
+  }
   await window.api.file.save({ path: tab.path, content: getModel(tab.uri)?.getValue() ?? content });
   useEditorStore.getState().markSaved(tab.uri);
 }

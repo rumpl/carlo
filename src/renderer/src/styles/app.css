@@ -964,12 +964,22 @@ input {
 .settings-close:hover {
   background: var(--panel2);
 }
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 18px 0;
+}
+.settings-grid .settings-field {
+  padding: 0;
+}
 .settings-field {
   display: grid;
   gap: 8px;
   padding: 16px 18px 0;
 }
-.settings-field span {
+.settings-field span,
+.settings-checkbox span {
   font-size: 13px;
   font-weight: 700;
 }
@@ -984,6 +994,17 @@ input {
 }
 .settings-field input:focus {
   border-color: var(--accent);
+}
+.settings-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px 0;
+}
+.settings-checkbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
 }
 .settings-path {
   margin: 14px 18px 0;

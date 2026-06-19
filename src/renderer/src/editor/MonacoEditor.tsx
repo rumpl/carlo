@@ -48,6 +48,18 @@ export function setEditorsFontFamily(fontFamily: string): void {
   }
 }
 
+export function setEditorsFontSize(fontSize: number): void {
+  for (const editor of editors.values()) {
+    editor.updateOptions({ fontSize });
+  }
+}
+
+export function setEditorsTabSize(tabSize: number): void {
+  for (const editor of editors.values()) {
+    editor.updateOptions({ tabSize, insertSpaces: true, detectIndentation: false });
+  }
+}
+
 export function refreshVisibleGitGuttersForPath(path: string): void {
   const tabs = useEditorStore.getState().tabs.filter((tab) => tab.path === path);
   for (const editor of editors.values()) {
