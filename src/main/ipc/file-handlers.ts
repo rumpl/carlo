@@ -1,6 +1,6 @@
-import { dialog, ipcMain } from 'electron';
-import { cp, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
-import { basename, join } from 'node:path';
+import { dialog, ipcMain, shell } from 'electron';
+import { cp, mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { basename, dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { IPC } from '@shared/ipc';
 import { languageIdFromPath } from '@shared/language-registry';
@@ -9,6 +9,7 @@ import {
   assertSafeChildName,
   isPathInsideOrEqual,
   operationResult,
+  pathExists,
   uniqueCopyDestination,
 } from './file-operations';
 import { getGitStatusContext } from './git-status';
@@ -19,6 +20,7 @@ import type {
   FileCopyRequest,
   FileCreateRequest,
   FileDeleteRequest,
+  FileRenameRequest,
   OpenFileResult,
   ReadFileRequest,
   SaveAsDialogRequest,
@@ -93,6 +95,19 @@ export function registerFileHandlers(): void {
     const destinationPath = await uniqueCopyDestination(sourcePath, destinationDirectory);
     await cp(sourcePath, destinationPath, { recursive: sourceStats.isDirectory(), errorOnExist: true, force: false });
     return operationResult(destinationPath);
+  });
+
+  ipcMain.handle(IPC.fileRename, async (_event, { path, newName }: FileRenameRequest) => {
+    assertSafeChildName(newName);
+    const destinationPath = join(dirname(path), newName);
+    if (await pathExists(destinationPath)) throw new Error('A file or folder with that name already exists');
+    await rename(path, destinationPath);
+    return operationResult(destinationPath);
+  });
+
+  ipcMain.handle(IPC.fileRevealInFolder, (_event, { path }: { path: string }) => {
+    shell.showItemInFolder(path);
+    return { ok: true };
   });
 
   ipcMain.handle(IPC.workspaceOpenFolderDialog, async (event) => {

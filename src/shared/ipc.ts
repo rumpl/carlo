@@ -14,6 +14,8 @@ export const IPC = {
   fileCreateDirectory: 'file:createDirectory',
   fileDelete: 'file:delete',
   fileCopy: 'file:copy',
+  fileRename: 'file:rename',
+  fileRevealInFolder: 'file:revealInFolder',
   gitBaseline: 'git:baseline',
   gitStatus: 'git:status',
   workspaceOpenFolderDialog: 'workspace:openFolderDialog',

@@ -10,7 +10,7 @@ export function assertSafeChildName(name: string): void {
   }
 }
 
-async function pathExists(path: string): Promise<boolean> {
+export async function pathExists(path: string): Promise<boolean> {
   try {
     await access(path, constants.F_OK);
     return true;

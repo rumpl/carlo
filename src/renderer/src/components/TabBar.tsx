@@ -14,7 +14,7 @@ interface Props {
 }
 
 export function TabBar({ groupId }: Props) {
-  const { tabs, groups, activeGroupId, setActive, closeGroup } = useEditorStore();
+  const { tabs, groups, activeGroupId, setActive, closeGroup, workspace } = useEditorStore();
   const [contextMenu, setContextMenu] = useState<TabContextMenu | undefined>(undefined);
   const group = groups.find((candidate) => candidate.id === groupId);
   const groupTabs = group
@@ -56,6 +56,13 @@ export function TabBar({ groupId }: Props) {
   function runContextAction(action: () => void | Promise<void>): void {
     setContextMenu(undefined);
     void Promise.resolve(action()).catch(console.error);
+  }
+
+  function relativePath(path: string): string {
+    if (!workspace) return path;
+    const root = workspace.rootPath.replaceAll('\\', '/').replace(/\/+$/, '');
+    const normalizedPath = path.replaceAll('\\', '/');
+    return normalizedPath.startsWith(`${root}/`) ? normalizedPath.slice(root.length + 1) : path;
   }
 
   const contextTabIndex = contextMenu
@@ -144,8 +151,28 @@ export function TabBar({ groupId }: Props) {
             Close Saved
           </button>
           <div className="tab-context-separator" />
-          <button type="button" onClick={() => runContextAction(() => navigator.clipboard.writeText(contextMenu.tab.path))}>
+          <button
+            type="button"
+            disabled={contextMenu.tab.uri.startsWith('untitled:')}
+            onClick={() => runContextAction(() => navigator.clipboard.writeText(contextMenu.tab.path))}
+          >
             Copy Path
+          </button>
+          <button
+            type="button"
+            disabled={contextMenu.tab.uri.startsWith('untitled:')}
+            onClick={() => runContextAction(() => navigator.clipboard.writeText(relativePath(contextMenu.tab.path)))}
+          >
+            Copy Relative Path
+          </button>
+          <button
+            type="button"
+            disabled={contextMenu.tab.uri.startsWith('untitled:')}
+            onClick={() => runContextAction(async () => {
+              await window.api.file.revealInFolder(contextMenu.tab.path);
+            })}
+          >
+            Reveal in Finder
           </button>
           <button type="button" onClick={() => runContextAction(() => setActive(contextMenu.tab.id, groupId))}>
             Reveal in File Tree

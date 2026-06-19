@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { LanguageId } from '@shared/language-registry';
+import { languageIdFromPath, type LanguageId } from '@shared/language-registry';
 
 export interface EditorTab {
   id: string;
@@ -49,6 +49,7 @@ interface EditorState {
     uri: string,
     savedAs?: { path: string; uri: string; languageId: LanguageId },
   ) => void;
+  updateRenamedPath: (oldPath: string, newPath: string, newUri: string) => void;
 }
 
 const recentFilesStorageKey = 'carlo.recentFiles';
@@ -195,6 +196,34 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             }
           : tab,
       ),
+    })),
+  updateRenamedPath: (oldPath, newPath, newUri) =>
+    set((state) => ({
+      tabs: state.tabs.map((tab) => {
+        if (tab.path === oldPath) {
+          return {
+            ...tab,
+            path: newPath,
+            uri: newUri,
+            languageId: languageIdFromPath(newPath),
+            title: titleFromPath(newPath),
+          };
+        }
+        const oldPrefix = `${oldPath}${oldPath.includes('\\') ? '\\' : '/'}`;
+        if (!tab.path.startsWith(oldPrefix)) return tab;
+        const path = `${newPath}${tab.path.slice(oldPath.length)}`;
+        return {
+          ...tab,
+          path,
+          uri: new URL(`file://${path}`).toString(),
+          languageId: languageIdFromPath(path),
+          title: titleFromPath(path),
+        };
+      }),
+      recentFiles: state.recentFiles.map((file) => {
+        if (file.path !== oldPath) return file;
+        return { ...file, path: newPath, uri: newUri, languageId: languageIdFromPath(newPath), title: titleFromPath(newPath) };
+      }),
     })),
 }));
 

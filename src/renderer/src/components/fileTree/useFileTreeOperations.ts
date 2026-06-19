@@ -5,7 +5,7 @@ import { languageIdFromPath } from '@shared/language-registry';
 import { useEditorStore } from '../../store/useEditorStore';
 import type { useWorkspaceTree } from './useWorkspaceTree';
 import type { TreeClipboard, TreeContextMenu, TreeCreatePrompt } from './types';
-import { hasValidChildName, parentDirectory, titleFromPath } from './treeUtils';
+import { hasValidChildName, normalizePath, parentDirectory, titleFromPath } from './treeUtils';
 
 type WorkspaceTree = ReturnType<typeof useWorkspaceTree>;
 
@@ -126,6 +126,62 @@ export function useFileTreeOperations({
     });
   }
 
+  function renameNode(menu: TreeContextMenu): void {
+    if (!menu.node) return;
+    const newName = window.prompt(`Rename “${menu.node.name}” to:`, menu.node.name)?.trim();
+    if (newName === undefined || newName === menu.node.name) {
+      closeContextMenu();
+      return;
+    }
+    if (!hasValidChildName(newName)) {
+      window.alert('Please enter a valid name.');
+      return;
+    }
+    const parentPath = parentDirectory(menu.node.path);
+    void runFileOperation(async () => {
+      const oldPath = menu.node!.path;
+      const result = await window.api.file.rename({ path: oldPath, newName });
+      const tabsToRename = useEditorStore
+        .getState()
+        .tabs.filter((tab) => tab.path === oldPath || tab.path.startsWith(`${oldPath}${oldPath.includes('\\') ? '\\' : '/'}`));
+      if (tabsToRename.length > 0) {
+        const { replaceModelUri, getModel } = await import('../../editor/models');
+        for (const tab of tabsToRename) {
+          const nextPath = tab.path === oldPath ? result.path : `${result.path}${tab.path.slice(oldPath.length)}`;
+          const content = getModel(tab.uri)?.getValue();
+          if (content !== undefined) replaceModelUri(tab.uri, new URL(`file://${nextPath}`).toString(), content, languageIdFromPath(nextPath));
+        }
+        useEditorStore.getState().updateRenamedPath(oldPath, result.path, result.uri);
+      }
+      await tree.refreshDirectory(parentPath);
+    });
+  }
+
+  function relativePath(path: string): string {
+    if (!workspace) return path;
+    const root = normalizePath(workspace.rootPath).replace(/\/+$/, '');
+    const normalizedPath = normalizePath(path);
+    return normalizedPath.startsWith(`${root}/`) ? normalizedPath.slice(root.length + 1) : path;
+  }
+
+  function copyAbsolutePath(menu: TreeContextMenu): void {
+    if (!menu.node) return;
+    void navigator.clipboard.writeText(menu.node.path).catch(console.error);
+    closeContextMenu();
+  }
+
+  function copyRelativePath(menu: TreeContextMenu): void {
+    if (!menu.node) return;
+    void navigator.clipboard.writeText(relativePath(menu.node.path)).catch(console.error);
+    closeContextMenu();
+  }
+
+  function revealInFolder(menu: TreeContextMenu): void {
+    if (!menu.node) return;
+    void window.api.file.revealInFolder(menu.node.path).catch(console.error);
+    closeContextMenu();
+  }
+
   return {
     clipboard,
     createInputRef,
@@ -139,5 +195,9 @@ export function useFileTreeOperations({
     copyNode,
     pasteNode,
     deleteNode,
+    renameNode,
+    copyAbsolutePath,
+    copyRelativePath,
+    revealInFolder,
   };
 }

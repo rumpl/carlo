@@ -49,6 +49,11 @@ export interface FileCopyRequest {
   destinationDirectory: string;
 }
 
+export interface FileRenameRequest {
+  path: string;
+  newName: string;
+}
+
 export interface FileOperationResult {
   path: string;
   uri: string;

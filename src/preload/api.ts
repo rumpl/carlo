@@ -6,6 +6,7 @@ import type {
   FileCreateRequest,
   FileDeleteRequest,
   FileOperationResult,
+  FileRenameRequest,
   FileTreeNode,
   GitBaselineResult,
   GitStatusResult,
@@ -70,6 +71,10 @@ export const api = Object.freeze({
       ipcRenderer.invoke(IPC.fileDelete, request) as Promise<{ ok: true }>,
     copy: (request: FileCopyRequest) =>
       ipcRenderer.invoke(IPC.fileCopy, request) as Promise<FileOperationResult>,
+    rename: (request: FileRenameRequest) =>
+      ipcRenderer.invoke(IPC.fileRename, request) as Promise<FileOperationResult>,
+    revealInFolder: (path: string) =>
+      ipcRenderer.invoke(IPC.fileRevealInFolder, { path }) as Promise<{ ok: true }>,
   },
   git: {
     baseline: (path: string) =>

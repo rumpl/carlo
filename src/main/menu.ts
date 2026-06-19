@@ -36,6 +36,14 @@ export function installAppMenu(): void {
     {
       label: 'Edit',
       submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' },
+        { type: 'separator' },
         { label: 'Find', accelerator: 'CmdOrCtrl+F', click: () => sendCommand('actions.find') },
         {
           label: 'Replace',

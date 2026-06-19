@@ -96,8 +96,21 @@ export function FileTree() {
             Paste{operations.clipboard ? ` “${operations.clipboard.name}”` : ''}
           </button>
           <div className="tree-context-separator" />
+          <button disabled={!contextMenu.node} onClick={() => operations.copyAbsolutePath(contextMenu)}>
+            Copy Path
+          </button>
+          <button disabled={!contextMenu.node} onClick={() => operations.copyRelativePath(contextMenu)}>
+            Copy Relative Path
+          </button>
+          <button disabled={!contextMenu.node} onClick={() => operations.revealInFolder(contextMenu)}>
+            Reveal in Finder
+          </button>
+          <div className="tree-context-separator" />
           <button onClick={() => operations.startCreate(contextMenu, 'file')}>New File…</button>
           <button onClick={() => operations.startCreate(contextMenu, 'directory')}>New Folder…</button>
+          <button disabled={!contextMenu.node} onClick={() => operations.renameNode(contextMenu)}>
+            Rename…
+          </button>
           <div className="tree-context-separator" />
           <button className="danger" disabled={!contextMenu.node} onClick={() => operations.deleteNode(contextMenu)}>
             Delete
