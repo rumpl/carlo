@@ -135,6 +135,11 @@ export function installAppMenu(): void {
           click: () => sendCommand('workbench.action.showCommands'),
         },
         {
+          label: 'Explorer',
+          accelerator: 'CmdOrCtrl+Shift+E',
+          click: () => sendCommand('workbench.explorer.toggle'),
+        },
+        {
           label: 'Find in Files…',
           accelerator: 'CmdOrCtrl+Shift+F',
           click: () => sendCommand('workbench.action.findInFiles'),

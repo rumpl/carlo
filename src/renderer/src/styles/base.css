@@ -117,6 +117,52 @@ input {
   color: color-mix(in srgb, var(--fg) 78%, transparent);
   font-size: 12px;
 }
+.activity-bar {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding-top: 6px;
+  border-right: 1px solid var(--border);
+  background: color-mix(in srgb, var(--panel) 88%, var(--bg));
+}
+.activity-bar-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: color-mix(in srgb, var(--fg) 62%, transparent);
+  cursor: pointer;
+}
+.activity-bar-button:hover,
+.activity-bar-button.active {
+  color: var(--fg);
+}
+.activity-bar-button.active::before {
+  content: '';
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 0;
+  width: 2px;
+  background: var(--accent);
+}
+.activity-bar-button svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
 .sidebar-resizer {
   z-index: 5;
   min-width: 4px;
@@ -133,7 +179,14 @@ input {
 .main-area {
   grid-row: 2;
 }
+.file-tree {
+  grid-column: 2;
+}
+.sidebar-resizer {
+  grid-column: 3;
+}
 .main-area {
+  grid-column: 4;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   min-width: 0;

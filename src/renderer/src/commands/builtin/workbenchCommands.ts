@@ -4,6 +4,7 @@ import { useEditorStore, activeTab } from '../../store/useEditorStore';
 import { useProblemsStore } from '../../store/useProblemsStore';
 import { useSearchStore } from '../../store/useSearchStore';
 import { useGitPanelStore } from '../../store/useGitPanelStore';
+import { useWorkbenchUiStore } from '../../store/useWorkbenchUiStore';
 import { registerCommand } from '../registry';
 
 export function registerWorkbenchCommands(): void {
@@ -20,6 +21,12 @@ export function registerWorkbenchCommands(): void {
     title: 'Search: Find in Files',
     keybinding: 'Ctrl+Shift+F',
     run: () => useSearchStore.getState().openSearch(),
+  });
+  registerCommand({
+    id: 'workbench.explorer.toggle',
+    title: 'View: Toggle Explorer',
+    keybinding: 'Ctrl+Shift+E',
+    run: () => useWorkbenchUiStore.getState().toggleSidebar(),
   });
   registerCommand({
     id: 'workbench.panel.problems.toggle',

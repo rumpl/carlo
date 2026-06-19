@@ -20,7 +20,6 @@ export function AppTitleBar() {
     const activeTabId = state.groups.find((group) => group.id === state.activeGroupId)?.activeTabId;
     return state.tabs.find((tab) => tab.id === activeTabId);
   });
-
   useEffect(() => {
     document.title = titleFromState();
   }, [activeTab?.title, activeTab?.dirty, workspaceName]);

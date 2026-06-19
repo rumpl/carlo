@@ -29,7 +29,11 @@ export function useKeybindings(): void {
         event.preventDefault();
         void runCommand('file.open');
       }
-      if (mod && event.shiftKey && event.key.toLowerCase() === 'f') {
+      if (mod && event.shiftKey && event.key.toLowerCase() === 'e') {
+        event.preventDefault();
+        event.stopPropagation();
+        void runCommand('workbench.explorer.toggle');
+      } else if (mod && event.shiftKey && event.key.toLowerCase() === 'f') {
         event.preventDefault();
         event.stopPropagation();
         void runCommand('workbench.action.findInFiles');
