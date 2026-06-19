@@ -8,6 +8,60 @@ interface Props {
   groupId: string;
 }
 
+function dirname(path: string): string {
+  return path.replace(/[\\/]+$/, '').replace(/[\\/][^\\/]*$/, '');
+}
+
+function isAbsoluteFilePath(path: string): boolean {
+  return path.startsWith('/') || /^[A-Za-z]:[\\/]/.test(path);
+}
+
+function pathToLocalResourceUrl(path: string): string {
+  const normalized = path.replaceAll('\\', '/');
+  const withLeadingSlash = normalized.startsWith('/') ? normalized : `/${normalized}`;
+  return `carlo-file://${withLeadingSlash.split('/').map((part) => encodeURIComponent(part)).join('/')}`;
+}
+
+function normalizePath(path: string): string {
+  const parts: string[] = [];
+  for (const part of path.replaceAll('\\', '/').split('/')) {
+    if (!part || part === '.') continue;
+    if (part === '..') parts.pop();
+    else parts.push(part);
+  }
+  return `${path.startsWith('/') ? '/' : ''}${parts.join('/')}`;
+}
+
+function localMarkdownAssetPath(markdownPath: string, url: string): string | undefined {
+  if (/^(https?|file|mailto|data):/i.test(url) || url.startsWith('#')) return undefined;
+
+  const suffixIndex = url.search(/[?#]/);
+  const pathPart = suffixIndex >= 0 ? url.slice(0, suffixIndex) : url;
+  if (!pathPart) return undefined;
+
+  let decodedPath = pathPart;
+  try {
+    decodedPath = decodeURI(pathPart);
+  } catch {
+    // Keep the original path if the markdown contains a malformed escape.
+  }
+  return isAbsoluteFilePath(decodedPath)
+    ? normalizePath(decodedPath)
+    : normalizePath(`${dirname(markdownPath)}/${decodedPath}`);
+}
+
+function resolveMarkdownUrl(markdownPath: string, url: string): string {
+  const localPath = localMarkdownAssetPath(markdownPath, url);
+  if (!localPath) return url;
+  const suffixIndex = url.search(/[?#]/);
+  const suffix = suffixIndex >= 0 ? url.slice(suffixIndex) : '';
+  return `${pathToLocalResourceUrl(localPath)}${suffix}`;
+}
+
+function markdownImageUrls(markdown: string): string[] {
+  return [...new Set([...markdown.matchAll(/!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)].map((match) => match[1]!).filter(Boolean))];
+}
+
 export function MarkdownPreview({ groupId }: Props) {
   const tab = useEditorStore((state) => {
     const activeTabId = state.groups.find((group) => group.id === groupId)?.activeTabId;
@@ -15,6 +69,7 @@ export function MarkdownPreview({ groupId }: Props) {
   });
   const sourceUri = tab ? sourceUriFromMarkdownPreviewUri(tab.uri) : undefined;
   const [content, setContent] = useState('');
+  const [imageDataUrls, setImageDataUrls] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -46,7 +101,46 @@ export function MarkdownPreview({ groupId }: Props) {
     };
   }, [sourceUri, tab]);
 
-  const html = useMemo(() => renderMarkdown(content), [content]);
+  useEffect(() => {
+    if (!tab) return;
+    let cancelled = false;
+    const entries = markdownImageUrls(content)
+      .map((url) => ({ url, path: localMarkdownAssetPath(tab.path, url) }))
+      .filter((entry): entry is { url: string; path: string } => Boolean(entry.path));
+
+    if (entries.length === 0) {
+      setImageDataUrls({});
+      return;
+    }
+
+    void Promise.all(
+      entries.map(async ({ url, path }) => {
+        try {
+          const result = await window.api.file.readDataUrl(path);
+          return [url, result.dataUrl] as const;
+        } catch (reason) {
+          console.error(`Could not load markdown image: ${path}`, reason);
+          return undefined;
+        }
+      }),
+    ).then((results) => {
+      if (cancelled) return;
+      setImageDataUrls(Object.fromEntries(results.filter((entry): entry is readonly [string, string] => Boolean(entry))));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [content, tab]);
+
+  const html = useMemo(
+    () =>
+      renderMarkdown(content, {
+        resolveUrl: (url) => resolveMarkdownUrl(tab?.path ?? '', url),
+        resolveImageUrl: (url) => imageDataUrls[url] ?? resolveMarkdownUrl(tab?.path ?? '', url),
+      }),
+    [content, imageDataUrls, tab?.path],
+  );
 
   if (!sourceUri || !tab) return <div className="markdown-preview empty">No markdown file selected.</div>;
 

@@ -8,6 +8,7 @@ export const IPC = {
   appInstallCommandLine: 'app:installCommandLine',
   fileOpenDialog: 'file:openDialog',
   fileRead: 'file:read',
+  fileReadDataUrl: 'file:readDataUrl',
   fileSave: 'file:save',
   fileSaveAsDialog: 'file:saveAsDialog',
   fileCreate: 'file:create',

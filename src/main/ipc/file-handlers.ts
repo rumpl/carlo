@@ -1,6 +1,6 @@
 import { dialog, ipcMain, shell } from 'electron';
 import { cp, mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
-import { basename, dirname, join } from 'node:path';
+import { basename, dirname, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { IPC } from '@shared/ipc';
 import { languageIdFromPath } from '@shared/language-registry';
@@ -30,6 +30,21 @@ import type {
 
 export { registerWindowWorkspace } from './workspace-state';
 
+const imageMimeTypes: Record<string, string> = {
+  '.apng': 'image/apng',
+  '.avif': 'image/avif',
+  '.gif': 'image/gif',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml',
+  '.webp': 'image/webp',
+};
+
+function mimeTypeForPath(path: string): string {
+  return imageMimeTypes[extname(path).toLowerCase()] ?? 'application/octet-stream';
+}
+
 export function registerFileHandlers(): void {
   ipcMain.handle(IPC.fileOpenDialog, async (event): Promise<OpenFileResult | null> => {
     const win = windowFromEvent(event);
@@ -48,6 +63,11 @@ export function registerFileHandlers(): void {
   ipcMain.handle(IPC.fileRead, async (_event, { path }: ReadFileRequest) => ({
     content: await readFile(path, 'utf8'),
   }));
+
+  ipcMain.handle(IPC.fileReadDataUrl, async (_event, { path }: ReadFileRequest) => {
+    const content = await readFile(path);
+    return { dataUrl: `data:${mimeTypeForPath(path)};base64,${content.toString('base64')}` };
+  });
 
   ipcMain.handle(IPC.fileSave, async (_event, { path, content }: SaveFileRequest) => {
     await writeFile(path, content, 'utf8');

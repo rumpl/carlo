@@ -8,9 +8,12 @@ import { registerFileHandlers } from './ipc/file-handlers';
 import { registerGitHandlers } from './ipc/git-handlers';
 import { registerLspHandlers } from './ipc/lsp-handlers';
 import { registerWindowHandlers } from './ipc/window-handlers';
+import { registerLocalResourceProtocol, registerLocalResourceScheme } from './local-resource-protocol';
 import { installAppMenu } from './menu';
 import { initialWorkspacePath } from './workspace';
 import { createWindow } from './window';
+
+registerLocalResourceScheme();
 
 const gotSingleInstanceLock = app.requestSingleInstanceLock();
 
@@ -35,6 +38,7 @@ if (!gotSingleInstanceLock) {
   });
 
   app.whenReady().then(() => {
+    registerLocalResourceProtocol();
     createWindow({ initialWorkspacePath: initialWorkspacePath() });
 
     app.on('activate', () => {

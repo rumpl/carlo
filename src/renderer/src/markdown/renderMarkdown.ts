@@ -7,23 +7,28 @@ function escapeHtml(value: string): string {
     .replaceAll("'", '&#39;');
 }
 
-function safeUrl(value: string): string | undefined {
+interface RenderMarkdownOptions {
+  resolveUrl?: (url: string) => string;
+  resolveImageUrl?: (url: string) => string;
+}
+
+function safeUrl(value: string, options: RenderMarkdownOptions): string | undefined {
   const trimmed = value.trim();
   if (!trimmed) return undefined;
   if (/^(javascript|data|vbscript):/i.test(trimmed)) return undefined;
-  return escapeHtml(trimmed);
+  return escapeHtml(options.resolveUrl?.(trimmed) ?? trimmed);
 }
 
-function inlineMarkdown(value: string): string {
+function inlineMarkdown(value: string, options: RenderMarkdownOptions): string {
   let html = escapeHtml(value);
 
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
   html = html.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g, (_match, alt: string, url: string) => {
-    const src = safeUrl(url);
+    const src = safeUrl(url, { ...options, resolveUrl: options.resolveImageUrl ?? options.resolveUrl });
     return src ? `<img src="${src}" alt="${alt}">` : alt;
   });
   html = html.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g, (_match, text: string, url: string) => {
-    const href = safeUrl(url);
+    const href = safeUrl(url, options);
     return href ? `<a href="${href}" rel="noreferrer">${text}</a>` : text;
   });
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
@@ -49,7 +54,7 @@ function isBlockStarter(line: string): boolean {
   );
 }
 
-export function renderMarkdown(markdown: string): string {
+export function renderMarkdown(markdown: string, options: RenderMarkdownOptions = {}): string {
   const lines = markdown.replace(/\r\n?/g, '\n').split('\n');
   const html: string[] = [];
 
@@ -75,7 +80,7 @@ export function renderMarkdown(markdown: string): string {
     const heading = /^(#{1,6})\s+(.*)$/.exec(line);
     if (heading) {
       const level = heading[1]!.length;
-      html.push(`<h${level}>${inlineMarkdown(heading[2]!.trim())}</h${level}>`);
+      html.push(`<h${level}>${inlineMarkdown(heading[2]!.trim(), options)}</h${level}>`);
       continue;
     }
 
@@ -90,14 +95,14 @@ export function renderMarkdown(markdown: string): string {
         index += 1;
         quote.push((lines[index] ?? '').replace(/^>\s?/, ''));
       }
-      html.push(`<blockquote>${renderMarkdown(quote.join('\n'))}</blockquote>`);
+      html.push(`<blockquote>${renderMarkdown(quote.join('\n'), options)}</blockquote>`);
       continue;
     }
 
     if (/^[-*+]\s+/.test(line)) {
       const items: string[] = [];
       while (index < lines.length && /^[-*+]\s+/.test(lines[index] ?? '')) {
-        items.push(`<li>${inlineMarkdown((lines[index] ?? '').replace(/^[-*+]\s+/, ''))}</li>`);
+        items.push(`<li>${inlineMarkdown((lines[index] ?? '').replace(/^[-*+]\s+/, ''), options)}</li>`);
         index += 1;
       }
       index -= 1;
@@ -108,7 +113,7 @@ export function renderMarkdown(markdown: string): string {
     if (/^\d+[.)]\s+/.test(line)) {
       const items: string[] = [];
       while (index < lines.length && /^\d+[.)]\s+/.test(lines[index] ?? '')) {
-        items.push(`<li>${inlineMarkdown((lines[index] ?? '').replace(/^\d+[.)]\s+/, ''))}</li>`);
+        items.push(`<li>${inlineMarkdown((lines[index] ?? '').replace(/^\d+[.)]\s+/, ''), options)}</li>`);
         index += 1;
       }
       index -= 1;
@@ -121,7 +126,7 @@ export function renderMarkdown(markdown: string): string {
       index += 1;
       paragraph.push((lines[index] ?? '').trim());
     }
-    html.push(`<p>${inlineMarkdown(paragraph.join(' '))}</p>`);
+    html.push(`<p>${inlineMarkdown(paragraph.join(' '), options)}</p>`);
   }
 
   return html.join('\n');

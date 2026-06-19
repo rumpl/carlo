@@ -15,6 +15,10 @@ export interface ReadFileResult {
   content: string;
 }
 
+export interface ReadFileDataUrlResult {
+  dataUrl: string;
+}
+
 export interface SaveFileRequest {
   path: string;
   content: string;

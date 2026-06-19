@@ -11,6 +11,7 @@ import type {
   GitBaselineResult,
   GitStatusResult,
   OpenFileResult,
+  ReadFileDataUrlResult,
   ReadFileResult,
   SaveAsDialogRequest,
   SaveAsDialogResult,
@@ -59,6 +60,8 @@ export const api = Object.freeze({
   file: {
     openDialog: () => ipcRenderer.invoke(IPC.fileOpenDialog) as Promise<OpenFileResult | null>,
     read: (path: string) => ipcRenderer.invoke(IPC.fileRead, { path }) as Promise<ReadFileResult>,
+    readDataUrl: (path: string) =>
+      ipcRenderer.invoke(IPC.fileReadDataUrl, { path }) as Promise<ReadFileDataUrlResult>,
     save: (request: SaveFileRequest) =>
       ipcRenderer.invoke(IPC.fileSave, request) as Promise<{ ok: true }>,
     saveAsDialog: (request: SaveAsDialogRequest) =>
