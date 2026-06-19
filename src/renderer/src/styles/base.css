@@ -15,6 +15,12 @@
   --git-untracked: #73c991;
   --git-ignored: #8c8c8c;
   --git-conflict: #e4676b;
+  --vscode-focusBorder: var(--accent);
+  --vscode-contrastActiveBorder: var(--accent);
+  --vscode-list-focusOutline: var(--accent);
+  --vscode-inputOption-activeBorder: var(--accent);
+  --vscode-inputValidation-infoBorder: var(--accent);
+  --vscode-inputValidation-warningBorder: var(--accent);
 }
 :root[data-theme='dark'] {
   --bg: #1e1e1e;

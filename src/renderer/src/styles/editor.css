@@ -222,6 +222,76 @@
   background: #f85149;
 }
 
+/* Monaco/VS Code quick input widgets use their own theme tokens. Keep quick
+   open / command palette aligned with Carlo instead of leaking bright default
+   focus colors from the bundled VS Code theme. */
+.monaco-workbench,
+.monaco-workbench-part,
+.quick-input-widget {
+  --vscode-focusBorder: var(--accent) !important;
+  --vscode-contrastActiveBorder: var(--accent) !important;
+  --vscode-list-focusOutline: var(--accent) !important;
+  --vscode-inputOption-activeBorder: var(--accent) !important;
+  --vscode-inputValidation-infoBorder: var(--accent) !important;
+  --vscode-inputValidation-warningBorder: var(--accent) !important;
+}
+.quick-input-widget {
+  border: 1px solid var(--border) !important;
+  background: var(--panel) !important;
+  color: var(--fg) !important;
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.45) !important;
+}
+.quick-input-widget .quick-input-header {
+  background: var(--panel) !important;
+}
+.quick-input-widget .quick-input-list,
+.quick-input-widget .monaco-list,
+.quick-input-widget .monaco-list-rows {
+  background: var(--panel) !important;
+  color: var(--fg) !important;
+}
+.quick-input-widget .monaco-inputbox {
+  border: 1px solid var(--border) !important;
+  outline: none !important;
+  background: var(--bg) !important;
+  color: var(--fg) !important;
+}
+.monaco-workbench .quick-input-widget .monaco-inputbox.synthetic-focus,
+.monaco-workbench .quick-input-widget .monaco-inputbox:focus-within,
+.quick-input-widget .monaco-inputbox.synthetic-focus,
+.quick-input-widget .monaco-inputbox:focus-within {
+  border-color: var(--accent) !important;
+  outline: 1px solid var(--accent) !important;
+  outline-color: var(--accent) !important;
+  outline-offset: -1px !important;
+  box-shadow: none !important;
+}
+.monaco-workbench .quick-input-widget input[type='text']:focus,
+.quick-input-widget input[type='text']:focus,
+.quick-input-widget textarea:focus {
+  border-color: var(--accent) !important;
+  outline-color: var(--accent) !important;
+  box-shadow: none !important;
+}
+.quick-input-widget .monaco-inputbox input,
+.quick-input-widget .monaco-inputbox textarea {
+  background: var(--bg) !important;
+  color: var(--fg) !important;
+}
+.quick-input-widget .monaco-list-row.focused,
+.quick-input-widget .monaco-list-row:hover {
+  background: var(--accent) !important;
+  color: white !important;
+}
+.quick-input-widget .monaco-list-row.focused .monaco-highlighted-label,
+.quick-input-widget .monaco-list-row.focused .monaco-keybinding,
+.quick-input-widget .monaco-list-row.focused .quick-input-list-entry-keybinding,
+.quick-input-widget .monaco-list-row:hover .monaco-highlighted-label,
+.quick-input-widget .monaco-list-row:hover .monaco-keybinding,
+.quick-input-widget .monaco-list-row:hover .quick-input-list-entry-keybinding {
+  color: white !important;
+}
+
 /* Monaco's references peek uses a horizontal split view. Long reference lines
    can make the split view's internal scroller pan horizontally, which looks like
    the preview pane is shrinking while the result list grows. Keep overflow
