@@ -1,19 +1,19 @@
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
-}
-
-body {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #1e1e1e;
-  color: #f5f5f5;
-}
-
-.hello-shell {
-  display: grid;
-  min-height: 100%;
-  place-content: center;
-  text-align: center;
-}
+:root { --bg: #1e1e1e; --fg: #d4d4d4; --panel: #252526; --panel2: #2d2d2d; --border: #3c3c3c; --accent: #0e639c; }
+:root[data-theme='light'] { --bg: #ffffff; --fg: #1f1f1f; --panel: #f3f3f3; --panel2: #ececec; --border: #d4d4d4; --accent: #006ab1; }
+html, body, #root { height: 100%; margin: 0; overflow: hidden; }
+body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--fg); }
+button, input { font: inherit; }
+.app-shell { display: grid; grid-template-rows: 34px minmax(0, 1fr) 24px; height: 100%; background: var(--bg); color: var(--fg); }
+.tab-bar { display: flex; align-items: stretch; overflow-x: auto; background: var(--panel); border-bottom: 1px solid var(--border); }
+.tab { display: flex; align-items: center; gap: 10px; max-width: 220px; padding: 0 10px; border: 0; border-right: 1px solid var(--border); background: var(--panel); color: var(--fg); cursor: pointer; }
+.tab.active { background: var(--bg); box-shadow: inset 0 2px 0 var(--accent); }
+.tab-close { opacity: .75; font-weight: 700; }
+.editor-host { min-height: 0; }
+.status-bar { display: flex; gap: 18px; align-items: center; padding: 0 10px; background: var(--accent); color: #fff; font-size: 12px; }
+.palette-backdrop { position: fixed; inset: 0; z-index: 50; display: flex; justify-content: center; align-items: flex-start; padding-top: 10vh; background: rgba(0,0,0,.25); }
+.palette { width: min(720px, 80vw); border: 1px solid var(--border); background: var(--panel); box-shadow: 0 20px 80px rgba(0,0,0,.45); }
+.palette input { box-sizing: border-box; width: 100%; padding: 12px 14px; border: 0; border-bottom: 1px solid var(--border); outline: none; background: var(--bg); color: var(--fg); }
+.palette-list { max-height: 420px; overflow: auto; }
+.palette-list button { display: flex; justify-content: space-between; width: 100%; padding: 10px 14px; border: 0; background: transparent; color: var(--fg); text-align: left; }
+.palette-list button.selected, .palette-list button:hover { background: var(--accent); color: white; }
+kbd { opacity: .7; }

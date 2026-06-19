@@ -1,7 +1,7 @@
 export const LANGUAGE_SERVERS = {
   typescript: { command: 'typescript-language-server', args: ['--stdio'] },
   javascript: { command: 'typescript-language-server', args: ['--stdio'] },
-  json: { command: 'vscode-json-languageserver', args: ['--stdio'] },
+  json: { command: 'vscode-json-language-server', args: ['--stdio'] },
   plaintext: null,
 } as const;
 

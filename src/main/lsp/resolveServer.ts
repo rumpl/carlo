@@ -1,6 +1,6 @@
 import { app } from 'electron';
 import { accessSync, constants } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LANGUAGE_SERVERS, type ServerLanguageId } from '@shared/language-registry';
 
@@ -32,6 +32,6 @@ export function resolveServer(languageId: ServerLanguageId, rootUri: string): Re
     join(process.resourcesPath ?? '', 'app.asar.unpacked', 'node_modules', '.bin', binName(commandName)),
   ];
   const command = candidates.find(canExecute) ?? commandName;
-  const cwd = rootUri.startsWith('file://') ? dirname(fileURLToPath(rootUri)) : undefined;
+  const cwd = rootUri.startsWith('file://') ? fileURLToPath(rootUri) : undefined;
   return { command, args: [...server.args], cwd };
 }
