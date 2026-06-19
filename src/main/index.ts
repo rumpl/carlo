@@ -1,5 +1,8 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
+import { IPC } from '@shared/ipc';
 import { createWindow } from './window';
+
+ipcMain.handle(IPC.ping, () => 'pong');
 
 app.whenReady().then(() => {
   createWindow();

@@ -1,3 +1,4 @@
 import { contextBridge } from 'electron';
+import { api } from './api';
 
-contextBridge.exposeInMainWorld('api', Object.freeze({ version: '0.1.0' }));
+contextBridge.exposeInMainWorld('api', api);
