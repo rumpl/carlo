@@ -62,6 +62,16 @@ export function useKeybindings(): void {
         event.stopPropagation();
         void runCommand('workbench.action.splitEditorDown');
       }
+      if (mod && event.shiftKey && event.key.toLowerCase() === 'm') {
+        event.preventDefault();
+        event.stopPropagation();
+        void runCommand('workbench.panel.problems.toggle');
+      }
+      if (event.key === 'F8') {
+        event.preventDefault();
+        event.stopPropagation();
+        void runCommand(event.shiftKey ? 'editor.action.marker.prev' : 'editor.action.marker.next');
+      }
       if (mod && event.code === 'Space') {
         event.preventDefault();
         void runCommand('editor.action.triggerSuggest');

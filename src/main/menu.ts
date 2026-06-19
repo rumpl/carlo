@@ -35,6 +35,11 @@ export function installAppMenu(): void {
           accelerator: 'CmdOrCtrl+Shift+P',
           click: () => sendCommand('workbench.action.showCommands'),
         },
+        {
+          label: 'Problems',
+          accelerator: 'CmdOrCtrl+Shift+M',
+          click: () => sendCommand('workbench.panel.problems.toggle'),
+        },
         { type: 'separator' },
         { role: 'toggleDevTools' },
       ],

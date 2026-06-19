@@ -8,6 +8,8 @@ import { showNativeQuickOpen } from '../quickopen/nativeQuickOpen';
 import { showThemeSelector } from '../quickopen/themeSelector';
 import { activeTab, useEditorStore } from '../store/useEditorStore';
 import { useSettingsStore } from '../store/useSettingsStore';
+import { useProblemsStore } from '../store/useProblemsStore';
+import { navigateProblem } from '../problems/navigation';
 import { registerCommand } from './registry';
 
 function titleFromPath(path: string): string {
@@ -192,6 +194,24 @@ export function registerBuiltinCommands(): void {
     },
   });
   registerCommand({ id: 'file.saveAs', title: 'Save As', keybinding: 'Ctrl+Shift+S', run: saveAs });
+  registerCommand({
+    id: 'workbench.panel.problems.toggle',
+    title: 'View: Toggle Problems',
+    keybinding: 'Ctrl+Shift+M',
+    run: () => useProblemsStore.getState().toggleProblems(),
+  });
+  registerCommand({
+    id: 'editor.action.marker.next',
+    title: 'Go to Next Problem',
+    keybinding: 'F8',
+    run: () => navigateProblem('next'),
+  });
+  registerCommand({
+    id: 'editor.action.marker.prev',
+    title: 'Go to Previous Problem',
+    keybinding: 'Shift+F8',
+    run: () => navigateProblem('previous'),
+  });
   registerCommand({
     id: 'preferences.openSettings',
     title: 'Preferences: Open Settings',

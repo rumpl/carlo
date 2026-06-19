@@ -9,10 +9,12 @@ import { useWorkspaceExternalChanges } from './hooks/useWorkspaceExternalChanges
 import { useEditorStore } from './store/useEditorStore';
 import { useSettingsStore } from './store/useSettingsStore';
 import { useThemeStore } from './store/useThemeStore';
+import { useProblemsStore } from './store/useProblemsStore';
 
 const minSidebarWidth = 180;
 const maxSidebarWidth = 560;
 const MonacoEditor = lazy(() => import('./editor/MonacoEditor').then((module) => ({ default: module.MonacoEditor })));
+const ProblemsPanel = lazy(() => import('./components/ProblemsPanel').then((module) => ({ default: module.ProblemsPanel })));
 
 function initialSidebarWidth(): number {
   const stored = Number(localStorage.getItem('carlo.sidebarWidth'));
@@ -29,17 +31,20 @@ export function App() {
   const groups = useEditorStore((state) => state.groups);
   const splitDirection = useEditorStore((state) => state.splitDirection);
   const [sidebarWidth, setSidebarWidth] = useState(initialSidebarWidth);
+  const problemsOpen = useProblemsStore((state) => state.isOpen);
   useEffect(() => {
     useThemeStore.getState().setTheme(useThemeStore.getState().themeId);
     void useSettingsStore.getState().loadSettings().catch(console.error);
     void ensureVscodeServices()
       .then(async () => {
-        const [{ registerBuiltinCommands }, { registerEditorOpener }] = await Promise.all([
+        const [{ registerBuiltinCommands }, { registerEditorOpener }, { startProblemsSync }] = await Promise.all([
           import('./commands/builtinCommands'),
           import('./editor/editorOpener'),
+          import('./problems/sync'),
         ]);
         registerBuiltinCommands();
         registerEditorOpener();
+        startProblemsSync();
       })
       .catch(console.error);
   }, []);
@@ -66,15 +71,22 @@ export function App() {
           }
         }}
       />
-      <div className={`workbench split-${splitDirection}`}>
-        {groups.map((group) => (
-          <section className="editor-group" key={group.id}>
-            <TabBar groupId={group.id} />
-            <Suspense fallback={<div className="editor-stack" />}>
-              <MonacoEditor groupId={group.id} />
-            </Suspense>
-          </section>
-        ))}
+      <div className="main-area">
+        <div className={`workbench split-${splitDirection}`}>
+          {groups.map((group) => (
+            <section className="editor-group" key={group.id}>
+              <TabBar groupId={group.id} />
+              <Suspense fallback={<div className="editor-stack" />}>
+                <MonacoEditor groupId={group.id} />
+              </Suspense>
+            </section>
+          ))}
+        </div>
+        {problemsOpen ? (
+          <Suspense fallback={null}>
+            <ProblemsPanel />
+          </Suspense>
+        ) : null}
       </div>
       <StatusBar />
       <SettingsPanel />

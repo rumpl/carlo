@@ -98,6 +98,13 @@ input {
 .sidebar-resizer:active {
   background: var(--accent);
 }
+.main-area {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
 .workbench {
   display: flex;
   min-width: 0;
@@ -356,8 +363,131 @@ input {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.status-button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.status-button:hover {
+  text-decoration: underline;
+}
 .status-spacer {
   flex: 1;
+}
+.problems-panel {
+  display: grid;
+  grid-template-rows: 32px minmax(0, 1fr);
+  height: min(240px, 34vh);
+  min-height: 120px;
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+}
+.problems-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel2);
+}
+.problems-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.problems-summary {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  opacity: 0.9;
+}
+.problem-count {
+  white-space: nowrap;
+}
+.problems-close {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+}
+.problems-close:hover {
+  color: var(--accent);
+}
+.problems-body {
+  min-height: 0;
+  overflow: auto;
+  padding: 6px 0;
+  font-family: var(--tree-view-font-family);
+  font-size: 12px;
+}
+.problems-empty {
+  padding: 18px;
+  opacity: 0.7;
+}
+.problem-file-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  color: color-mix(in srgb, var(--fg) 82%, transparent);
+  font-weight: 700;
+}
+.problem-file-title span {
+  opacity: 0.65;
+}
+.problem-file ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.problem-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) minmax(70px, auto) 64px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 12px 4px 24px;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+}
+.problem-row:hover {
+  background: var(--panel2);
+}
+.problem-message,
+.problem-source,
+.problem-location {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.problem-source,
+.problem-location {
+  opacity: 0.66;
+}
+.problem-severity-error .problem-icon,
+.problem-severity-error.problem-count {
+  color: #f14c4c;
+}
+.problem-severity-warning .problem-icon,
+.problem-severity-warning.problem-count {
+  color: #cca700;
+}
+.problem-severity-info .problem-icon,
+.problem-severity-info.problem-count,
+.problem-severity-hint .problem-icon {
+  color: #3794ff;
 }
 .file-tree {
   min-width: 0;
