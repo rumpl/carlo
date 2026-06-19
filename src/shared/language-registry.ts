@@ -1,5 +1,3 @@
-import rawDefaultLanguageConfig from './language-config.json';
-
 export interface LanguageServerConfig {
   command: string;
   args: string[];
@@ -13,14 +11,28 @@ export interface LanguageConfig {
 export type LanguageId = string;
 export type ServerLanguageId = string;
 
-function unwrapJsonImport(value: unknown): Partial<LanguageConfig> {
-  if (value && typeof value === 'object' && 'default' in value) {
-    return (value as { default: Partial<LanguageConfig> }).default;
-  }
-  return value as Partial<LanguageConfig>;
-}
+const defaultLanguageConfig: LanguageConfig = {
+  languageServers: {
+    typescript: { command: 'typescript-language-server', args: ['--stdio'] },
+    typescriptreact: { command: 'typescript-language-server', args: ['--stdio'] },
+    javascript: { command: 'typescript-language-server', args: ['--stdio'] },
+    javascriptreact: { command: 'typescript-language-server', args: ['--stdio'] },
+    json: { command: 'vscode-json-languageserver', args: ['--stdio'] },
+    go: { command: 'gopls', args: [] },
+    rust: { command: 'rust-analyzer', args: [] },
+    plaintext: null,
+  },
+  extensions: {
+    '.ts': 'typescript',
+    '.tsx': 'typescriptreact',
+    '.js': 'javascript',
+    '.jsx': 'javascriptreact',
+    '.json': 'json',
+    '.go': 'go',
+    '.rs': 'rust',
+  },
+};
 
-const defaultLanguageConfig = unwrapJsonImport(rawDefaultLanguageConfig);
 let languageConfig: LanguageConfig = normalizeLanguageConfig(defaultLanguageConfig);
 
 function normalizeLanguageConfig(config: Partial<LanguageConfig>): LanguageConfig {
@@ -63,7 +75,15 @@ export function languageServerFor(languageId: LanguageId): LanguageServerConfig 
 export function languageIdFromPath(filePath: string): LanguageId {
   const dot = filePath.lastIndexOf('.');
   const extension = dot >= 0 ? filePath.slice(dot).toLowerCase() : '';
-  return languageConfig.extensions[extension] ?? 'plaintext';
+  const languageId = languageConfig.extensions[extension] ?? 'plaintext';
+
+  // Older generated configs mapped JSX-bearing extensions to the plain TS/JS
+  // language ids. Upgrade those legacy values at lookup time so Monaco and the
+  // TypeScript LSP parse JSX syntax correctly.
+  if (extension === '.tsx' && languageId === 'typescript') return 'typescriptreact';
+  if (extension === '.jsx' && languageId === 'javascript') return 'javascriptreact';
+
+  return languageId;
 }
 
 export function hasLanguageServer(languageId: LanguageId): languageId is ServerLanguageId {

@@ -1,7 +1,7 @@
-import { BrowserWindow, nativeTheme } from 'electron';
-import { is } from '@electron-toolkit/utils';
+import { BrowserWindow, app, nativeTheme } from 'electron';
 import { join } from 'node:path';
 import { IPC } from '@shared/ipc';
+import { registerCliHandlers } from './ipc/cli-handlers';
 import { registerConfigHandlers } from './ipc/config-handlers';
 import { registerFileHandlers } from './ipc/file-handlers';
 import { registerGitHandlers } from './ipc/git-handlers';
@@ -26,6 +26,7 @@ export function createWindow(): BrowserWindow {
     },
   });
 
+  registerCliHandlers();
   registerConfigHandlers();
   registerFileHandlers(win);
   registerGitHandlers();
@@ -36,7 +37,7 @@ export function createWindow(): BrowserWindow {
     win.webContents.send(IPC.themeOsChanged, { shouldUseDark: nativeTheme.shouldUseDarkColors }),
   );
 
-  if (is.dev && process.env.ELECTRON_RENDERER_URL) {
+  if (!app.isPackaged && process.env.ELECTRON_RENDERER_URL) {
     void win.loadURL(process.env.ELECTRON_RENDERER_URL);
   } else {
     void win.loadFile(join(__dirname, '../renderer/index.html'));

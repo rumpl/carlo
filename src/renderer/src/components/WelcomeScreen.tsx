@@ -54,7 +54,6 @@ export function WelcomeScreen() {
   return (
     <div className="welcome-screen">
       <div className="welcome-card">
-        <p className="welcome-kicker">Welcome to</p>
         <h1>Carlo</h1>
         <figure className="welcome-quote">
           <blockquote>{quote.text}</blockquote>

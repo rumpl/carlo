@@ -45,15 +45,9 @@ function scriptCandidates(command: string): string[] {
       join(root, 'node_modules', 'typescript-language-server', 'lib', 'cli.mjs'),
     );
   }
-  if (command === 'vscode-json-language-server') {
+  if (command === 'vscode-json-languageserver') {
     return roots.map((root) =>
-      join(
-        root,
-        'node_modules',
-        'vscode-langservers-extracted',
-        'bin',
-        'vscode-json-language-server',
-      ),
+      join(root, 'node_modules', 'vscode-json-languageserver', 'bin', 'vscode-json-languageserver'),
     );
   }
   return [];

@@ -8,5 +8,6 @@ export function initialWorkspacePath(): string {
     .map((arg) => resolve(arg))
     .filter((path) => existsSync(path) && statSync(path).isDirectory());
 
-  return candidates.at(-1) ?? process.cwd();
+  if (candidates.length > 0) return candidates.at(-1)!;
+  return process.cwd();
 }

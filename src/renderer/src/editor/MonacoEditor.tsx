@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as monaco from '@codingame/monaco-vscode-editor-api';
 import { WelcomeScreen } from '../components/WelcomeScreen';
 import { activeTabInGroup, useEditorStore } from '../store/useEditorStore';
-import { editorOptions } from './editorOptions';
+import { editorOptions, softWrapEnabled } from './editorOptions';
 import { updateGitGutter } from './gitGutter';
 import { getModel, isApplyingExternalContentUpdate } from './models';
 import { recordNavigationLocation } from './navigationHistory';
@@ -12,6 +12,12 @@ let activeEditor: monaco.editor.IStandaloneCodeEditor | null = null;
 
 export function getEditor(): monaco.editor.IStandaloneCodeEditor | null {
   return activeEditor ?? editors.values().next().value ?? null;
+}
+
+export function setEditorsSoftWrap(enabled = softWrapEnabled()): void {
+  for (const editor of editors.values()) {
+    editor.updateOptions({ wordWrap: enabled ? 'on' : 'off' });
+  }
 }
 
 export function refreshVisibleGitGuttersForPath(path: string): void {

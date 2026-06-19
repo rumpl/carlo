@@ -28,7 +28,7 @@ function ensureWorkspaceWatcher(win: BrowserWindow, rootPath: string): void {
   workspaceWatcher?.close();
   watchedRootPath = rootPath;
   try {
-    workspaceWatcher = watch(rootPath, { recursive: true }, (eventType, filename) => {
+    workspaceWatcher = watch(rootPath, (eventType, filename) => {
       const relativePath = filename?.toString();
       if (relativePath && isIgnoredWatchPath(relativePath)) return;
       const path = relativePath ? join(rootPath, relativePath) : undefined;
@@ -41,7 +41,7 @@ function ensureWorkspaceWatcher(win: BrowserWindow, rootPath: string): void {
   }
 }
 
-async function listTree(rootPath: string, depth = 0): Promise<FileTreeNode[]> {
+async function listTree(rootPath: string, options: { recursive?: boolean } = {}): Promise<FileTreeNode[]> {
   const entries = await readdir(rootPath, { withFileTypes: true });
   const visibleEntries = entries
     .filter((entry) => !ignoredNames.has(entry.name))
@@ -59,7 +59,7 @@ async function listTree(rootPath: string, depth = 0): Promise<FileTreeNode[]> {
         uri: pathToFileURL(path).toString(),
         type: isDirectory ? 'directory' : 'file',
         children:
-          isDirectory && depth < 8 ? await listTree(path, depth + 1).catch(() => []) : undefined,
+          isDirectory && options.recursive ? await listTree(path, options).catch(() => []) : undefined,
       } satisfies FileTreeNode;
     }),
   );
@@ -121,8 +121,18 @@ export function registerFileHandlers(win: BrowserWindow): void {
     return { rootPath, rootUri: pathToFileURL(rootPath).toString(), name: basename(rootPath) };
   });
 
-  ipcMain.handle(IPC.workspaceListTree, async (_event, { rootPath }: { rootPath: string }) => {
-    ensureWorkspaceWatcher(win, rootPath);
-    return { children: await listTree(rootPath) };
-  });
+  ipcMain.handle(
+    IPC.workspaceListTree,
+    async (
+      _event,
+      {
+        rootPath,
+        watch: shouldWatch = true,
+        recursive = false,
+      }: { rootPath: string; watch?: boolean; recursive?: boolean },
+    ) => {
+      if (shouldWatch) ensureWorkspaceWatcher(win, rootPath);
+      return { children: await listTree(rootPath, { recursive }) };
+    },
+  );
 }

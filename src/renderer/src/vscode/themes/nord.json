@@ -35,7 +35,24 @@
     "sideBar.background": "#3B4252",
     "sideBar.foreground": "#D8DEE9",
     "statusBar.background": "#5E81AC",
-    "statusBar.foreground": "#ECEFF4"
+    "statusBar.foreground": "#ECEFF4",
+
+    "peekView.border": "#5E81AC",
+    "peekViewTitle.background": "#3B4252",
+    "peekViewTitleLabel.foreground": "#ECEFF4",
+    "peekViewTitleDescription.foreground": "#D8DEE999",
+    "peekViewResult.background": "#2E3440",
+    "peekViewResult.lineForeground": "#D8DEE9",
+    "peekViewResult.fileForeground": "#ECEFF4",
+    "peekViewResult.selectionBackground": "#434C5E",
+    "peekViewResult.selectionForeground": "#ECEFF4",
+    "peekViewResult.matchHighlightBackground": "#D0877066",
+    "peekViewEditor.background": "#2E3440",
+    "peekViewEditorGutter.background": "#2E3440",
+    "peekViewEditorStickyScroll.background": "#2E3440",
+    "peekViewEditorStickyScrollGutter.background": "#2E3440",
+    "peekViewEditor.matchHighlightBackground": "#EBCB8B66",
+    "peekViewEditor.matchHighlightBorder": "#EBCB8B"
   },
   "tokenColors": [
     {

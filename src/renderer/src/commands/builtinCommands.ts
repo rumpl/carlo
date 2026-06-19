@@ -1,4 +1,5 @@
-import { getEditor } from '../editor/MonacoEditor';
+import { getEditor, setEditorsSoftWrap } from '../editor/MonacoEditor';
+import { toggleSoftWrapEnabled } from '../editor/editorOptions';
 import { getOrCreateModel, getModel, replaceModelUri } from '../editor/models';
 import { ensureLanguageClient, restartLanguageClient } from '../lsp/LanguageClientService';
 import { navigateBack, navigateForward } from '../editor/navigationHistory';
@@ -69,6 +70,28 @@ async function openLanguageConfig(): Promise<void> {
   useEditorStore.getState().openFile({ uri, path, languageId: 'json', title: titleFromPath(path) });
 }
 
+function toggleSoftWrap(): void {
+  setEditorsSoftWrap(toggleSoftWrapEnabled());
+}
+
+async function installCommandLine(): Promise<void> {
+  const result = await window.api.app.installCommandLine();
+  if (result.ok) {
+    window.alert(
+      [`Installed the 'carlo' shell command at:`, result.path, result.warning]
+        .filter(Boolean)
+        .join('\n\n'),
+    );
+    return;
+  }
+
+  window.alert(
+    [`Could not install the 'carlo' shell command.`, result.error, result.instructions]
+      .filter(Boolean)
+      .join('\n\n'),
+  );
+}
+
 export function registerBuiltinCommands(): void {
   registerCommand({
     id: 'workbench.action.showCommands',
@@ -84,6 +107,11 @@ export function registerBuiltinCommands(): void {
   });
   registerCommand({ id: 'file.open', title: 'Open File', keybinding: 'Ctrl+O', run: openFile });
   registerCommand({
+    id: 'app.installCommandLine',
+    title: "Shell Command: Install 'carlo' Command in PATH",
+    run: installCommandLine,
+  });
+  registerCommand({
     id: 'workspace.openFolder',
     title: 'Open Folder',
     run: async () => {
@@ -92,6 +120,11 @@ export function registerBuiltinCommands(): void {
     },
   });
   registerCommand({ id: 'file.save', title: 'Save', keybinding: 'Ctrl+S', run: saveFile });
+  registerCommand({
+    id: 'editor.toggleSoftWrap',
+    title: 'Editor: Toggle Soft Wrap',
+    run: toggleSoftWrap,
+  });
   registerCommand({
     id: 'window.zoomIn',
     title: 'Zoom In',

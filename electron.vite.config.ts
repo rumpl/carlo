@@ -55,6 +55,6 @@ export default defineConfig({
     },
     worker: { format: 'es' },
     build: { target: 'esnext', rollupOptions: { input: resolve('src/renderer/index.html') } },
-    assetsInclude: ['**/*.wasm', '**/*.json'],
+    assetsInclude: ['**/*.wasm'],
   },
 });

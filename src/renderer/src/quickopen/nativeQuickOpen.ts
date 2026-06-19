@@ -70,7 +70,10 @@ export async function showNativeQuickOpen(): Promise<void> {
   ];
 
   try {
-    const tree = await window.api.workspace.listTree(workspace.rootPath);
+    const tree = await window.api.workspace.listTree(workspace.rootPath, {
+      recursive: true,
+      watch: false,
+    });
     picker.items = flatten(tree.children, workspace.rootPath);
   } catch (error) {
     picker.items = [{ label: 'Failed to load workspace files', description: error instanceof Error ? error.message : String(error), path: '', uri: '' }];

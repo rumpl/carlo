@@ -44,7 +44,10 @@ export function QuickOpen() {
     if (!workspace) return;
     setLoading(true);
     try {
-      const tree = await window.api.workspace.listTree(workspace.rootPath);
+      const tree = await window.api.workspace.listTree(workspace.rootPath, {
+        recursive: true,
+        watch: false,
+      });
       setFiles(flatten(tree.children, workspace.rootPath));
       setSelected(0);
     } finally {

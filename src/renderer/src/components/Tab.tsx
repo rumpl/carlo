@@ -22,7 +22,7 @@ export function Tab({ tab, active, onSelect, onClose }: Props) {
       }}
       title={tab.path}
     >
-      <span>
+      <span className="tab-title">
         {tab.title}
         {tab.dirty ? ' •' : ''}
       </span>

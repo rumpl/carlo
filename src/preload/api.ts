@@ -32,6 +32,13 @@ const on = <T>(channel: string, cb: (payload: T) => void) => {
 
 export const api = Object.freeze({
   ping: () => ipcRenderer.invoke(IPC.ping) as Promise<string>,
+  app: {
+    installCommandLine: () =>
+      ipcRenderer.invoke(IPC.appInstallCommandLine) as Promise<
+        | { ok: true; path: string; warning?: string }
+        | { ok: false; error: string; instructions?: string }
+      >,
+  },
   config: {
     language: () => ipcRenderer.invoke(IPC.configLanguage) as Promise<LanguageConfig>,
     languagePath: () => ipcRenderer.invoke(IPC.configLanguagePath) as Promise<{ path: string }>,
@@ -58,8 +65,8 @@ export const api = Object.freeze({
       ipcRenderer.invoke(IPC.workspaceOpenFolderDialog) as Promise<WorkspaceFolderResult | null>,
     currentFolder: () =>
       ipcRenderer.invoke(IPC.workspaceCurrentFolder) as Promise<WorkspaceFolderResult>,
-    listTree: (rootPath: string) =>
-      ipcRenderer.invoke(IPC.workspaceListTree, { rootPath }) as Promise<{
+    listTree: (rootPath: string, options?: { watch?: boolean; recursive?: boolean }) =>
+      ipcRenderer.invoke(IPC.workspaceListTree, { rootPath, ...options }) as Promise<{
         children: FileTreeNode[];
       }>,
     onChanged: (cb: (event: WorkspaceChangedEvent) => void) =>

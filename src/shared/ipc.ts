@@ -2,6 +2,7 @@ export const IPC = {
   ping: 'app:ping',
   configLanguage: 'config:language',
   configLanguagePath: 'config:languagePath',
+  appInstallCommandLine: 'app:installCommandLine',
   fileOpenDialog: 'file:openDialog',
   fileRead: 'file:read',
   fileSave: 'file:save',

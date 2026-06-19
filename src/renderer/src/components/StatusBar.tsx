@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from 'react';
 import { activeTab, useEditorStore } from '../store/useEditorStore';
-import { useThemeStore } from '../store/useThemeStore';
 import {
   lspStatus,
   lspStatusDetail,
@@ -8,21 +7,29 @@ import {
   subscribeLspStatus,
 } from '../lsp/LanguageClientService';
 
+const lspIcons: Record<string, string> = {
+  running: '●',
+  starting: '◐',
+  stopped: '○',
+  error: '×',
+  unavailable: '—',
+};
+
 export function StatusBar() {
   useSyncExternalStore(subscribeLspStatus, lspStatusVersion);
   useEditorStore((state) => state.activeTabId);
-  const theme = useThemeStore((state) => state.themeId);
   const tab = activeTab();
   const lsp = tab ? lspStatus(tab.languageId) : 'stopped';
   const lspDetail = tab ? lspStatusDetail(tab.languageId) : undefined;
   return (
     <footer className="status-bar">
-      <span className="status-item">{tab?.languageId ?? 'no file'}</span>
-      <span className="status-item" title={lspDetail}>
-        LSP: {lsp}
-      </span>
       <span className="status-spacer" />
-      <span className="status-item">{theme}</span>
+      <span className={`status-item lsp-status lsp-status-${lsp}`} title={lspDetail ?? `LSP: ${lsp}`}>
+        <span className="lsp-status-icon" aria-hidden="true">
+          {lspIcons[lsp] ?? '○'}
+        </span>
+        <span>LSP: {lsp}</span>
+      </span>
     </footer>
   );
 }

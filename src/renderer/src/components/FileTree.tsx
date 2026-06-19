@@ -1,4 +1,4 @@
-import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { icons } from '@iconify-json/vscode-icons';
 import type { IconifyIcon } from '@iconify/types';
 import type { FileTreeNode } from '@shared/file-types';
@@ -43,14 +43,14 @@ function TreeNode({
   depth,
   activePath,
   expandedPaths,
-  setExpandedPaths,
+  onToggleDirectory,
   onOpenFile,
 }: {
   node: FileTreeNode;
   depth: number;
   activePath: string | undefined;
   expandedPaths: Set<string>;
-  setExpandedPaths: Dispatch<SetStateAction<Set<string>>>;
+  onToggleDirectory: (node: FileTreeNode) => void;
   onOpenFile: (node: FileTreeNode) => void;
 }) {
   const expanded = expandedPaths.has(node.path);
@@ -62,16 +62,7 @@ function TreeNode({
         className={`tree-row ${isDirectory ? 'directory' : 'file'} ${node.path === activePath ? 'active' : ''}`}
         data-tree-path={node.path}
         style={{ paddingLeft: 8 + depth * 14 }}
-        onClick={() =>
-          isDirectory
-            ? setExpandedPaths((paths) => {
-                const next = new Set(paths);
-                if (next.has(node.path)) next.delete(node.path);
-                else next.add(node.path);
-                return next;
-              })
-            : onOpenFile(node)
-        }
+        onClick={() => (isDirectory ? onToggleDirectory(node) : onOpenFile(node))}
         title={node.path}
       >
         <span className="tree-chevron">{isDirectory ? (expanded ? '▾' : '▸') : ''}</span>
@@ -87,7 +78,7 @@ function TreeNode({
               depth={depth + 1}
               activePath={activePath}
               expandedPaths={expandedPaths}
-              setExpandedPaths={setExpandedPaths}
+              onToggleDirectory={onToggleDirectory}
               onOpenFile={onOpenFile}
             />
           ))}
@@ -97,23 +88,55 @@ function TreeNode({
   );
 }
 
-function initiallyExpanded(nodes: FileTreeNode[]): Set<string> {
-  return new Set(nodes.filter((node) => node.type === 'directory').map((node) => node.path));
+function replaceNodeChildren(
+  nodes: FileTreeNode[],
+  targetPath: string,
+  children: FileTreeNode[],
+): FileTreeNode[] {
+  return nodes.map((node) => {
+    if (node.path === targetPath) return { ...node, children };
+    if (node.type !== 'directory' || !node.children) return node;
+    return { ...node, children: replaceNodeChildren(node.children, targetPath, children) };
+  });
 }
 
 function isGitMetadataPath(path: string): boolean {
   return path.split(/[\\/]/).includes('.git');
 }
 
-function ancestorDirectories(
-  nodes: FileTreeNode[],
-  targetPath: string,
-  ancestors: string[] = [],
-): string[] | undefined {
+function normalizePath(path: string): string {
+  return path.replaceAll('\\', '/').replace(/\/+$/, '');
+}
+
+function ancestorDirectories(rootPath: string, targetPath: string): string[] {
+  const normalizedRoot = normalizePath(rootPath);
+  const normalizedTarget = normalizePath(targetPath);
+  if (
+    normalizedTarget === normalizedRoot ||
+    !normalizedTarget.startsWith(`${normalizedRoot}/`)
+  ) {
+    return [];
+  }
+
+  const separator = rootPath.includes('\\') ? '\\' : '/';
+  const root = rootPath.replace(/[\\/]+$/, '');
+  const relativeParts = normalizedTarget.slice(normalizedRoot.length + 1).split('/');
+  const directoryParts = relativeParts.slice(0, -1);
+  const ancestors: string[] = [];
+  let current = root;
+  for (const part of directoryParts) {
+    current = `${current}${separator}${part}`;
+    ancestors.push(current);
+  }
+  return ancestors;
+}
+
+function findNode(nodes: FileTreeNode[], targetPath: string): FileTreeNode | undefined {
+  const normalizedTarget = normalizePath(targetPath);
   for (const node of nodes) {
-    if (node.path === targetPath) return ancestors;
-    if (node.type !== 'directory') continue;
-    const found = ancestorDirectories(node.children ?? [], targetPath, [...ancestors, node.path]);
+    if (normalizePath(node.path) === normalizedTarget) return node;
+    if (node.type !== 'directory' || !node.children) continue;
+    const found = findNode(node.children, targetPath);
     if (found) return found;
   }
   return undefined;
@@ -135,7 +158,7 @@ export function FileTree() {
     try {
       const nextNodes = (await window.api.workspace.listTree(rootPath)).children;
       setNodes(nextNodes);
-      setExpandedPaths((paths) => new Set([...initiallyExpanded(nextNodes), ...paths]));
+      setExpandedPaths(new Set());
     } finally {
       setLoading(false);
     }
@@ -167,12 +190,39 @@ export function FileTree() {
   }, [workspace?.rootPath]);
 
   useEffect(() => {
-    if (!activeTabPath) return;
+    if (!activeTabPath || !workspace) return;
     pendingScrollPath.current = activeTabPath;
-    const ancestors = ancestorDirectories(nodes, activeTabPath);
-    if (!ancestors) return;
-    setExpandedPaths((paths) => new Set([...paths, ...ancestors]));
-  }, [activeTabPath, nodes]);
+    const ancestors = ancestorDirectories(workspace.rootPath, activeTabPath);
+    setExpandedPaths((paths) => {
+      let changed = false;
+      const next = new Set(paths);
+      for (const ancestor of ancestors) {
+        if (next.has(ancestor)) continue;
+        next.add(ancestor);
+        changed = true;
+      }
+      return changed ? next : paths;
+    });
+
+    const unloadedAncestor = ancestors.find((ancestor) => {
+      const node = findNode(nodes, ancestor);
+      return node?.type === 'directory' && node.children === undefined;
+    });
+    if (!unloadedAncestor) return;
+
+    let cancelled = false;
+    window.api.workspace
+      .listTree(unloadedAncestor, { watch: false })
+      .then(({ children }) => {
+        if (!cancelled) {
+          setNodes((currentNodes) => replaceNodeChildren(currentNodes, unloadedAncestor, children));
+        }
+      })
+      .catch(console.error);
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTabPath, workspace, nodes]);
 
   useEffect(() => {
     if (!activeTabPath || pendingScrollPath.current !== activeTabPath) return;
@@ -186,6 +236,24 @@ export function FileTree() {
     }, 0);
     return () => window.clearTimeout(handle);
   }, [activeTabPath, expandedPaths, nodes]);
+
+  async function toggleDirectory(node: FileTreeNode): Promise<void> {
+    const shouldExpand = !expandedPaths.has(node.path);
+    setExpandedPaths((paths) => {
+      const next = new Set(paths);
+      if (shouldExpand) next.add(node.path);
+      else next.delete(node.path);
+      return next;
+    });
+    if (!shouldExpand || node.children !== undefined) return;
+
+    try {
+      const children = (await window.api.workspace.listTree(node.path, { watch: false })).children;
+      setNodes((currentNodes) => replaceNodeChildren(currentNodes, node.path, children));
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   async function openNode(node: FileTreeNode): Promise<void> {
     const languageId = languageIdFromPath(node.path);
@@ -220,7 +288,7 @@ export function FileTree() {
                 depth={0}
                 activePath={activeTabPath}
                 expandedPaths={expandedPaths}
-                setExpandedPaths={setExpandedPaths}
+                onToggleDirectory={toggleDirectory}
                 onOpenFile={openNode}
               />
             ))}
