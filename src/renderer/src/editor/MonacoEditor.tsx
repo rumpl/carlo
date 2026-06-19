@@ -1,6 +1,5 @@
 import { useRef } from 'react';
-import { WelcomeScreen } from '../components/WelcomeScreen';
-import { activeTabInGroup, useEditorStore } from '../store/useEditorStore';
+import { useEditorStore } from '../store/useEditorStore';
 import { setActiveEditorForGroup } from './editorRegistry';
 import { useActiveEditorModel } from './useActiveEditorModel';
 import { useModelDirtyTracking } from './useModelDirtyTracking';
@@ -28,7 +27,6 @@ export function MonacoEditor({ groupId }: Props) {
   const group = useEditorStore((state) => state.groups.find((candidate) => candidate.id === groupId));
   const markDirty = useEditorStore((state) => state.markDirty);
   const setActiveGroup = useEditorStore((state) => state.setActiveGroup);
-  const hasActiveTab = Boolean(activeTabInGroup(groupId));
   const editorVersion = useMonacoEditorInstance({ groupId, containerRef, setActiveGroup });
 
   useActiveEditorModel({ groupId, activeTabId: group?.activeTabId ?? undefined, editorVersion });
@@ -44,7 +42,6 @@ export function MonacoEditor({ groupId }: Props) {
           setActiveGroup(groupId);
         }}
       />
-      {!hasActiveTab ? <WelcomeScreen /> : null}
     </div>
   );
 }

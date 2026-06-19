@@ -4,10 +4,11 @@ import { FileTree } from './components/FileTree';
 import { SettingsPanel } from './components/SettingsPanel';
 import { StatusBar } from './components/StatusBar';
 import { TabBar } from './components/TabBar';
+import { WelcomeScreen } from './components/WelcomeScreen';
 import { ensureVscodeServices } from './vscode/servicesReady';
 import { useKeybindings } from './hooks/useKeybindings';
 import { useWorkspaceExternalChanges } from './hooks/useWorkspaceExternalChanges';
-import { useEditorStore } from './store/useEditorStore';
+import { activeTabInGroup, useEditorStore } from './store/useEditorStore';
 import { useSettingsStore } from './store/useSettingsStore';
 import { useThemeStore } from './store/useThemeStore';
 import { useProblemsStore } from './store/useProblemsStore';
@@ -87,14 +88,23 @@ export function App() {
       />
       <div className="main-area">
         <div className={`workbench split-${splitDirection}`}>
-          {groups.map((group) => (
-            <section className="editor-group" key={group.id}>
-              <TabBar groupId={group.id} />
-              <Suspense fallback={<div className="editor-stack" />}>
-                <MonacoEditor groupId={group.id} />
-              </Suspense>
-            </section>
-          ))}
+          {groups.map((group) => {
+            const hasActiveTab = Boolean(activeTabInGroup(group.id));
+            return (
+              <section className="editor-group" key={group.id}>
+                <TabBar groupId={group.id} />
+                {hasActiveTab ? (
+                  <Suspense fallback={<div className="editor-stack" />}>
+                    <MonacoEditor groupId={group.id} />
+                  </Suspense>
+                ) : (
+                  <div className="editor-stack">
+                    <WelcomeScreen />
+                  </div>
+                )}
+              </section>
+            );
+          })}
         </div>
         {searchOpen ? (
           <Suspense fallback={null}>

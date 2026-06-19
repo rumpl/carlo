@@ -18,6 +18,7 @@ export function createWindow(options: CreateWindowOptions = {}): BrowserWindow {
     height: 800,
     minWidth: 800,
     minHeight: 500,
+    backgroundColor: '#2e3440',
     title: 'carlo',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     trafficLightPosition: process.platform === 'darwin' ? { x: 14, y: 12 } : undefined,
