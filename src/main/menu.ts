@@ -35,6 +35,15 @@ export function installAppMenu(): void {
           accelerator: 'F2',
           click: () => sendCommand('editor.action.rename'),
         },
+        {
+          label: 'Quick Fix…',
+          accelerator: 'CmdOrCtrl+.',
+          click: () => sendCommand('editor.action.quickFix'),
+        },
+        {
+          label: 'Source Action…',
+          click: () => sendCommand('editor.action.sourceAction'),
+        },
       ],
     },
     {

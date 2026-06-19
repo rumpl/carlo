@@ -66,6 +66,14 @@ async function renameSymbol(): Promise<void> {
   await withActiveEditorLsp('editor.action.rename');
 }
 
+async function quickFix(): Promise<void> {
+  await withActiveEditorLsp('editor.action.quickFix');
+}
+
+async function sourceAction(): Promise<void> {
+  await withActiveEditorLsp('editor.action.sourceAction');
+}
+
 async function formatDocumentForSave(): Promise<void> {
   await formatDocument().catch((error) => console.error('Format on save failed', error));
 }
@@ -178,6 +186,17 @@ export function registerBuiltinCommands(): void {
     title: 'Rename Symbol',
     keybinding: 'F2',
     run: renameSymbol,
+  });
+  registerCommand({
+    id: 'editor.action.quickFix',
+    title: 'Quick Fix...',
+    keybinding: 'Ctrl+.',
+    run: quickFix,
+  });
+  registerCommand({
+    id: 'editor.action.sourceAction',
+    title: 'Source Action...',
+    run: sourceAction,
   });
   registerCommand({
     id: 'editor.toggleSoftWrap',

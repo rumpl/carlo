@@ -30,6 +30,11 @@ export function useKeybindings(): void {
         event.stopPropagation();
         void runCommand('preferences.openSettings');
       }
+      if (mod && event.key === '.') {
+        event.preventDefault();
+        event.stopPropagation();
+        void runCommand('editor.action.quickFix');
+      }
       if (mod && event.key.toLowerCase() === 'w') {
         event.preventDefault();
         event.stopPropagation();
