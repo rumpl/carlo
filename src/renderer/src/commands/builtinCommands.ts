@@ -26,6 +26,21 @@ function rootFor(path: string): { rootPath: string; rootUri: string; name: strin
   };
 }
 
+function nextUntitledTitle(): string {
+  const tabs = useEditorStore.getState().tabs;
+  for (let index = 1; ; index += 1) {
+    const title = `Untitled-${index}`;
+    if (!tabs.some((tab) => tab.title === title && tab.uri.startsWith('untitled:'))) return title;
+  }
+}
+
+function newFile(): void {
+  const title = nextUntitledTitle();
+  const uri = `untitled:${title}`;
+  getOrCreateModel(uri, '', 'plaintext');
+  useEditorStore.getState().openFile({ uri, path: title, languageId: 'plaintext', title });
+}
+
 async function openFile(): Promise<void> {
   const file = await window.api.file.openDialog();
   if (!file) return;
@@ -162,6 +177,7 @@ export function registerBuiltinCommands(): void {
     keybinding: 'Ctrl+P',
     run: showNativeQuickOpen,
   });
+  registerCommand({ id: 'file.new', title: 'New File', keybinding: 'Ctrl+N', run: newFile });
   registerCommand({ id: 'file.open', title: 'Open File', keybinding: 'Ctrl+O', run: openFile });
   registerCommand({
     id: 'app.installCommandLine',

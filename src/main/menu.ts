@@ -10,6 +10,7 @@ export function installAppMenu(): void {
     {
       label: 'File',
       submenu: [
+        { label: 'New File', accelerator: 'CmdOrCtrl+N', click: () => sendCommand('file.new') },
         { label: 'Open File…', accelerator: 'CmdOrCtrl+O', click: () => sendCommand('file.open') },
         {
           label: 'Open Folder…',

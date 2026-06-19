@@ -12,6 +12,11 @@ export function useKeybindings(): void {
           event.shiftKey ? 'workbench.action.showCommands' : 'workbench.action.quickOpen',
         );
       }
+      if (mod && event.key.toLowerCase() === 'n') {
+        event.preventDefault();
+        event.stopPropagation();
+        void runCommand('file.new');
+      }
       if (mod && event.altKey && event.key.toLowerCase() === 's') {
         event.preventDefault();
         event.stopPropagation();
