@@ -1,5 +1,6 @@
 .status-bar {
   grid-column: 1 / -1;
+  grid-row: 3;
   display: flex;
   gap: 18px;
   align-items: center;

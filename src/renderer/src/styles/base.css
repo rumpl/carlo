@@ -82,10 +82,40 @@ input {
 .app-shell {
   display: grid;
   grid-template-columns: 260px 4px minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) 24px;
+  grid-template-rows: 34px minmax(0, 1fr) 24px;
   height: 100%;
   background: var(--bg);
   color: var(--fg);
+}
+.app-titlebar {
+  -webkit-app-region: drag;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(140px, 260px) minmax(0, 1fr) minmax(140px, 260px);
+  align-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 0 12px 0 76px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--fg);
+}
+.app-titlebar-brand {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.app-titlebar-center {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--fg) 78%, transparent);
+  font-size: 12px;
 }
 .sidebar-resizer {
   z-index: 5;
@@ -97,6 +127,11 @@ input {
 .sidebar-resizer:hover,
 .sidebar-resizer:active {
   background: var(--accent);
+}
+.file-tree,
+.sidebar-resizer,
+.main-area {
+  grid-row: 2;
 }
 .main-area {
   display: grid;
@@ -119,7 +154,7 @@ input {
 }
 .editor-group {
   display: grid;
-  grid-template-rows: 34px 26px minmax(0, 1fr);
+  grid-template-rows: 34px minmax(0, 1fr);
   flex: 1 1 0;
   min-width: 0;
   min-height: 0;

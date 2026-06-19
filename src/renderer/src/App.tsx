@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { Breadcrumbs } from './components/Breadcrumbs';
+import { AppTitleBar } from './components/AppTitleBar';
 import { FileTree } from './components/FileTree';
 import { SettingsPanel } from './components/SettingsPanel';
 import { StatusBar } from './components/StatusBar';
@@ -66,6 +66,7 @@ export function App() {
       className="app-shell"
       style={{ gridTemplateColumns: `${sidebarWidth}px 4px minmax(0, 1fr)` }}
     >
+      <AppTitleBar />
       <FileTree />
       <div
         className="sidebar-resizer"
@@ -89,7 +90,6 @@ export function App() {
           {groups.map((group) => (
             <section className="editor-group" key={group.id}>
               <TabBar groupId={group.id} />
-              <Breadcrumbs groupId={group.id} />
               <Suspense fallback={<div className="editor-stack" />}>
                 <MonacoEditor groupId={group.id} />
               </Suspense>

@@ -8,11 +8,11 @@
   font-family: var(--tree-view-font-family);
 }
 .file-tree-header {
-  -webkit-app-region: drag;
+  -webkit-app-region: no-drag;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 10px 0 76px;
+  padding: 0 10px;
   border-bottom: 1px solid var(--border);
   font-size: 12px;
   font-weight: 700;
