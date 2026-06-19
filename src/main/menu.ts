@@ -70,6 +70,45 @@ export function installAppMenu(): void {
       ],
     },
     {
+      label: 'Navigate',
+      submenu: [
+        {
+          label: 'Go to Definition',
+          accelerator: 'F12',
+          click: () => sendCommand('editor.action.revealDefinition'),
+        },
+        {
+          label: 'Peek Definition',
+          accelerator: 'Alt+F12',
+          click: () => sendCommand('editor.action.peekDefinition'),
+        },
+        {
+          label: 'Find References',
+          accelerator: 'Shift+F12',
+          click: () => sendCommand('editor.action.referenceSearch.trigger'),
+        },
+        {
+          label: 'Go to Implementation',
+          click: () => sendCommand('editor.action.goToImplementation'),
+        },
+        {
+          label: 'Go to Type Definition',
+          click: () => sendCommand('editor.action.goToTypeDefinition'),
+        },
+        { type: 'separator' },
+        {
+          label: 'Go Back',
+          accelerator: 'CmdOrCtrl+[',
+          click: () => sendCommand('workbench.action.navigateBack'),
+        },
+        {
+          label: 'Go Forward',
+          accelerator: 'CmdOrCtrl+]',
+          click: () => sendCommand('workbench.action.navigateForward'),
+        },
+      ],
+    },
+    {
       label: 'View',
       submenu: [
         {

@@ -20,6 +20,7 @@ async function withActiveEditorLsp(actionId: string): Promise<void> {
 
   const model = getModel(tab.uri);
   if (model && editor.getModel() !== model) editor.setModel(model);
+  editor.focus();
   await editor.getAction(actionId)?.run();
 }
 
@@ -37,6 +38,26 @@ async function quickFix(): Promise<void> {
 
 async function sourceAction(): Promise<void> {
   await withActiveEditorLsp('editor.action.sourceAction');
+}
+
+async function goToDefinition(): Promise<void> {
+  await withActiveEditorLsp('editor.action.revealDefinition');
+}
+
+async function peekDefinition(): Promise<void> {
+  await withActiveEditorLsp('editor.action.peekDefinition');
+}
+
+async function findReferences(): Promise<void> {
+  await withActiveEditorLsp('editor.action.referenceSearch.trigger');
+}
+
+async function goToImplementation(): Promise<void> {
+  await withActiveEditorLsp('editor.action.goToImplementation');
+}
+
+async function goToTypeDefinition(): Promise<void> {
+  await withActiveEditorLsp('editor.action.goToTypeDefinition');
 }
 
 export async function formatDocumentForSave(): Promise<void> {
@@ -77,6 +98,34 @@ export function registerEditorCommands(): void {
     id: 'editor.action.sourceAction',
     title: 'Source Action...',
     run: sourceAction,
+  });
+  registerCommand({
+    id: 'editor.action.revealDefinition',
+    title: 'Go to Definition',
+    keybinding: 'F12',
+    run: goToDefinition,
+  });
+  registerCommand({
+    id: 'editor.action.peekDefinition',
+    title: 'Peek Definition',
+    keybinding: 'Alt+F12',
+    run: peekDefinition,
+  });
+  registerCommand({
+    id: 'editor.action.referenceSearch.trigger',
+    title: 'Find References',
+    keybinding: 'Shift+F12',
+    run: findReferences,
+  });
+  registerCommand({
+    id: 'editor.action.goToImplementation',
+    title: 'Go to Implementation',
+    run: goToImplementation,
+  });
+  registerCommand({
+    id: 'editor.action.goToTypeDefinition',
+    title: 'Go to Type Definition',
+    run: goToTypeDefinition,
   });
   registerCommand({
     id: 'editor.toggleSoftWrap',

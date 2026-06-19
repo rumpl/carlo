@@ -110,6 +110,13 @@ export function useKeybindings(): void {
         event.stopPropagation();
         void runCommand(event.shiftKey ? 'editor.action.marker.prev' : 'editor.action.marker.next');
       }
+      if (event.key === 'F12') {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.shiftKey) void runCommand('editor.action.referenceSearch.trigger');
+        else if (event.altKey) void runCommand('editor.action.peekDefinition');
+        else void runCommand('editor.action.revealDefinition');
+      }
       if (mod && event.code === 'Space') {
         event.preventDefault();
         void runCommand('editor.action.triggerSuggest');
