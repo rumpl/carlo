@@ -16,6 +16,13 @@ export interface EditorGroup {
   activeTabId: string | null;
 }
 
+export interface RecentFile {
+  uri: string;
+  path: string;
+  languageId: LanguageId;
+  title: string;
+}
+
 interface WorkspaceState {
   rootUri: string;
   rootPath: string;
@@ -29,6 +36,7 @@ interface EditorState {
   activeTabId: string | null;
   splitDirection: 'vertical' | 'horizontal';
   workspace: WorkspaceState | null;
+  recentFiles: RecentFile[];
   setWorkspace: (workspace: WorkspaceState) => void;
   openFile: (tab: Omit<EditorTab, 'id' | 'dirty'>) => void;
   closeTab: (id: string) => EditorTab | undefined;
@@ -43,8 +51,36 @@ interface EditorState {
   ) => void;
 }
 
+const recentFilesStorageKey = 'carlo.recentFiles';
+const maxRecentFiles = 30;
 const initialGroupId = crypto.randomUUID();
 const titleFromPath = (path: string) => path.split(/[\\/]/).pop() ?? path;
+
+function loadRecentFiles(): RecentFile[] {
+  try {
+    const raw = localStorage.getItem(recentFilesStorageKey);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as RecentFile[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((file) => file?.uri && file.path && file.languageId && file.title).slice(0, maxRecentFiles);
+  } catch {
+    return [];
+  }
+}
+
+function storeRecentFiles(files: RecentFile[]): void {
+  try {
+    localStorage.setItem(recentFilesStorageKey, JSON.stringify(files.slice(0, maxRecentFiles)));
+  } catch {
+    // Ignore storage failures. Recent files are a convenience only.
+  }
+}
+
+function updateRecentFiles(files: RecentFile[], file: RecentFile): RecentFile[] {
+  const next = [file, ...files.filter((candidate) => candidate.uri !== file.uri)].slice(0, maxRecentFiles);
+  storeRecentFiles(next);
+  return next;
+}
 
 function currentActiveTabId(groups: EditorGroup[], activeGroupId: string): string | null {
   return groups.find((group) => group.id === activeGroupId)?.activeTabId ?? null;
@@ -57,6 +93,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   activeTabId: null,
   splitDirection: 'vertical',
   workspace: null,
+  recentFiles: loadRecentFiles(),
   setWorkspace: (workspace) => set({ workspace }),
   openFile: (tab) =>
     set((state) => {
@@ -70,7 +107,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
               ? { ...group, activeTabId: existing.id }
               : group,
         );
-        return { groups, activeTabId: existing.id };
+        return {
+          groups,
+          activeTabId: existing.id,
+          recentFiles: updateRecentFiles(state.recentFiles, existing),
+        };
       }
 
       const id = crypto.randomUUID();
@@ -79,7 +120,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           ? { ...group, tabIds: [...group.tabIds, id], activeTabId: id }
           : group,
       );
-      return { tabs: [...state.tabs, { ...tab, id, dirty: false }], groups, activeTabId: id };
+      const nextTab = { ...tab, id, dirty: false };
+      return {
+        tabs: [...state.tabs, nextTab],
+        groups,
+        activeTabId: id,
+        recentFiles: updateRecentFiles(state.recentFiles, nextTab),
+      };
     }),
   closeTab: (id) => {
     const tab = get().tabs.find((candidate) => candidate.id === id);

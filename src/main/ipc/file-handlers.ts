@@ -446,11 +446,17 @@ export function registerFileHandlers(): void {
         rootPath,
         watch: shouldWatch = true,
         recursive = false,
-      }: { rootPath: string; watch?: boolean; recursive?: boolean },
+        gitStatus = true,
+      }: { rootPath: string; watch?: boolean; recursive?: boolean; gitStatus?: boolean },
     ) => {
       const win = windowFromEvent(event);
       if (shouldWatch) ensureWorkspaceWatcher(win, rootPath);
-      return { children: await listTree(rootPath, { recursive, gitStatus: await getGitStatusContext(rootPath) }) };
+      return {
+        children: await listTree(rootPath, {
+          recursive,
+          gitStatus: gitStatus ? await getGitStatusContext(rootPath) : undefined,
+        }),
+      };
     },
   );
 

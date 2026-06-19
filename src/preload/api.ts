@@ -84,7 +84,7 @@ export const api = Object.freeze({
       ipcRenderer.invoke(IPC.workspaceOpenFolderDialog) as Promise<WorkspaceFolderResult | null>,
     currentFolder: () =>
       ipcRenderer.invoke(IPC.workspaceCurrentFolder) as Promise<WorkspaceFolderResult>,
-    listTree: (rootPath: string, options?: { watch?: boolean; recursive?: boolean }) =>
+    listTree: (rootPath: string, options?: { watch?: boolean; recursive?: boolean; gitStatus?: boolean }) =>
       ipcRenderer.invoke(IPC.workspaceListTree, { rootPath, ...options }) as Promise<{
         children: FileTreeNode[];
       }>,

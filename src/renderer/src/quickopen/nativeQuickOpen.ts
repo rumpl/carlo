@@ -4,28 +4,38 @@ import type { FileTreeNode } from '@shared/file-types';
 import { languageIdFromPath } from '@shared/language-registry';
 import { getOrCreateModel } from '../editor/models';
 import { ensureLanguageClient } from '../lsp/LanguageClientService';
-import { useEditorStore } from '../store/useEditorStore';
+import { type RecentFile, useEditorStore } from '../store/useEditorStore';
 
 interface QuickOpenItem extends IQuickPickItem {
   path: string;
   uri: string;
+  recent?: boolean;
+}
+
+function relativePath(path: string, rootPath: string): string {
+  return path.startsWith(rootPath) ? path.slice(rootPath.length + 1) : path;
+}
+
+function itemForFile(file: RecentFile, rootPath: string, recent = false): QuickOpenItem {
+  const relative = relativePath(file.path, rootPath);
+  const slash = relative.lastIndexOf('/');
+  return {
+    label: file.title,
+    description: [recent ? 'recent' : undefined, slash >= 0 ? relative.slice(0, slash) : undefined]
+      .filter(Boolean)
+      .join(' · ') || undefined,
+    detail: relative,
+    tooltip: file.path,
+    path: file.path,
+    uri: file.uri,
+    recent,
+  };
 }
 
 function flatten(nodes: FileTreeNode[], rootPath: string): QuickOpenItem[] {
   return nodes.flatMap((node) => {
     if (node.type === 'directory') return flatten(node.children ?? [], rootPath);
-    const relativePath = node.path.startsWith(rootPath) ? node.path.slice(rootPath.length + 1) : node.path;
-    const slash = relativePath.lastIndexOf('/');
-    return [
-      {
-        label: node.name,
-        description: slash >= 0 ? relativePath.slice(0, slash) : undefined,
-        detail: relativePath,
-        tooltip: node.path,
-        path: node.path,
-        uri: node.uri,
-      },
-    ];
+    return [itemForFile({ uri: node.uri, path: node.path, languageId: languageIdFromPath(node.path), title: node.name }, rootPath)];
   });
 }
 
@@ -73,8 +83,15 @@ export async function showNativeQuickOpen(): Promise<void> {
     const tree = await window.api.workspace.listTree(workspace.rootPath, {
       recursive: true,
       watch: false,
+      gitStatus: false,
     });
-    picker.items = flatten(tree.children, workspace.rootPath);
+    const files = flatten(tree.children, workspace.rootPath);
+    const recentFiles = useEditorStore
+      .getState()
+      .recentFiles.filter((file) => file.path.startsWith(workspace.rootPath));
+    const recentItems = recentFiles.map((file) => itemForFile(file, workspace.rootPath, true));
+    const recentUris = new Set(recentItems.map((item) => item.uri));
+    picker.items = [...recentItems, ...files.filter((file) => !recentUris.has(file.uri))];
   } catch (error) {
     picker.items = [{ label: 'Failed to load workspace files', description: error instanceof Error ? error.message : String(error), path: '', uri: '' }];
   } finally {
