@@ -1,13 +1,20 @@
 import { BrowserWindow, dialog, ipcMain } from 'electron';
-import { watch, type FSWatcher } from 'node:fs';
-import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { constants, watch, type FSWatcher } from 'node:fs';
+import { access, cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { basename, extname, join, normalize, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { basename, join } from 'node:path';
+import { promisify } from 'node:util';
 import { IPC } from '@shared/ipc';
 import { languageIdFromPath } from '@shared/language-registry';
 import { initialWorkspacePath } from '../workspace';
 import type {
+  FileCopyRequest,
+  FileCreateRequest,
+  FileDeleteRequest,
+  FileOperationResult,
   FileTreeNode,
+  GitFileStatus,
   OpenFileResult,
   SaveAsDialogRequest,
   SaveFileRequest,
@@ -18,6 +25,56 @@ const ignoredWatchNames = new Set(['node_modules', 'out', 'dist', 'build', '.DS_
 
 let workspaceWatcher: FSWatcher | undefined;
 let watchedRootPath: string | undefined;
+
+const execFileAsync = promisify(execFile);
+
+function assertSafeChildName(name: string): void {
+  if (!name || name === '.' || name === '..' || name !== basename(name)) {
+    throw new Error('Invalid name');
+  }
+}
+
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    await access(path, constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function uniqueCopyDestination(sourcePath: string, destinationDirectory: string): Promise<string> {
+  const sourceStats = await stat(sourcePath);
+  const sourceName = basename(sourcePath);
+  const extension = sourceStats.isDirectory() ? '' : extname(sourceName);
+  const baseName = extension ? sourceName.slice(0, -extension.length) : sourceName;
+
+  let candidate = join(destinationDirectory, sourceName);
+  if (!(await pathExists(candidate))) return candidate;
+
+  candidate = join(destinationDirectory, `${baseName} copy${extension}`);
+  if (!(await pathExists(candidate))) return candidate;
+
+  for (let index = 2; ; index += 1) {
+    candidate = join(destinationDirectory, `${baseName} copy ${index}${extension}`);
+    if (!(await pathExists(candidate))) return candidate;
+  }
+}
+
+function isPathInsideOrEqual(childPath: string, parentPath: string): boolean {
+  const normalizedChild = normalize(childPath);
+  const normalizedParent = normalize(parentPath);
+  return normalizedChild === normalizedParent || normalizedChild.startsWith(`${normalizedParent}${sep}`);
+}
+
+function operationResult(path: string): FileOperationResult {
+  return { path, uri: pathToFileURL(path).toString() };
+}
+
+interface GitStatusContext {
+  rootPath: string;
+  statuses: Map<string, GitFileStatus>;
+}
 
 function isIgnoredWatchPath(path: string): boolean {
   return path.split(/[\\/]/).some((part) => ignoredWatchNames.has(part));
@@ -41,7 +98,89 @@ function ensureWorkspaceWatcher(win: BrowserWindow, rootPath: string): void {
   }
 }
 
-async function listTree(rootPath: string, options: { recursive?: boolean } = {}): Promise<FileTreeNode[]> {
+async function git(args: string[], cwd: string): Promise<string> {
+  const { stdout } = await execFileAsync('git', args, { cwd, maxBuffer: 20 * 1024 * 1024 });
+  return stdout;
+}
+
+function statusFromPorcelain(indexStatus: string, workTreeStatus: string): GitFileStatus | undefined {
+  if (indexStatus === '!' || workTreeStatus === '!') return 'ignored';
+  if (indexStatus === '?' || workTreeStatus === '?') return 'untracked';
+  if (
+    indexStatus === 'U' ||
+    workTreeStatus === 'U' ||
+    ['DD', 'AU', 'UD', 'UA', 'DU', 'AA'].includes(`${indexStatus}${workTreeStatus}`)
+  ) {
+    return 'conflict';
+  }
+  if (indexStatus === 'D' || workTreeStatus === 'D') return 'deleted';
+  if (indexStatus === 'R' || workTreeStatus === 'R') return 'renamed';
+  if (indexStatus === 'A' || workTreeStatus === 'A' || indexStatus === 'C' || workTreeStatus === 'C') return 'added';
+  if (indexStatus === 'M' || workTreeStatus === 'M' || indexStatus === 'T' || workTreeStatus === 'T') {
+    return 'modified';
+  }
+  return undefined;
+}
+
+function parseGitStatus(output: string, gitRootPath: string): Map<string, GitFileStatus> {
+  const statuses = new Map<string, GitFileStatus>();
+  const entries = output.split('\0').filter(Boolean);
+
+  for (let index = 0; index < entries.length; index += 1) {
+    const entry = entries[index]!;
+    if (entry.length < 4) continue;
+
+    const status = statusFromPorcelain(entry[0]!, entry[1]!);
+    if (!status) continue;
+
+    const relativePath = entry.slice(3);
+    statuses.set(join(gitRootPath, relativePath), status);
+
+    if (entry[0] === 'R' || entry[0] === 'C') index += 1;
+  }
+
+  return statuses;
+}
+
+function normalizeGitStatusPath(path: string): string {
+  return path.replaceAll('\\', '/').replace(/\/+$/, '');
+}
+
+function gitStatusForNode(
+  path: string,
+  isDirectory: boolean,
+  gitStatus: GitStatusContext | undefined,
+): GitFileStatus | undefined {
+  const directStatus = gitStatus?.statuses.get(path);
+  if (directStatus || !isDirectory || !gitStatus) return directStatus;
+
+  const directoryPrefix = `${normalizeGitStatusPath(path)}/`;
+  for (const [changedPath, changedStatus] of gitStatus.statuses) {
+    if (changedStatus === 'modified' && normalizeGitStatusPath(changedPath).startsWith(directoryPrefix)) {
+      return 'modified';
+    }
+  }
+
+  return undefined;
+}
+
+async function getGitStatusContext(path: string): Promise<GitStatusContext | undefined> {
+  try {
+    const gitRootPath = (await git(['rev-parse', '--show-toplevel'], path)).trimEnd();
+    const status = await git(
+      ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--ignored=matching'],
+      gitRootPath,
+    );
+    return { rootPath: gitRootPath, statuses: parseGitStatus(status, gitRootPath) };
+  } catch {
+    return undefined;
+  }
+}
+
+async function listTree(
+  rootPath: string,
+  options: { recursive?: boolean; gitStatus?: GitStatusContext } = {},
+): Promise<FileTreeNode[]> {
   const entries = await readdir(rootPath, { withFileTypes: true });
   const visibleEntries = entries
     .filter((entry) => !ignoredNames.has(entry.name))
@@ -58,6 +197,7 @@ async function listTree(rootPath: string, options: { recursive?: boolean } = {})
         path,
         uri: pathToFileURL(path).toString(),
         type: isDirectory ? 'directory' : 'file',
+        gitStatus: gitStatusForNode(path, isDirectory, options.gitStatus),
         children:
           isDirectory && options.recursive ? await listTree(path, options).catch(() => []) : undefined,
       } satisfies FileTreeNode;
@@ -107,6 +247,35 @@ export function registerFileHandlers(win: BrowserWindow): void {
     };
   });
 
+  ipcMain.handle(IPC.fileCreate, async (_event, { parentPath, name }: FileCreateRequest) => {
+    assertSafeChildName(name);
+    const path = join(parentPath, name);
+    await writeFile(path, '', { encoding: 'utf8', flag: 'wx' });
+    return operationResult(path);
+  });
+
+  ipcMain.handle(IPC.fileCreateDirectory, async (_event, { parentPath, name }: FileCreateRequest) => {
+    assertSafeChildName(name);
+    const path = join(parentPath, name);
+    await mkdir(path);
+    return operationResult(path);
+  });
+
+  ipcMain.handle(IPC.fileDelete, async (_event, { path }: FileDeleteRequest) => {
+    await rm(path, { recursive: true, force: false });
+    return { ok: true };
+  });
+
+  ipcMain.handle(IPC.fileCopy, async (_event, { sourcePath, destinationDirectory }: FileCopyRequest) => {
+    const sourceStats = await stat(sourcePath);
+    if (sourceStats.isDirectory() && isPathInsideOrEqual(destinationDirectory, sourcePath)) {
+      throw new Error('Cannot copy a folder into itself');
+    }
+    const destinationPath = await uniqueCopyDestination(sourcePath, destinationDirectory);
+    await cp(sourcePath, destinationPath, { recursive: sourceStats.isDirectory(), errorOnExist: true, force: false });
+    return operationResult(destinationPath);
+  });
+
   ipcMain.handle(IPC.workspaceOpenFolderDialog, async () => {
     const result = await dialog.showOpenDialog(win, { properties: ['openDirectory'] });
     if (result.canceled || result.filePaths.length === 0) return null;
@@ -132,7 +301,7 @@ export function registerFileHandlers(win: BrowserWindow): void {
       }: { rootPath: string; watch?: boolean; recursive?: boolean },
     ) => {
       if (shouldWatch) ensureWorkspaceWatcher(win, rootPath);
-      return { children: await listTree(rootPath, { recursive }) };
+      return { children: await listTree(rootPath, { recursive, gitStatus: await getGitStatusContext(rootPath) }) };
     },
   );
 }

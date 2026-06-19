@@ -2,6 +2,9 @@ import * as monaco from '@codingame/monaco-vscode-editor-api';
 
 const softWrapStorageKey = 'carlo.softWrap';
 
+const defaultEditorFontFamily =
+  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace";
+
 type WordWrap = NonNullable<monaco.editor.IStandaloneEditorConstructionOptions['wordWrap']>;
 
 function wordWrapValue(enabled: boolean): WordWrap {
@@ -32,8 +35,13 @@ export function toggleSoftWrapEnabled(): boolean {
   return enabled;
 }
 
+export function setEditorFontFamily(fontFamily: string): void {
+  editorOptions.fontFamily = fontFamily;
+}
+
 export const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
   automaticLayout: true,
+  fontFamily: defaultEditorFontFamily,
   wordWrap: wordWrapValue(softWrapEnabled()),
   minimap: { enabled: false },
   quickSuggestions: false,

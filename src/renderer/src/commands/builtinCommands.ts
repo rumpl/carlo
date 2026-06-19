@@ -7,6 +7,7 @@ import { showNativeCommandPalette } from '../quickopen/nativeCommandPalette';
 import { showNativeQuickOpen } from '../quickopen/nativeQuickOpen';
 import { showThemeSelector } from '../quickopen/themeSelector';
 import { activeTab, useEditorStore } from '../store/useEditorStore';
+import { useSettingsStore } from '../store/useSettingsStore';
 import { registerCommand } from './registry';
 
 function titleFromPath(path: string): string {
@@ -64,10 +65,25 @@ async function saveAs(): Promise<void> {
 
 async function openLanguageConfig(): Promise<void> {
   const { path } = await window.api.config.languagePath();
+  await openJsonConfigFile(path);
+}
+
+async function openUserConfig(): Promise<void> {
+  const { path } = await window.api.config.userPath();
+  await openJsonConfigFile(path);
+}
+
+async function openJsonConfigFile(path: string): Promise<void> {
   const file = await window.api.file.read(path);
   const uri = new URL(`file://${path}`).toString();
   getOrCreateModel(uri, file.content, 'json');
   useEditorStore.getState().openFile({ uri, path, languageId: 'json', title: titleFromPath(path) });
+}
+
+function openSettings(): void {
+  const settingsStore = useSettingsStore.getState();
+  settingsStore.openSettings();
+  void settingsStore.loadSettings().catch(console.error);
 }
 
 function toggleSoftWrap(): void {
@@ -150,6 +166,17 @@ export function registerBuiltinCommands(): void {
     },
   });
   registerCommand({ id: 'file.saveAs', title: 'Save As', keybinding: 'Ctrl+Shift+S', run: saveAs });
+  registerCommand({
+    id: 'preferences.openSettings',
+    title: 'Preferences: Open Settings',
+    keybinding: 'Ctrl+,',
+    run: openSettings,
+  });
+  registerCommand({
+    id: 'preferences.openUserConfig',
+    title: 'Preferences: Open User Config',
+    run: openUserConfig,
+  });
   registerCommand({
     id: 'preferences.openLanguageConfig',
     title: 'Preferences: Open Language Config',

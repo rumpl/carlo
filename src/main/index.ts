@@ -1,10 +1,12 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { IPC } from '@shared/ipc';
 import { loadLanguageConfig } from './config/language-config';
+import { loadUserConfig } from './config/user-config';
 import { createWindow } from './window';
 
 ipcMain.handle(IPC.ping, () => 'pong');
 loadLanguageConfig();
+loadUserConfig();
 
 app.whenReady().then(() => {
   createWindow();

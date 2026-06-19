@@ -36,6 +36,24 @@ export function installAppMenu(win: BrowserWindow): void {
         { role: 'toggleDevTools' },
       ],
     },
+    {
+      label: 'Preferences',
+      submenu: [
+        {
+          label: 'Settings…',
+          accelerator: 'CmdOrCtrl+,',
+          click: () => sendCommand('preferences.openSettings'),
+        },
+        {
+          label: 'Open User Config',
+          click: () => sendCommand('preferences.openUserConfig'),
+        },
+        {
+          label: 'Open Language Config',
+          click: () => sendCommand('preferences.openLanguageConfig'),
+        },
+      ],
+    },
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }

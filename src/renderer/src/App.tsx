@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { registerBuiltinCommands } from './commands/builtinCommands';
 import { FileTree } from './components/FileTree';
+import { SettingsPanel } from './components/SettingsPanel';
 import { StatusBar } from './components/StatusBar';
 import { TabBar } from './components/TabBar';
 import { MonacoEditor } from './editor/MonacoEditor';
@@ -8,6 +9,7 @@ import { registerEditorOpener } from './editor/editorOpener';
 import { useKeybindings } from './hooks/useKeybindings';
 import { useWorkspaceExternalChanges } from './hooks/useWorkspaceExternalChanges';
 import { useEditorStore } from './store/useEditorStore';
+import { useSettingsStore } from './store/useSettingsStore';
 import { useThemeStore } from './store/useThemeStore';
 
 const minSidebarWidth = 180;
@@ -32,6 +34,7 @@ export function App() {
     registerBuiltinCommands();
     registerEditorOpener();
     useThemeStore.getState().setTheme(useThemeStore.getState().themeId);
+    void useSettingsStore.getState().loadSettings().catch(console.error);
   }, []);
   return (
     <main
@@ -65,6 +68,7 @@ export function App() {
         ))}
       </div>
       <StatusBar />
+      <SettingsPanel />
     </main>
   );
 }

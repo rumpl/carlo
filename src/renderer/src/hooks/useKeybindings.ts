@@ -21,6 +21,11 @@ export function useKeybindings(): void {
         event.preventDefault();
         void runCommand('file.open');
       }
+      if (mod && event.key === ',') {
+        event.preventDefault();
+        event.stopPropagation();
+        void runCommand('preferences.openSettings');
+      }
       if (mod && event.key.toLowerCase() === 'w') {
         event.preventDefault();
         event.stopPropagation();
@@ -80,6 +85,12 @@ export function useKeybindings(): void {
         browserEvent.stopPropagation();
         event.preventDefault();
         void runCommand('tab.close');
+      }
+      if (mod && browserEvent.key === ',') {
+        browserEvent.preventDefault();
+        browserEvent.stopPropagation();
+        event.preventDefault();
+        void runCommand('preferences.openSettings');
       }
       if (mod && browserEvent.key === '[') {
         browserEvent.preventDefault();

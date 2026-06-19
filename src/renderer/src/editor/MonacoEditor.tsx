@@ -20,6 +20,12 @@ export function setEditorsSoftWrap(enabled = softWrapEnabled()): void {
   }
 }
 
+export function setEditorsFontFamily(fontFamily: string): void {
+  for (const editor of editors.values()) {
+    editor.updateOptions({ fontFamily });
+  }
+}
+
 export function refreshVisibleGitGuttersForPath(path: string): void {
   const tabs = useEditorStore.getState().tabs.filter((tab) => tab.path === path);
   for (const editor of editors.values()) {

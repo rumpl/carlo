@@ -1,6 +1,11 @@
 import { ipcRenderer } from 'electron';
+import type { CarloUserConfig } from '@shared/app-config';
 import { IPC } from '@shared/ipc';
 import type {
+  FileCopyRequest,
+  FileCreateRequest,
+  FileDeleteRequest,
+  FileOperationResult,
   FileTreeNode,
   GitBaselineResult,
   OpenFileResult,
@@ -42,6 +47,10 @@ export const api = Object.freeze({
   config: {
     language: () => ipcRenderer.invoke(IPC.configLanguage) as Promise<LanguageConfig>,
     languagePath: () => ipcRenderer.invoke(IPC.configLanguagePath) as Promise<{ path: string }>,
+    user: () => ipcRenderer.invoke(IPC.configUser) as Promise<CarloUserConfig>,
+    saveUser: (config: CarloUserConfig) =>
+      ipcRenderer.invoke(IPC.configUserSave, config) as Promise<CarloUserConfig>,
+    userPath: () => ipcRenderer.invoke(IPC.configUserPath) as Promise<{ path: string }>,
   },
   file: {
     openDialog: () => ipcRenderer.invoke(IPC.fileOpenDialog) as Promise<OpenFileResult | null>,
@@ -50,6 +59,14 @@ export const api = Object.freeze({
       ipcRenderer.invoke(IPC.fileSave, request) as Promise<{ ok: true }>,
     saveAsDialog: (request: SaveAsDialogRequest) =>
       ipcRenderer.invoke(IPC.fileSaveAsDialog, request) as Promise<SaveAsDialogResult | null>,
+    create: (request: FileCreateRequest) =>
+      ipcRenderer.invoke(IPC.fileCreate, request) as Promise<FileOperationResult>,
+    createDirectory: (request: FileCreateRequest) =>
+      ipcRenderer.invoke(IPC.fileCreateDirectory, request) as Promise<FileOperationResult>,
+    delete: (request: FileDeleteRequest) =>
+      ipcRenderer.invoke(IPC.fileDelete, request) as Promise<{ ok: true }>,
+    copy: (request: FileCopyRequest) =>
+      ipcRenderer.invoke(IPC.fileCopy, request) as Promise<FileOperationResult>,
   },
   git: {
     baseline: (path: string) =>

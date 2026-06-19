@@ -1,5 +1,7 @@
 # Carlo
 
+![screenshot](./assets/screenshot.png)
+
 Carlo is a small Electron IDE for people who want the useful part of VS Code without the rest of VS Code.
 
 It is intentionally boring: a file tree, tabs, Monaco, and Language Server Protocol support. No marketplace, no extension platform, no built-in chat, no project system, no telemetry, no side quests. Open a folder, edit files, let your language server do the smart bits.

@@ -35,17 +35,46 @@ export interface SaveAsDialogResult {
   languageId: LanguageId;
 }
 
+export interface FileCreateRequest {
+  parentPath: string;
+  name: string;
+}
+
+export interface FileDeleteRequest {
+  path: string;
+}
+
+export interface FileCopyRequest {
+  sourcePath: string;
+  destinationDirectory: string;
+}
+
+export interface FileOperationResult {
+  path: string;
+  uri: string;
+}
+
 export interface WorkspaceFolderResult {
   rootUri: string;
   rootPath: string;
   name: string;
 }
 
+export type GitFileStatus =
+  | 'added'
+  | 'modified'
+  | 'deleted'
+  | 'renamed'
+  | 'untracked'
+  | 'ignored'
+  | 'conflict';
+
 export interface FileTreeNode {
   name: string;
   path: string;
   uri: string;
   type: 'file' | 'directory';
+  gitStatus?: GitFileStatus;
   children?: FileTreeNode[];
 }
 
