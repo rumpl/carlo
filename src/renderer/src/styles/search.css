@@ -1,9 +1,8 @@
 .search-panel {
   display: grid;
   grid-template-rows: 42px minmax(0, 1fr);
-  height: min(300px, 40vh);
-  min-height: 150px;
-  border-top: 1px solid var(--border);
+  height: 100%;
+  min-height: 0;
   background: var(--panel);
 }
 .search-header {

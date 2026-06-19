@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { WorkspaceSearchMatch } from '@shared/file-types';
+import { useBottomPanelStore } from './useBottomPanelStore';
 
 interface SearchState {
   isOpen: boolean;
@@ -26,9 +27,19 @@ export const useSearchStore = create<SearchState>((set) => ({
   truncated: false,
   error: null,
   hasSearched: false,
-  openSearch: () => set({ isOpen: true }),
-  closeSearch: () => set({ isOpen: false }),
-  toggleSearch: () => set((state) => ({ isOpen: !state.isOpen })),
+  openSearch: () => {
+    useBottomPanelStore.getState().openPanel('search');
+    set({ isOpen: true });
+  },
+  closeSearch: () => {
+    useBottomPanelStore.getState().closePanel();
+    set({ isOpen: false });
+  },
+  toggleSearch: () => {
+    const willOpen = useBottomPanelStore.getState().activePanel !== 'search';
+    useBottomPanelStore.getState().togglePanel('search');
+    set({ isOpen: willOpen });
+  },
   setQuery: (query) => set({ query, hasSearched: false }),
   setLoading: (loading) => set({ loading }),
   setResults: (results, truncated) => set({ results, truncated, error: null, hasSearched: true }),

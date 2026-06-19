@@ -2,6 +2,8 @@
 @import './tabs.css';
 @import './editor.css';
 @import './status-problems.css';
+@import './bottom-panel.css';
 @import './search.css';
+@import './git.css';
 @import './file-tree.css';
 @import './settings-palette.css';

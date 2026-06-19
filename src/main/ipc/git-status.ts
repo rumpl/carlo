@@ -1,7 +1,8 @@
 import { execFile } from 'node:child_process';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
-import type { GitFileStatus } from '@shared/file-types';
+import type { GitChangedFile, GitFileStatus, GitStatusResult } from '@shared/file-types';
 
 const execFileAsync = promisify(execFile);
 
@@ -89,4 +90,29 @@ export async function getGitStatusContext(path: string): Promise<GitStatusContex
   } catch {
     return undefined;
   }
+}
+
+const gitStatusOrder: Record<GitFileStatus, number> = {
+  conflict: 0,
+  modified: 1,
+  added: 2,
+  deleted: 3,
+  renamed: 4,
+  untracked: 5,
+  ignored: 6,
+};
+
+export async function getGitStatus(path: string): Promise<GitStatusResult> {
+  const context = await getGitStatusContext(path);
+  if (!context) return { isGitRepo: false, files: [] };
+  const files: GitChangedFile[] = [...context.statuses.entries()]
+    .filter(([, status]) => status !== 'ignored')
+    .map(([changedPath, status]) => ({
+      path: changedPath,
+      uri: pathToFileURL(changedPath).toString(),
+      relativePath: relative(context.rootPath, changedPath),
+      status,
+    }))
+    .sort((a, b) => gitStatusOrder[a.status] - gitStatusOrder[b.status] || a.relativePath.localeCompare(b.relativePath));
+  return { isGitRepo: true, rootPath: context.rootPath, files };
 }

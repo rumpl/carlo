@@ -70,6 +70,16 @@ export function installAppMenu(): void {
       ],
     },
     {
+      label: 'Source Control',
+      submenu: [
+        {
+          label: 'Show Changes',
+          accelerator: 'CmdOrCtrl+Shift+G',
+          click: () => sendCommand('workbench.panel.git.toggle'),
+        },
+      ],
+    },
+    {
       label: 'Navigate',
       submenu: [
         {

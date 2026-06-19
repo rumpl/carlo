@@ -33,6 +33,10 @@ export function useKeybindings(): void {
         event.preventDefault();
         event.stopPropagation();
         void runCommand('workbench.action.findInFiles');
+      } else if (mod && event.shiftKey && event.key.toLowerCase() === 'g') {
+        event.preventDefault();
+        event.stopPropagation();
+        void runCommand('workbench.panel.git.toggle');
       } else if (mod && event.key.toLowerCase() === 'f') {
         event.preventDefault();
         event.stopPropagation();

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { AppTitleBar } from './components/AppTitleBar';
 import { FileTree } from './components/FileTree';
+import { BottomPanel } from './components/BottomPanel';
 import { SettingsPanel } from './components/SettingsPanel';
 import { StatusBar } from './components/StatusBar';
 import { TabBar } from './components/TabBar';
@@ -11,14 +12,12 @@ import { useWorkspaceExternalChanges } from './hooks/useWorkspaceExternalChanges
 import { activeTabInGroup, useEditorStore } from './store/useEditorStore';
 import { useSettingsStore } from './store/useSettingsStore';
 import { useThemeStore } from './store/useThemeStore';
-import { useProblemsStore } from './store/useProblemsStore';
-import { useSearchStore } from './store/useSearchStore';
+import { isGitDiffUri } from './git/diffTabs';
 
 const minSidebarWidth = 180;
 const maxSidebarWidth = 560;
 const MonacoEditor = lazy(() => import('./editor/MonacoEditor').then((module) => ({ default: module.MonacoEditor })));
-const ProblemsPanel = lazy(() => import('./components/ProblemsPanel').then((module) => ({ default: module.ProblemsPanel })));
-const SearchPanel = lazy(() => import('./components/SearchPanel').then((module) => ({ default: module.SearchPanel })));
+const GitDiffEditor = lazy(() => import('./editor/GitDiffEditor').then((module) => ({ default: module.GitDiffEditor })));
 
 function initialSidebarWidth(): number {
   const stored = Number(localStorage.getItem('carlo.sidebarWidth'));
@@ -35,8 +34,6 @@ export function App() {
   const groups = useEditorStore((state) => state.groups);
   const splitDirection = useEditorStore((state) => state.splitDirection);
   const [sidebarWidth, setSidebarWidth] = useState(initialSidebarWidth);
-  const problemsOpen = useProblemsStore((state) => state.isOpen);
-  const searchOpen = useSearchStore((state) => state.isOpen);
   useEffect(() => {
     const unsubscribe = window.api.window.onCloseRequested(() => {
       void import('./editor/saveActions')
@@ -89,11 +86,16 @@ export function App() {
       <div className="main-area">
         <div className={`workbench split-${splitDirection}`}>
           {groups.map((group) => {
-            const hasActiveTab = Boolean(activeTabInGroup(group.id));
+            const tab = activeTabInGroup(group.id);
+            const hasActiveTab = Boolean(tab);
             return (
               <section className="editor-group" key={group.id}>
                 <TabBar groupId={group.id} />
-                {hasActiveTab ? (
+                {tab && isGitDiffUri(tab.uri) ? (
+                  <Suspense fallback={<div className="editor-stack" />}>
+                    <GitDiffEditor groupId={group.id} />
+                  </Suspense>
+                ) : hasActiveTab ? (
                   <Suspense fallback={<div className="editor-stack" />}>
                     <MonacoEditor groupId={group.id} />
                   </Suspense>
@@ -106,15 +108,7 @@ export function App() {
             );
           })}
         </div>
-        {searchOpen ? (
-          <Suspense fallback={null}>
-            <SearchPanel />
-          </Suspense>
-        ) : problemsOpen ? (
-          <Suspense fallback={null}>
-            <ProblemsPanel />
-          </Suspense>
-        ) : null}
+        <BottomPanel />
       </div>
       <StatusBar />
       <SettingsPanel />

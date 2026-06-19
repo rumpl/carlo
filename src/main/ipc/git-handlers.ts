@@ -3,7 +3,8 @@ import { execFile } from 'node:child_process';
 import { dirname, relative } from 'node:path';
 import { promisify } from 'node:util';
 import { IPC } from '@shared/ipc';
-import type { GitBaselineResult } from '@shared/file-types';
+import type { GitBaselineResult, GitStatusResult } from '@shared/file-types';
+import { getGitStatus } from './git-status';
 
 const execFileAsync = promisify(execFile);
 
@@ -17,6 +18,10 @@ async function gitRaw(args: string[], cwd: string): Promise<string> {
 }
 
 export function registerGitHandlers(): void {
+  ipcMain.handle(IPC.gitStatus, async (_event, { rootPath }: { rootPath: string }): Promise<GitStatusResult> =>
+    getGitStatus(rootPath),
+  );
+
   ipcMain.handle(IPC.gitBaseline, async (_event, { path }: { path: string }): Promise<GitBaselineResult> => {
     try {
       const cwd = dirname(path);

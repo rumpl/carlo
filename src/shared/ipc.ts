@@ -15,6 +15,7 @@ export const IPC = {
   fileDelete: 'file:delete',
   fileCopy: 'file:copy',
   gitBaseline: 'git:baseline',
+  gitStatus: 'git:status',
   workspaceOpenFolderDialog: 'workspace:openFolderDialog',
   workspaceCurrentFolder: 'workspace:currentFolder',
   workspaceListTree: 'workspace:listTree',

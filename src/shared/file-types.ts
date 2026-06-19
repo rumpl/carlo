@@ -86,6 +86,19 @@ export interface GitBaselineResult {
   error?: string;
 }
 
+export interface GitChangedFile {
+  path: string;
+  uri: string;
+  relativePath: string;
+  status: GitFileStatus;
+}
+
+export interface GitStatusResult {
+  isGitRepo: boolean;
+  rootPath?: string;
+  files: GitChangedFile[];
+}
+
 export interface WorkspaceSearchRequest {
   rootPath: string;
   query: string;

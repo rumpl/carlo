@@ -8,6 +8,7 @@ import type {
   FileOperationResult,
   FileTreeNode,
   GitBaselineResult,
+  GitStatusResult,
   OpenFileResult,
   ReadFileResult,
   SaveAsDialogRequest,
@@ -73,6 +74,8 @@ export const api = Object.freeze({
   git: {
     baseline: (path: string) =>
       ipcRenderer.invoke(IPC.gitBaseline, { path }) as Promise<GitBaselineResult>,
+    status: (rootPath: string) =>
+      ipcRenderer.invoke(IPC.gitStatus, { rootPath }) as Promise<GitStatusResult>,
   },
   window: {
     zoomIn: () => ipcRenderer.invoke(IPC.windowZoomIn) as Promise<{ zoomLevel: number }>,
