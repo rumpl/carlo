@@ -72,6 +72,11 @@ export function useKeybindings(): void {
         event.stopPropagation();
         void runCommand('workbench.panel.problems.toggle');
       }
+      if (event.key === 'F2') {
+        event.preventDefault();
+        event.stopPropagation();
+        void runCommand('editor.action.rename');
+      }
       if (event.key === 'F8') {
         event.preventDefault();
         event.stopPropagation();

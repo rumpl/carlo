@@ -43,7 +43,7 @@ async function openFile(): Promise<void> {
   );
 }
 
-async function formatDocument(): Promise<void> {
+async function withActiveEditorLsp(actionId: string): Promise<void> {
   const tab = activeTab();
   const editor = getEditor();
   if (!tab || !editor) return;
@@ -55,7 +55,15 @@ async function formatDocument(): Promise<void> {
 
   const model = getModel(tab.uri);
   if (model && editor.getModel() !== model) editor.setModel(model);
-  await editor.getAction('editor.action.formatDocument')?.run();
+  await editor.getAction(actionId)?.run();
+}
+
+async function formatDocument(): Promise<void> {
+  await withActiveEditorLsp('editor.action.formatDocument');
+}
+
+async function renameSymbol(): Promise<void> {
+  await withActiveEditorLsp('editor.action.rename');
 }
 
 async function formatDocumentForSave(): Promise<void> {
@@ -164,6 +172,12 @@ export function registerBuiltinCommands(): void {
     id: 'editor.action.formatDocument',
     title: 'Format Document',
     run: formatDocument,
+  });
+  registerCommand({
+    id: 'editor.action.rename',
+    title: 'Rename Symbol',
+    keybinding: 'F2',
+    run: renameSymbol,
   });
   registerCommand({
     id: 'editor.toggleSoftWrap',

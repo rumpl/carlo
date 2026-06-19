@@ -28,6 +28,16 @@ export function installAppMenu(): void {
       ],
     },
     {
+      label: 'Edit',
+      submenu: [
+        {
+          label: 'Rename Symbol',
+          accelerator: 'F2',
+          click: () => sendCommand('editor.action.rename'),
+        },
+      ],
+    },
+    {
       label: 'View',
       submenu: [
         {
