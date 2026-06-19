@@ -377,6 +377,57 @@ input {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Monaco's built-in find/replace widget uses VS Code theme tokens. Keep it
+   visually aligned with Carlo's current shell theme, including Nord. */
+.monaco-editor .find-widget {
+  border: 1px solid var(--border) !important;
+  background: var(--panel) !important;
+  color: var(--fg) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35) !important;
+}
+.monaco-editor .find-widget .monaco-inputbox {
+  border: 1px solid var(--border) !important;
+  background: var(--bg) !important;
+  color: var(--fg) !important;
+}
+.monaco-editor .find-widget .monaco-inputbox.synthetic-focus,
+.monaco-editor .find-widget .monaco-inputbox:focus-within {
+  border-color: var(--accent) !important;
+  outline: 1px solid var(--accent) !important;
+  outline-offset: -1px;
+}
+.monaco-editor .find-widget .monaco-inputbox input,
+.monaco-editor .find-widget .monaco-inputbox textarea {
+  background: var(--bg) !important;
+  color: var(--fg) !important;
+}
+.monaco-editor .find-widget .monaco-inputbox input::placeholder,
+.monaco-editor .find-widget .monaco-inputbox textarea::placeholder {
+  color: color-mix(in srgb, var(--fg) 54%, transparent) !important;
+}
+.monaco-editor .find-widget .button,
+.monaco-editor .find-widget .monaco-button,
+.monaco-editor .find-widget .codicon,
+.monaco-editor .find-widget .monaco-custom-toggle {
+  color: var(--fg) !important;
+}
+.monaco-editor .find-widget .button:hover,
+.monaco-editor .find-widget .monaco-custom-toggle:hover,
+.monaco-editor .find-widget .monaco-custom-toggle.checked {
+  background: var(--panel2) !important;
+}
+.monaco-editor .find-widget .monaco-custom-toggle.checked {
+  color: var(--accent) !important;
+}
+.monaco-editor .find-widget .matchesCount,
+.monaco-editor .find-widget .monaco-count-badge,
+.monaco-editor .find-widget .label {
+  color: color-mix(in srgb, var(--fg) 76%, transparent) !important;
+}
+.monaco-editor .find-widget .monaco-sash {
+  background: var(--border) !important;
+}
 .status-bar {
   grid-column: 1 / -1;
   display: flex;

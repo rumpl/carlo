@@ -123,6 +123,13 @@ function toggleSoftWrap(): void {
   setEditorsSoftWrap(toggleSoftWrapEnabled());
 }
 
+async function runEditorAction(actionId: string): Promise<void> {
+  const editor = getEditor();
+  if (!editor) return;
+  editor.focus();
+  await editor.getAction(actionId)?.run();
+}
+
 async function installCommandLine(): Promise<void> {
   const result = await window.api.app.installCommandLine();
   if (result.ok) {
@@ -222,6 +229,30 @@ export function registerBuiltinCommands(): void {
     },
   });
   registerCommand({ id: 'file.saveAs', title: 'Save As', keybinding: 'Ctrl+Shift+S', run: saveAs });
+  registerCommand({
+    id: 'actions.find',
+    title: 'Find',
+    keybinding: 'Ctrl+F',
+    run: () => runEditorAction('actions.find'),
+  });
+  registerCommand({
+    id: 'editor.action.startFindReplaceAction',
+    title: 'Replace',
+    keybinding: 'Ctrl+H',
+    run: () => runEditorAction('editor.action.startFindReplaceAction'),
+  });
+  registerCommand({
+    id: 'editor.action.nextMatchFindAction',
+    title: 'Find Next',
+    keybinding: 'F3',
+    run: () => runEditorAction('editor.action.nextMatchFindAction'),
+  });
+  registerCommand({
+    id: 'editor.action.previousMatchFindAction',
+    title: 'Find Previous',
+    keybinding: 'Shift+F3',
+    run: () => runEditorAction('editor.action.previousMatchFindAction'),
+  });
   registerCommand({
     id: 'workbench.action.findInFiles',
     title: 'Search: Find in Files',

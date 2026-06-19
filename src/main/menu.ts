@@ -35,6 +35,23 @@ export function installAppMenu(): void {
     {
       label: 'Edit',
       submenu: [
+        { label: 'Find', accelerator: 'CmdOrCtrl+F', click: () => sendCommand('actions.find') },
+        {
+          label: 'Replace',
+          accelerator: 'CmdOrCtrl+H',
+          click: () => sendCommand('editor.action.startFindReplaceAction'),
+        },
+        {
+          label: 'Find Next',
+          accelerator: 'F3',
+          click: () => sendCommand('editor.action.nextMatchFindAction'),
+        },
+        {
+          label: 'Find Previous',
+          accelerator: 'Shift+F3',
+          click: () => sendCommand('editor.action.previousMatchFindAction'),
+        },
+        { type: 'separator' },
         {
           label: 'Rename Symbol',
           accelerator: 'F2',

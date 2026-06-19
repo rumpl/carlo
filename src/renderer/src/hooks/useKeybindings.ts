@@ -28,6 +28,20 @@ export function useKeybindings(): void {
         event.preventDefault();
         event.stopPropagation();
         void runCommand('workbench.action.findInFiles');
+      } else if (mod && event.key.toLowerCase() === 'f') {
+        event.preventDefault();
+        event.stopPropagation();
+        void runCommand('actions.find');
+      }
+      if (mod && event.key.toLowerCase() === 'h') {
+        event.preventDefault();
+        event.stopPropagation();
+        void runCommand('editor.action.startFindReplaceAction');
+      }
+      if (event.key === 'F3') {
+        event.preventDefault();
+        event.stopPropagation();
+        void runCommand(event.shiftKey ? 'editor.action.previousMatchFindAction' : 'editor.action.nextMatchFindAction');
       }
       if (mod && event.key === ',') {
         event.preventDefault();
