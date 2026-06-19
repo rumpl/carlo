@@ -2,6 +2,7 @@
   "name": "carlo",
   "version": "0.1.0",
   "description": "A minimal Electron IDE",
+  "license": "MIT",
   "main": "./out/main/index.js",
   "type": "module",
   "scripts": {
