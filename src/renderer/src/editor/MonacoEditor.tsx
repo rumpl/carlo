@@ -8,10 +8,31 @@ import { getModel, isApplyingExternalContentUpdate } from './models';
 import { recordNavigationLocation } from './navigationHistory';
 
 const editors = new Map<string, monaco.editor.IStandaloneCodeEditor>();
+const pendingReveals = new Map<string, { uri: string; position: monaco.IPosition }>();
 let activeEditor: monaco.editor.IStandaloneCodeEditor | null = null;
 
 export function getEditor(): monaco.editor.IStandaloneCodeEditor | null {
   return activeEditor ?? editors.values().next().value ?? null;
+}
+
+export function getEditorGroupId(editor: monaco.editor.ICodeEditor): string | undefined {
+  for (const [groupId, candidate] of editors) {
+    if (candidate === editor) return groupId;
+  }
+  return undefined;
+}
+
+export function setPendingReveal(groupId: string, uri: string, position: monaco.IPosition): void {
+  pendingReveals.set(groupId, { uri, position });
+}
+
+export function revealPosition(
+  editor: monaco.editor.IStandaloneCodeEditor,
+  position: monaco.IPosition,
+  scrollType = monaco.editor.ScrollType.Immediate,
+): void {
+  editor.setPosition(position);
+  editor.revealPositionInCenter(position, scrollType);
 }
 
 export function setEditorsSoftWrap(enabled = softWrapEnabled()): void {
@@ -88,12 +109,20 @@ export function MonacoEditor({ groupId }: Props) {
     const editor = editors.get(groupId);
     if (!editor) return;
     const tab = activeTabInGroup(groupId);
-    if (currentUri.current) viewStates.current.set(currentUri.current, editor.saveViewState());
+    const actualModelUri = editor.getModel()?.uri.toString() ?? null;
+    if (currentUri.current && actualModelUri === currentUri.current) {
+      viewStates.current.set(currentUri.current, editor.saveViewState());
+    }
     currentUri.current = tab?.uri ?? null;
     const model = tab ? (getModel(tab.uri) ?? null) : null;
     editor.setModel(model);
     if (tab) {
       editor.restoreViewState(viewStates.current.get(tab.uri) ?? null);
+      const pendingReveal = pendingReveals.get(groupId);
+      if (pendingReveal?.uri === tab.uri) {
+        revealPosition(editor, pendingReveal.position);
+        pendingReveals.delete(groupId);
+      }
       void updateGitGutter(editor, tab);
     }
     editor.focus();

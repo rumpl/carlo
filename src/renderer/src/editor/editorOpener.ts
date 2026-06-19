@@ -2,6 +2,7 @@ import * as monaco from '@codingame/monaco-vscode-editor-api';
 import { languageIdFromPath } from '@shared/language-registry';
 import { ensureLanguageClient } from '../lsp/LanguageClientService';
 import { useEditorStore } from '../store/useEditorStore';
+import { getEditorGroupId, revealPosition, setPendingReveal } from './MonacoEditor';
 import { getOrCreateModel, getModel } from './models';
 import { recordNavigationLocation } from './navigationHistory';
 
@@ -41,15 +42,21 @@ export function registerEditorOpener(): void {
         model = getOrCreateModel(uri, file.content, languageId);
       }
 
+      const editor = source as monaco.editor.IStandaloneCodeEditor;
+      const groupId = getEditorGroupId(editor);
+      if (groupId) useEditorStore.getState().setActiveGroup(groupId);
+
+      const position = positionFromSelectionOrPosition(selectionOrPosition);
+      if (groupId && position && editor.getModel()?.uri.toString() !== uri) {
+        setPendingReveal(groupId, uri, position);
+      }
+
       useEditorStore.getState().openFile({ uri, path, languageId, title: titleFromPath(path) });
       if (workspace) void ensureLanguageClient(languageId, workspace.rootUri, uri).catch(console.error);
 
-      const editor = source as monaco.editor.IStandaloneCodeEditor;
       editor.setModel(model);
-      const position = positionFromSelectionOrPosition(selectionOrPosition);
-      if (position) {
-        editor.setPosition(position);
-        editor.revealPositionInCenter(position, monaco.editor.ScrollType.Smooth);
+      if (position && editor.getModel()?.uri.toString() === uri) {
+        revealPosition(editor, position, monaco.editor.ScrollType.Smooth);
       }
       editor.focus();
       recordNavigationLocation(editor, true);

@@ -40,14 +40,34 @@ async function openFile(): Promise<void> {
   );
 }
 
+async function formatDocument(): Promise<void> {
+  const tab = activeTab();
+  const editor = getEditor();
+  if (!tab || !editor) return;
+
+  const workspace = useEditorStore.getState().workspace ?? rootFor(tab.path);
+  await ensureLanguageClient(tab.languageId, workspace.rootUri, tab.uri).catch((error) =>
+    console.error(error),
+  );
+
+  const model = getModel(tab.uri);
+  if (model && editor.getModel() !== model) editor.setModel(model);
+  await editor.getAction('editor.action.formatDocument')?.run();
+}
+
+async function formatDocumentForSave(): Promise<void> {
+  await formatDocument().catch((error) => console.error('Format on save failed', error));
+}
+
 async function saveFile(): Promise<void> {
   const tab = activeTab();
   if (!tab) return;
-  const content = getModel(tab.uri)?.getValue() ?? '';
   if (tab.uri.startsWith('untitled:')) {
     await saveAs();
     return;
   }
+  await formatDocumentForSave();
+  const content = getModel(tab.uri)?.getValue() ?? '';
   await window.api.file.save({ path: tab.path, content });
   useEditorStore.getState().markSaved(tab.uri);
 }
@@ -55,6 +75,7 @@ async function saveFile(): Promise<void> {
 async function saveAs(): Promise<void> {
   const tab = activeTab();
   if (!tab) return;
+  await formatDocumentForSave();
   const content = getModel(tab.uri)?.getValue() ?? '';
   const result = await window.api.file.saveAsDialog({ content, suggestedName: tab.title });
   if (!result) return;
@@ -136,6 +157,11 @@ export function registerBuiltinCommands(): void {
     },
   });
   registerCommand({ id: 'file.save', title: 'Save', keybinding: 'Ctrl+S', run: saveFile });
+  registerCommand({
+    id: 'editor.action.formatDocument',
+    title: 'Format Document',
+    run: formatDocument,
+  });
   registerCommand({
     id: 'editor.toggleSoftWrap',
     title: 'Editor: Toggle Soft Wrap',
