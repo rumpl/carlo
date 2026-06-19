@@ -1,5 +1,7 @@
 export const IPC = {
   ping: 'app:ping',
+  configLanguage: 'config:language',
+  configLanguagePath: 'config:languagePath',
   fileOpenDialog: 'file:openDialog',
   fileRead: 'file:read',
   fileSave: 'file:save',
@@ -8,6 +10,7 @@ export const IPC = {
   workspaceOpenFolderDialog: 'workspace:openFolderDialog',
   workspaceCurrentFolder: 'workspace:currentFolder',
   workspaceListTree: 'workspace:listTree',
+  workspaceChanged: 'workspace:changed',
   windowZoomIn: 'window:zoomIn',
   windowZoomOut: 'window:zoomOut',
   windowZoomReset: 'window:zoomReset',

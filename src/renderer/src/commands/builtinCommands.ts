@@ -61,6 +61,14 @@ async function saveAs(): Promise<void> {
   useEditorStore.getState().markSaved(tab.uri, result);
 }
 
+async function openLanguageConfig(): Promise<void> {
+  const { path } = await window.api.config.languagePath();
+  const file = await window.api.file.read(path);
+  const uri = new URL(`file://${path}`).toString();
+  getOrCreateModel(uri, file.content, 'json');
+  useEditorStore.getState().openFile({ uri, path, languageId: 'json', title: titleFromPath(path) });
+}
+
 export function registerBuiltinCommands(): void {
   registerCommand({
     id: 'workbench.action.showCommands',
@@ -109,6 +117,11 @@ export function registerBuiltinCommands(): void {
     },
   });
   registerCommand({ id: 'file.saveAs', title: 'Save As', keybinding: 'Ctrl+Shift+S', run: saveAs });
+  registerCommand({
+    id: 'preferences.openLanguageConfig',
+    title: 'Preferences: Open Language Config',
+    run: openLanguageConfig,
+  });
   registerCommand({
     id: 'workbench.action.navigateBack',
     title: 'Go Back',

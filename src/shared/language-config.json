@@ -1,0 +1,19 @@
+{
+  "languageServers": {
+    "typescript": { "command": "typescript-language-server", "args": ["--stdio"] },
+    "javascript": { "command": "typescript-language-server", "args": ["--stdio"] },
+    "json": { "command": "vscode-json-language-server", "args": ["--stdio"] },
+    "go": { "command": "gopls", "args": [] },
+    "rust": { "command": "rust-analyzer", "args": [] },
+    "plaintext": null
+  },
+  "extensions": {
+    ".ts": "typescript",
+    ".tsx": "typescript",
+    ".js": "javascript",
+    ".jsx": "javascript",
+    ".json": "json",
+    ".go": "go",
+    ".rs": "rust"
+  }
+}

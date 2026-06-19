@@ -56,3 +56,9 @@ export interface GitBaselineResult {
   content?: string;
   error?: string;
 }
+
+export interface WorkspaceChangedEvent {
+  rootPath: string;
+  path?: string;
+  eventType: 'rename' | 'change';
+}

@@ -1,4 +1,5 @@
 import { BrowserWindow, dialog, ipcMain } from 'electron';
+import { watch, type FSWatcher } from 'node:fs';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { basename, join } from 'node:path';
@@ -13,6 +14,32 @@ import type {
 } from '@shared/file-types';
 
 const ignoredNames = new Set(['.git', 'node_modules', 'out', 'dist', 'build', '.DS_Store']);
+const ignoredWatchNames = new Set(['node_modules', 'out', 'dist', 'build', '.DS_Store']);
+
+let workspaceWatcher: FSWatcher | undefined;
+let watchedRootPath: string | undefined;
+
+function isIgnoredWatchPath(path: string): boolean {
+  return path.split(/[\\/]/).some((part) => ignoredWatchNames.has(part));
+}
+
+function ensureWorkspaceWatcher(win: BrowserWindow, rootPath: string): void {
+  if (watchedRootPath === rootPath && workspaceWatcher) return;
+  workspaceWatcher?.close();
+  watchedRootPath = rootPath;
+  try {
+    workspaceWatcher = watch(rootPath, { recursive: true }, (eventType, filename) => {
+      const relativePath = filename?.toString();
+      if (relativePath && isIgnoredWatchPath(relativePath)) return;
+      const path = relativePath ? join(rootPath, relativePath) : undefined;
+      win.webContents.send(IPC.workspaceChanged, { rootPath, path, eventType });
+    });
+    workspaceWatcher.on('error', (error) => console.error('workspace watcher failed', error));
+  } catch (error) {
+    workspaceWatcher = undefined;
+    console.error('failed to watch workspace', error);
+  }
+}
 
 async function listTree(rootPath: string, depth = 0): Promise<FileTreeNode[]> {
   const entries = await readdir(rootPath, { withFileTypes: true });
@@ -39,6 +66,12 @@ async function listTree(rootPath: string, depth = 0): Promise<FileTreeNode[]> {
 }
 
 export function registerFileHandlers(win: BrowserWindow): void {
+  win.on('closed', () => {
+    workspaceWatcher?.close();
+    workspaceWatcher = undefined;
+    watchedRootPath = undefined;
+  });
+
   ipcMain.handle(IPC.fileOpenDialog, async (): Promise<OpenFileResult | null> => {
     const result = await dialog.showOpenDialog(win, { properties: ['openFile'] });
     if (result.canceled || result.filePaths.length === 0) return null;
@@ -78,15 +111,18 @@ export function registerFileHandlers(win: BrowserWindow): void {
     const result = await dialog.showOpenDialog(win, { properties: ['openDirectory'] });
     if (result.canceled || result.filePaths.length === 0) return null;
     const rootPath = result.filePaths[0]!;
+    ensureWorkspaceWatcher(win, rootPath);
     return { rootPath, rootUri: pathToFileURL(rootPath).toString(), name: basename(rootPath) };
   });
 
   ipcMain.handle(IPC.workspaceCurrentFolder, async () => {
     const rootPath = initialWorkspacePath();
+    ensureWorkspaceWatcher(win, rootPath);
     return { rootPath, rootUri: pathToFileURL(rootPath).toString(), name: basename(rootPath) };
   });
 
-  ipcMain.handle(IPC.workspaceListTree, async (_event, { rootPath }: { rootPath: string }) => ({
-    children: await listTree(rootPath),
-  }));
+  ipcMain.handle(IPC.workspaceListTree, async (_event, { rootPath }: { rootPath: string }) => {
+    ensureWorkspaceWatcher(win, rootPath);
+    return { children: await listTree(rootPath) };
+  });
 }

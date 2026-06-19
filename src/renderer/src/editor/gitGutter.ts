@@ -87,3 +87,7 @@ export function clearGitGutter(model: monaco.editor.ITextModel): void {
 export function invalidateGitBaseline(path: string): void {
   baselineCache.delete(path);
 }
+
+export function invalidateAllGitBaselines(): void {
+  baselineCache.clear();
+}

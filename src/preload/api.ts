@@ -8,8 +8,10 @@ import type {
   SaveAsDialogRequest,
   SaveAsDialogResult,
   SaveFileRequest,
+  WorkspaceChangedEvent,
   WorkspaceFolderResult,
 } from '@shared/file-types';
+import type { LanguageConfig } from '@shared/language-registry';
 import type {
   LspFromServerPayload,
   LspServerExit,
@@ -23,11 +25,17 @@ import type { Message } from 'vscode-jsonrpc';
 const on = <T>(channel: string, cb: (payload: T) => void) => {
   const handler = (_event: Electron.IpcRendererEvent, payload: T) => cb(payload);
   ipcRenderer.on(channel, handler);
-  return () => ipcRenderer.removeListener(channel, handler);
+  return () => {
+    ipcRenderer.removeListener(channel, handler);
+  };
 };
 
 export const api = Object.freeze({
   ping: () => ipcRenderer.invoke(IPC.ping) as Promise<string>,
+  config: {
+    language: () => ipcRenderer.invoke(IPC.configLanguage) as Promise<LanguageConfig>,
+    languagePath: () => ipcRenderer.invoke(IPC.configLanguagePath) as Promise<{ path: string }>,
+  },
   file: {
     openDialog: () => ipcRenderer.invoke(IPC.fileOpenDialog) as Promise<OpenFileResult | null>,
     read: (path: string) => ipcRenderer.invoke(IPC.fileRead, { path }) as Promise<ReadFileResult>,
@@ -54,6 +62,8 @@ export const api = Object.freeze({
       ipcRenderer.invoke(IPC.workspaceListTree, { rootPath }) as Promise<{
         children: FileTreeNode[];
       }>,
+    onChanged: (cb: (event: WorkspaceChangedEvent) => void) =>
+      on<WorkspaceChangedEvent>(IPC.workspaceChanged, cb),
   },
   lsp: {
     start: (opts: LspStartOptions) =>

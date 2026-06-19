@@ -2,6 +2,7 @@ import * as monaco from '@codingame/monaco-vscode-editor-api';
 import type { LanguageId } from '@shared/language-registry';
 
 const models = new Map<string, monaco.editor.ITextModel>();
+const externalContentUpdates = new WeakSet<monaco.editor.ITextModel>();
 
 export function getOrCreateModel(
   uri: string,
@@ -17,6 +18,24 @@ export function getOrCreateModel(
 
 export function getModel(uri: string): monaco.editor.ITextModel | undefined {
   return models.get(uri);
+}
+
+export function replaceModelContentFromDisk(
+  model: monaco.editor.ITextModel,
+  content: string,
+): boolean {
+  if (model.getValue() === content) return false;
+  externalContentUpdates.add(model);
+  try {
+    model.setValue(content);
+  } finally {
+    externalContentUpdates.delete(model);
+  }
+  return true;
+}
+
+export function isApplyingExternalContentUpdate(model: monaco.editor.ITextModel): boolean {
+  return externalContentUpdates.has(model);
 }
 
 export function replaceModelUri(

@@ -4,6 +4,7 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

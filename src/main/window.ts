@@ -2,6 +2,7 @@ import { BrowserWindow, nativeTheme } from 'electron';
 import { is } from '@electron-toolkit/utils';
 import { join } from 'node:path';
 import { IPC } from '@shared/ipc';
+import { registerConfigHandlers } from './ipc/config-handlers';
 import { registerFileHandlers } from './ipc/file-handlers';
 import { registerGitHandlers } from './ipc/git-handlers';
 import { registerLspHandlers } from './ipc/lsp-handlers';
@@ -25,6 +26,7 @@ export function createWindow(): BrowserWindow {
     },
   });
 
+  registerConfigHandlers();
   registerFileHandlers(win);
   registerGitHandlers();
   registerLspHandlers(win);

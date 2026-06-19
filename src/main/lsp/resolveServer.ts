@@ -2,7 +2,7 @@ import { app } from 'electron';
 import { accessSync, constants } from 'node:fs';
 import { delimiter, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { LANGUAGE_SERVERS, type ServerLanguageId } from '@shared/language-registry';
+import { languageServerFor, type ServerLanguageId } from '@shared/language-registry';
 
 export interface ResolvedServer {
   command: string;
@@ -71,7 +71,8 @@ function augmentedEnv(): NodeJS.ProcessEnv {
 }
 
 export function resolveServer(languageId: ServerLanguageId, rootUri: string): ResolvedServer {
-  const server = LANGUAGE_SERVERS[languageId];
+  const server = languageServerFor(languageId);
+  if (!server) throw new Error(`No language server configured for ${languageId}`);
   const commandName = server.command;
   const env = augmentedEnv();
   const pathCandidates = (env.PATH ?? '').split(delimiter).map((path) => join(path, binName(commandName)));

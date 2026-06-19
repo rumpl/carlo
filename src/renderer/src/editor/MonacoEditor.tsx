@@ -4,7 +4,7 @@ import { WelcomeScreen } from '../components/WelcomeScreen';
 import { activeTabInGroup, useEditorStore } from '../store/useEditorStore';
 import { editorOptions } from './editorOptions';
 import { updateGitGutter } from './gitGutter';
-import { getModel } from './models';
+import { getModel, isApplyingExternalContentUpdate } from './models';
 import { recordNavigationLocation } from './navigationHistory';
 
 const editors = new Map<string, monaco.editor.IStandaloneCodeEditor>();
@@ -12,6 +12,24 @@ let activeEditor: monaco.editor.IStandaloneCodeEditor | null = null;
 
 export function getEditor(): monaco.editor.IStandaloneCodeEditor | null {
   return activeEditor ?? editors.values().next().value ?? null;
+}
+
+export function refreshVisibleGitGuttersForPath(path: string): void {
+  const tabs = useEditorStore.getState().tabs.filter((tab) => tab.path === path);
+  for (const editor of editors.values()) {
+    const model = editor.getModel();
+    const tab = tabs.find((candidate) => candidate.uri === model?.uri.toString());
+    if (tab) void updateGitGutter(editor, tab);
+  }
+}
+
+export function refreshVisibleGitGutters(): void {
+  const { tabs } = useEditorStore.getState();
+  for (const editor of editors.values()) {
+    const uri = editor.getModel()?.uri.toString();
+    const tab = tabs.find((candidate) => candidate.uri === uri);
+    if (tab) void updateGitGutter(editor, tab);
+  }
 }
 
 interface Props {
@@ -78,7 +96,7 @@ export function MonacoEditor({ groupId }: Props) {
       let gitTimer: ReturnType<typeof setTimeout> | undefined;
       disposables.push(
         model.onDidChangeContent(() => {
-          markDirty(tab.uri);
+          if (!isApplyingExternalContentUpdate(model)) markDirty(tab.uri);
           if (gitTimer) clearTimeout(gitTimer);
           gitTimer = setTimeout(() => {
             if (editor?.getModel() === model) void updateGitGutter(editor, tab);

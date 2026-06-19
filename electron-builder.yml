@@ -1,5 +1,6 @@
 appId: dev.rumpl.carlo
 productName: carlo
+electronDist: node_modules/electron/dist
 directories:
   output: dist
 files:
@@ -10,6 +11,9 @@ asarUnpack:
   - node_modules/typescript-language-server/**
   - node_modules/typescript/**
   - node_modules/vscode-langservers-extracted/**
+mac:
+  target:
+    - zip
 linux:
   target:
     - dir

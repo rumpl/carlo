@@ -6,6 +6,7 @@ import { TabBar } from './components/TabBar';
 import { MonacoEditor } from './editor/MonacoEditor';
 import { registerEditorOpener } from './editor/editorOpener';
 import { useKeybindings } from './hooks/useKeybindings';
+import { useWorkspaceExternalChanges } from './hooks/useWorkspaceExternalChanges';
 import { useEditorStore } from './store/useEditorStore';
 import { useThemeStore } from './store/useThemeStore';
 
@@ -23,6 +24,7 @@ function clampSidebarWidth(width: number): number {
 
 export function App() {
   useKeybindings();
+  useWorkspaceExternalChanges();
   const groups = useEditorStore((state) => state.groups);
   const splitDirection = useEditorStore((state) => state.splitDirection);
   const [sidebarWidth, setSidebarWidth] = useState(initialSidebarWidth);

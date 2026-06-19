@@ -101,6 +101,10 @@ function initiallyExpanded(nodes: FileTreeNode[]): Set<string> {
   return new Set(nodes.filter((node) => node.type === 'directory').map((node) => node.path));
 }
 
+function isGitMetadataPath(path: string): boolean {
+  return path.split(/[\\/]/).includes('.git');
+}
+
 function ancestorDirectories(
   nodes: FileTreeNode[],
   targetPath: string,
@@ -146,6 +150,20 @@ export function FileTree() {
 
   useEffect(() => {
     if (workspace) void load(workspace.rootPath).catch(console.error);
+  }, [workspace?.rootPath]);
+
+  useEffect(() => {
+    if (!workspace) return;
+    let timer: number | undefined;
+    const unsubscribe = window.api.workspace.onChanged(({ rootPath, path }) => {
+      if (rootPath !== workspace.rootPath || (path && isGitMetadataPath(path))) return;
+      if (timer) window.clearTimeout(timer);
+      timer = window.setTimeout(() => void load(workspace.rootPath).catch(console.error), 120);
+    });
+    return () => {
+      unsubscribe();
+      if (timer) window.clearTimeout(timer);
+    };
   }, [workspace?.rootPath]);
 
   useEffect(() => {
