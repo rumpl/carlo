@@ -1,0 +1,217 @@
+.file-tree {
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+  background: var(--panel);
+  display: grid;
+  grid-template-rows: 34px minmax(0, 1fr);
+  font-family: var(--tree-view-font-family);
+}
+.file-tree-header {
+  -webkit-app-region: drag;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px 0 76px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.file-tree-header-actions {
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.file-tree-header button {
+  -webkit-app-region: no-drag;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+}
+.file-tree-header button:hover {
+  color: var(--accent);
+}
+.file-tree-body {
+  overflow: auto;
+  padding: 4px 0;
+  font-size: 13px;
+  scrollbar-color: rgba(121, 130, 145, 0.62) transparent;
+  scrollbar-width: auto;
+}
+.file-tree-body::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+.file-tree-body::-webkit-scrollbar-track,
+.file-tree-body::-webkit-scrollbar-track-piece {
+  background: transparent;
+}
+.file-tree-body::-webkit-scrollbar-thumb {
+  min-height: 32px;
+  border: 0;
+  border-radius: 0;
+  background: rgba(121, 130, 145, 0.62);
+}
+.file-tree-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 149, 163, 0.72);
+}
+.file-tree-body::-webkit-scrollbar-corner {
+  background: transparent;
+}
+.file-tree ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+}
+.tree-row:hover {
+  background: var(--panel2);
+}
+.tree-row.active {
+  background: color-mix(in srgb, var(--accent) 38%, transparent);
+  color: #fff;
+}
+.tree-row.active:hover {
+  background: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+.tree-row.git-added,
+.tree-row.git-added .tree-git-badge {
+  color: var(--git-added);
+}
+.tree-row.git-modified,
+.tree-row.git-modified .tree-git-badge {
+  color: var(--git-modified);
+}
+.tree-row.git-deleted,
+.tree-row.git-deleted .tree-git-badge {
+  color: var(--git-deleted);
+}
+.tree-row.git-renamed,
+.tree-row.git-renamed .tree-git-badge {
+  color: var(--git-renamed);
+}
+.tree-row.git-untracked,
+.tree-row.git-untracked .tree-git-badge {
+  color: var(--git-untracked);
+}
+.tree-row.git-ignored,
+.tree-row.git-ignored .tree-git-badge {
+  color: var(--git-ignored);
+}
+.tree-row.git-conflict,
+.tree-row.git-conflict .tree-git-badge {
+  color: var(--git-conflict);
+}
+.tree-row.active,
+.tree-row.active .tree-git-badge {
+  color: #fff;
+}
+.tree-chevron {
+  width: 10px;
+  opacity: 0.75;
+}
+.tree-devicon {
+  display: inline-flex;
+  flex: 0 0 18px;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+.tree-devicon svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+.tree-name {
+  min-width: 0;
+  overflow: hidden;
+  flex: 1 1 auto;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tree-git-badge {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-right: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0.9;
+}
+.tree-empty {
+  padding: 10px;
+  opacity: 0.7;
+}
+.tree-context-menu {
+  position: fixed;
+  z-index: 120;
+  min-width: 168px;
+  padding: 4px 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.45);
+  font-family: var(--font-family);
+  font-size: 13px;
+}
+.tree-context-menu button {
+  display: block;
+  width: 100%;
+  padding: 7px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+}
+.tree-context-menu button:hover:not(:disabled) {
+  background: var(--panel2);
+}
+.tree-context-menu button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+.tree-context-menu button.danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--git-deleted) 22%, transparent);
+  color: var(--git-deleted);
+}
+.tree-context-separator {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--border);
+}
+.tree-create-row {
+  cursor: default;
+}
+.tree-create-row:hover {
+  background: transparent;
+}
+.tree-create-input {
+  min-width: 0;
+  flex: 1 1 auto;
+  height: 18px;
+  padding: 0 4px;
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  outline: none;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--tree-view-font-family);
+  font-size: 13px;
+}

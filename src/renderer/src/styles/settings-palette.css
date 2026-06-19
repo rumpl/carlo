@@ -1,0 +1,166 @@
+.settings-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.42);
+}
+.settings-panel {
+  width: min(560px, calc(100vw - 48px));
+  border: 1px solid var(--border);
+  background: var(--panel);
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.5);
+}
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.settings-header p {
+  margin: 6px 0 0;
+  opacity: 0.72;
+  font-size: 13px;
+}
+.settings-close {
+  align-self: flex-start;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+}
+.settings-close:hover {
+  background: var(--panel2);
+}
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 18px 0;
+}
+.settings-grid .settings-field {
+  padding: 0;
+}
+.settings-field {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px 0;
+}
+.settings-field span,
+.settings-checkbox span {
+  font-size: 13px;
+  font-weight: 700;
+}
+.settings-field input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  outline: none;
+  background: var(--bg);
+  color: var(--fg);
+}
+.settings-field input:focus {
+  border-color: var(--accent);
+}
+.settings-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px 0;
+}
+.settings-checkbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+.settings-path {
+  margin: 14px 18px 0;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--fg) 72%, transparent);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px;
+}
+.settings-actions button {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--panel2);
+  color: var(--fg);
+  cursor: pointer;
+}
+.settings-actions button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.settings-actions button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.settings-spacer {
+  flex: 1;
+}
+.palette-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 10vh;
+  background: rgba(0, 0, 0, 0.25);
+}
+.palette {
+  width: min(720px, 80vw);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.45);
+}
+.palette input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  outline: none;
+  background: var(--bg);
+  color: var(--fg);
+}
+.palette-list {
+  max-height: 420px;
+  overflow: auto;
+}
+.palette-list button {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  text-align: left;
+}
+.palette-list button.selected,
+.palette-list button:hover {
+  background: var(--accent);
+  color: white;
+}
+kbd {
+  opacity: 0.7;
+}

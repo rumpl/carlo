@@ -1,256 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
-import { icons } from '@iconify-json/vscode-icons';
-import type { IconifyIcon } from '@iconify/types';
-import type { FileTreeNode, GitFileStatus } from '@shared/file-types';
-import { getIconForFile, getIconForFolder, getIconForOpenFolder } from 'vscode-icons-js';
+import type { FormEvent, MouseEvent } from 'react';
+import type { FileTreeNode } from '@shared/file-types';
 import { languageIdFromPath } from '@shared/language-registry';
 import { useEditorStore } from '../store/useEditorStore';
-
-function titleFromPath(path: string): string {
-  return path.split(/[\\/]/).pop() ?? path;
-}
-
-function iconNameFromFileName(fileName: string): string {
-  return fileName.replace(/\.svg$/, '').replaceAll('_', '-');
-}
-
-function iconForNode(node: FileTreeNode, expanded: boolean): IconifyIcon {
-  const fileName =
-    node.type === 'directory'
-      ? expanded
-        ? getIconForOpenFolder(node.name)
-        : getIconForFolder(node.name)
-      : (getIconForFile(node.name) ?? 'default_file.svg');
-  return icons.icons[iconNameFromFileName(fileName)] ?? icons.icons['default-file']!;
-}
-
-function DevIcon({ icon }: { icon: IconifyIcon }) {
-  return (
-    <span
-      className="tree-devicon"
-      aria-hidden="true"
-      dangerouslySetInnerHTML={{
-        __html: `<svg viewBox="0 0 ${icon.width ?? icons.width ?? 16} ${icon.height ?? icons.height ?? 16}" width="16" height="16">${icon.body}</svg>`,
-      }}
-    />
-  );
-}
-
-const gitStatusLabels: Record<GitFileStatus, string> = {
-  added: 'A',
-  modified: 'M',
-  deleted: 'D',
-  renamed: 'R',
-  untracked: 'U',
-  ignored: 'I',
-  conflict: 'C',
-};
-
-interface TreeContextMenu {
-  x: number;
-  y: number;
-  node?: FileTreeNode;
-}
-
-interface TreeClipboard {
-  path: string;
-  type: FileTreeNode['type'];
-  name: string;
-}
-
-interface TreeCreatePrompt {
-  kind: 'file' | 'directory';
-  parentPath: string;
-}
-
-function InlineCreateRow({
-  kind,
-  depth,
-  name,
-  inputRef,
-  onChange,
-  onSubmit,
-  onCancel,
-}: {
-  kind: TreeCreatePrompt['kind'];
-  depth: number;
-  name: string;
-  inputRef: React.RefObject<HTMLInputElement | null>;
-  onChange: (name: string) => void;
-  onSubmit: (event: React.FormEvent) => void;
-  onCancel: () => void;
-}) {
-  const icon = iconForNode(
-    { name, path: '', uri: '', type: kind === 'directory' ? 'directory' : 'file' },
-    false,
-  );
-  return (
-    <li>
-      <form
-        className="tree-row tree-create-row"
-        style={{ paddingLeft: 8 + depth * 14 }}
-        onSubmit={onSubmit}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <span className="tree-chevron" />
-        <DevIcon icon={icon} />
-        <input
-          ref={inputRef}
-          className="tree-create-input"
-          value={name}
-          onChange={(event) => onChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Escape') onCancel();
-          }}
-          onBlur={onCancel}
-          placeholder={kind === 'directory' ? 'New folder' : 'New file'}
-        />
-      </form>
-    </li>
-  );
-}
-
-function TreeNode({
-  node,
-  depth,
-  activePath,
-  expandedPaths,
-  onToggleDirectory,
-  onOpenFile,
-  onContextMenu,
-  createPrompt,
-  createName,
-  createInputRef,
-  onCreateNameChange,
-  onCreateSubmit,
-  onCreateCancel,
-}: {
-  node: FileTreeNode;
-  depth: number;
-  activePath: string | undefined;
-  expandedPaths: Set<string>;
-  onToggleDirectory: (node: FileTreeNode) => void;
-  onOpenFile: (node: FileTreeNode) => void;
-  onContextMenu: (event: React.MouseEvent, node: FileTreeNode) => void;
-  createPrompt: TreeCreatePrompt | undefined;
-  createName: string;
-  createInputRef: React.RefObject<HTMLInputElement | null>;
-  onCreateNameChange: (name: string) => void;
-  onCreateSubmit: (event: React.FormEvent) => void;
-  onCreateCancel: () => void;
-}) {
-  const expanded = expandedPaths.has(node.path);
-  const isDirectory = node.type === 'directory';
-  const icon = iconForNode(node, expanded);
-  return (
-    <li>
-      <button
-        className={`tree-row ${isDirectory ? 'directory' : 'file'} ${node.gitStatus ? `git-${node.gitStatus}` : ''} ${node.path === activePath ? 'active' : ''}`}
-        data-tree-path={node.path}
-        style={{ paddingLeft: 8 + depth * 14 }}
-        onClick={() => (isDirectory ? onToggleDirectory(node) : onOpenFile(node))}
-        onContextMenu={(event) => onContextMenu(event, node)}
-        title={node.gitStatus ? `${node.path} · ${node.gitStatus}` : node.path}
-      >
-        <span className="tree-chevron">{isDirectory ? (expanded ? '▾' : '▸') : ''}</span>
-        <DevIcon icon={icon} />
-        <span className="tree-name">{node.name}</span>
-        {node.gitStatus ? <span className="tree-git-badge">{gitStatusLabels[node.gitStatus]}</span> : null}
-      </button>
-      {isDirectory && expanded && node.children ? (
-        <ul>
-          {createPrompt?.parentPath === node.path ? (
-            <InlineCreateRow
-              kind={createPrompt.kind}
-              depth={depth + 1}
-              name={createName}
-              inputRef={createInputRef}
-              onChange={onCreateNameChange}
-              onSubmit={onCreateSubmit}
-              onCancel={onCreateCancel}
-            />
-          ) : null}
-          {node.children.map((child) => (
-            <TreeNode
-              key={child.path}
-              node={child}
-              depth={depth + 1}
-              activePath={activePath}
-              expandedPaths={expandedPaths}
-              onToggleDirectory={onToggleDirectory}
-              onOpenFile={onOpenFile}
-              onContextMenu={onContextMenu}
-              createPrompt={createPrompt}
-              createName={createName}
-              createInputRef={createInputRef}
-              onCreateNameChange={onCreateNameChange}
-              onCreateSubmit={onCreateSubmit}
-              onCreateCancel={onCreateCancel}
-            />
-          ))}
-        </ul>
-      ) : null}
-    </li>
-  );
-}
-
-function replaceNodeChildren(
-  nodes: FileTreeNode[],
-  targetPath: string,
-  children: FileTreeNode[],
-): FileTreeNode[] {
-  return nodes.map((node) => {
-    if (node.path === targetPath) return { ...node, children };
-    if (node.type !== 'directory' || !node.children) return node;
-    return { ...node, children: replaceNodeChildren(node.children, targetPath, children) };
-  });
-}
-
-function normalizePath(path: string): string {
-  return path.replaceAll('\\', '/').replace(/\/+$/, '');
-}
-
-function parentDirectory(path: string): string {
-  return path.replace(/[\\/]+$/, '').replace(/[\\/][^\\/]*$/, '');
-}
-
-function hasValidChildName(name: string): boolean {
-  return Boolean(name) && name !== '.' && name !== '..' && !/[\\/]/.test(name);
-}
-
-function ancestorDirectories(rootPath: string, targetPath: string): string[] {
-  const normalizedRoot = normalizePath(rootPath);
-  const normalizedTarget = normalizePath(targetPath);
-  if (
-    normalizedTarget === normalizedRoot ||
-    !normalizedTarget.startsWith(`${normalizedRoot}/`)
-  ) {
-    return [];
-  }
-
-  const separator = rootPath.includes('\\') ? '\\' : '/';
-  const root = rootPath.replace(/[\\/]+$/, '');
-  const relativeParts = normalizedTarget.slice(normalizedRoot.length + 1).split('/');
-  const directoryParts = relativeParts.slice(0, -1);
-  const ancestors: string[] = [];
-  let current = root;
-  for (const part of directoryParts) {
-    current = `${current}${separator}${part}`;
-    ancestors.push(current);
-  }
-  return ancestors;
-}
-
-function findNode(nodes: FileTreeNode[], targetPath: string): FileTreeNode | undefined {
-  const normalizedTarget = normalizePath(targetPath);
-  for (const node of nodes) {
-    if (normalizePath(node.path) === normalizedTarget) return node;
-    if (node.type !== 'directory' || !node.children) continue;
-    const found = findNode(node.children, targetPath);
-    if (found) return found;
-  }
-  return undefined;
-}
+import { InlineCreateRow } from './fileTree/InlineCreateRow';
+import { TreeNode } from './fileTree/TreeNode';
+import type { TreeClipboard, TreeContextMenu, TreeCreatePrompt } from './fileTree/types';
+import {
+  ancestorDirectories,
+  findNode,
+  hasValidChildName,
+  normalizePath,
+  parentDirectory,
+  replaceNodeChildren,
+  titleFromPath,
+} from './fileTree/treeUtils';
 
 export function FileTree() {
   const workspace = useEditorStore((state) => state.workspace);
@@ -457,7 +221,7 @@ export function FileTree() {
     return menu.node.type === 'directory' ? menu.node.path : parentDirectory(menu.node.path);
   }
 
-  function openContextMenu(event: React.MouseEvent, node?: FileTreeNode): void {
+  function openContextMenu(event: MouseEvent, node?: FileTreeNode): void {
     if (!workspace) return;
     event.preventDefault();
     event.stopPropagation();
@@ -492,7 +256,7 @@ export function FileTree() {
     setCreatePrompt({ kind, parentPath });
   }
 
-  async function submitCreate(event: React.FormEvent): Promise<void> {
+  async function submitCreate(event: FormEvent): Promise<void> {
     event.preventDefault();
     if (!createPrompt) return;
 
