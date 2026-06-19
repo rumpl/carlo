@@ -15,6 +15,8 @@ import type {
   SaveFileRequest,
   WorkspaceChangedEvent,
   WorkspaceFolderResult,
+  WorkspaceSearchRequest,
+  WorkspaceSearchResult,
 } from '@shared/file-types';
 import type { LanguageConfig } from '@shared/language-registry';
 import type {
@@ -86,6 +88,8 @@ export const api = Object.freeze({
       ipcRenderer.invoke(IPC.workspaceListTree, { rootPath, ...options }) as Promise<{
         children: FileTreeNode[];
       }>,
+    search: (request: WorkspaceSearchRequest) =>
+      ipcRenderer.invoke(IPC.workspaceSearch, request) as Promise<WorkspaceSearchResult>,
     onChanged: (cb: (event: WorkspaceChangedEvent) => void) =>
       on<WorkspaceChangedEvent>(IPC.workspaceChanged, cb),
   },

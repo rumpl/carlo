@@ -18,6 +18,7 @@ export const IPC = {
   workspaceOpenFolderDialog: 'workspace:openFolderDialog',
   workspaceCurrentFolder: 'workspace:currentFolder',
   workspaceListTree: 'workspace:listTree',
+  workspaceSearch: 'workspace:search',
   workspaceChanged: 'workspace:changed',
   windowZoomIn: 'window:zoomIn',
   windowZoomOut: 'window:zoomOut',

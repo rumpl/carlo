@@ -20,6 +20,11 @@ export function useKeybindings(): void {
         event.preventDefault();
         void runCommand('file.open');
       }
+      if (mod && event.shiftKey && event.key.toLowerCase() === 'f') {
+        event.preventDefault();
+        event.stopPropagation();
+        void runCommand('workbench.action.findInFiles');
+      }
       if (mod && event.key === ',') {
         event.preventDefault();
         event.stopPropagation();

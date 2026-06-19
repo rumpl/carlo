@@ -9,6 +9,7 @@ import { showThemeSelector } from '../quickopen/themeSelector';
 import { activeTab, useEditorStore } from '../store/useEditorStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { useProblemsStore } from '../store/useProblemsStore';
+import { useSearchStore } from '../store/useSearchStore';
 import { navigateProblem } from '../problems/navigation';
 import { registerCommand } from './registry';
 
@@ -194,6 +195,12 @@ export function registerBuiltinCommands(): void {
     },
   });
   registerCommand({ id: 'file.saveAs', title: 'Save As', keybinding: 'Ctrl+Shift+S', run: saveAs });
+  registerCommand({
+    id: 'workbench.action.findInFiles',
+    title: 'Search: Find in Files',
+    keybinding: 'Ctrl+Shift+F',
+    run: () => useSearchStore.getState().openSearch(),
+  });
   registerCommand({
     id: 'workbench.panel.problems.toggle',
     title: 'View: Toggle Problems',

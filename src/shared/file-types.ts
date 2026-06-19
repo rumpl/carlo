@@ -86,6 +86,27 @@ export interface GitBaselineResult {
   error?: string;
 }
 
+export interface WorkspaceSearchRequest {
+  rootPath: string;
+  query: string;
+  maxResults?: number;
+}
+
+export interface WorkspaceSearchMatch {
+  path: string;
+  uri: string;
+  lineNumber: number;
+  column: number;
+  preview: string;
+  matchStart: number;
+  matchEnd: number;
+}
+
+export interface WorkspaceSearchResult {
+  matches: WorkspaceSearchMatch[];
+  truncated: boolean;
+}
+
 export interface WorkspaceChangedEvent {
   rootPath: string;
   path?: string;
