@@ -57,17 +57,5 @@
   "overrides": {
     "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@25.1.2",
     "vscode-jsonrpc": "8.2.1"
-  },
-  "build": {
-    "appId": "dev.rumpl.carlo",
-    "productName": "carlo",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "out/**",
-      "package.json"
-    ],
-    "extraResources": []
   }
 }
