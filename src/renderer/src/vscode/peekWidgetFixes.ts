@@ -1,41 +1,69 @@
-const lockedContainers = new WeakSet<HTMLElement>();
+import { ReferenceWidget } from '@codingame/monaco-vscode-api/vscode/vs/editor/contrib/gotoSymbol/browser/peek/referencesWidget';
+
+const previewRatio = 0.7;
 let installed = false;
 
-function resetHorizontalScroll(container: HTMLElement): void {
-  if (container.scrollLeft !== 0) container.scrollLeft = 0;
-
-  const scrollableElement = container.parentElement;
-  if (scrollableElement && scrollableElement.scrollLeft !== 0) {
-    scrollableElement.scrollLeft = 0;
-  }
+interface PatchedReferenceWidget {
+  layoutData: { ratio: number };
+  _dim?: { width?: number };
+  _splitView?: { resizeView(index: number, size: number): void };
 }
 
-function lockSplitViewContainer(container: HTMLElement): void {
-  if (lockedContainers.has(container)) return;
-  lockedContainers.add(container);
+function enforcePreviewRatio(widget: ReferenceWidget): void {
+  const instance = widget as unknown as PatchedReferenceWidget;
+  const width = instance._dim?.width;
+  if (!width || !instance._splitView) return;
 
-  const reset = () => resetHorizontalScroll(container);
-  container.addEventListener('scroll', reset, { passive: true });
-
-  const observer = new ResizeObserver(reset);
-  observer.observe(container);
-
-  requestAnimationFrame(reset);
+  instance.layoutData.ratio = previewRatio;
+  instance._splitView.resizeView(0, width * previewRatio);
 }
 
-function scanForReferencePeekSplitViews(): void {
-  document
-    .querySelectorAll<HTMLElement>(
-      '.reference-zone-widget .monaco-split-view2 > .monaco-scrollable-element > .split-view-container',
-    )
-    .forEach(lockSplitViewContainer);
+function enforcePreviewRatioSoon(widget: ReferenceWidget): void {
+  enforcePreviewRatio(widget);
+  requestAnimationFrame(() => enforcePreviewRatio(widget));
+  setTimeout(() => enforcePreviewRatio(widget), 50);
+  setTimeout(() => enforcePreviewRatio(widget), 250);
+  setTimeout(() => enforcePreviewRatio(widget), 1000);
 }
 
 export function installPeekWidgetFixes(): void {
   if (installed) return;
   installed = true;
 
-  const observer = new MutationObserver(scanForReferencePeekSplitViews);
-  observer.observe(document.body, { childList: true, subtree: true });
-  scanForReferencePeekSplitViews();
+  const prototype = ReferenceWidget.prototype as unknown as {
+    _doLayoutBody(heightInPixel: number, widthInPixel: number): void;
+    setModel: ReferenceWidget['setModel'];
+    setSelection: ReferenceWidget['setSelection'];
+  };
+
+  const originalDoLayoutBody = prototype._doLayoutBody;
+  prototype._doLayoutBody = function patchedDoLayoutBody(
+    this: ReferenceWidget,
+    heightInPixel: number,
+    widthInPixel: number,
+  ) {
+    this.layoutData.ratio = previewRatio;
+    originalDoLayoutBody.call(this, heightInPixel, widthInPixel);
+    enforcePreviewRatioSoon(this);
+  };
+
+  const originalSetModel = prototype.setModel;
+  prototype.setModel = function patchedSetModel(
+    this: ReferenceWidget,
+    ...args: Parameters<ReferenceWidget['setModel']>
+  ) {
+    const result = originalSetModel.apply(this, args);
+    result.finally(() => enforcePreviewRatioSoon(this));
+    return result;
+  };
+
+  const originalSetSelection = prototype.setSelection;
+  prototype.setSelection = function patchedSetSelection(
+    this: ReferenceWidget,
+    ...args: Parameters<ReferenceWidget['setSelection']>
+  ) {
+    const result = originalSetSelection.apply(this, args);
+    result.finally(() => enforcePreviewRatioSoon(this));
+    return result;
+  };
 }
