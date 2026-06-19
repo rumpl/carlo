@@ -1,15 +1,13 @@
 import { BrowserWindow, app, nativeTheme } from 'electron';
 import { join } from 'node:path';
 import { IPC } from '@shared/ipc';
-import { registerCliHandlers } from './ipc/cli-handlers';
-import { registerConfigHandlers } from './ipc/config-handlers';
-import { registerFileHandlers } from './ipc/file-handlers';
-import { registerGitHandlers } from './ipc/git-handlers';
-import { registerLspHandlers } from './ipc/lsp-handlers';
-import { registerWindowHandlers } from './ipc/window-handlers';
-import { installAppMenu } from './menu';
+import { registerWindowWorkspace } from './ipc/file-handlers';
 
-export function createWindow(): BrowserWindow {
+interface CreateWindowOptions {
+  initialWorkspacePath?: string;
+}
+
+export function createWindow(options: CreateWindowOptions = {}): BrowserWindow {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -26,16 +24,17 @@ export function createWindow(): BrowserWindow {
     },
   });
 
-  registerCliHandlers();
-  registerConfigHandlers();
-  registerFileHandlers(win);
-  registerGitHandlers();
-  registerLspHandlers(win);
-  registerWindowHandlers();
-  installAppMenu(win);
-  nativeTheme.on('updated', () =>
-    win.webContents.send(IPC.themeOsChanged, { shouldUseDark: nativeTheme.shouldUseDarkColors }),
-  );
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    console.warn(`blocked renderer window.open: ${url}`);
+    return { action: 'deny' };
+  });
+
+  registerWindowWorkspace(win, options.initialWorkspacePath);
+
+  const sendOsTheme = () =>
+    win.webContents.send(IPC.themeOsChanged, { shouldUseDark: nativeTheme.shouldUseDarkColors });
+  nativeTheme.on('updated', sendOsTheme);
+  win.on('closed', () => nativeTheme.off('updated', sendOsTheme));
 
   if (!app.isPackaged && process.env.ELECTRON_RENDERER_URL) {
     void win.loadURL(process.env.ELECTRON_RENDERER_URL);

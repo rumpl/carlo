@@ -1,12 +1,3 @@
-import { useSyncExternalStore } from 'react';
-import { disposeModel } from '../editor/models';
-import {
-  canNavigateBack,
-  canNavigateForward,
-  navigateBack,
-  navigateForward,
-  subscribeNavigationHistory,
-} from '../editor/navigationHistory';
 import { useEditorStore } from '../store/useEditorStore';
 import { Tab } from './Tab';
 
@@ -15,10 +6,6 @@ interface Props {
 }
 
 export function TabBar({ groupId }: Props) {
-  useSyncExternalStore(
-    subscribeNavigationHistory,
-    () => `${canNavigateBack()}:${canNavigateForward()}`,
-  );
   const { tabs, groups, activeGroupId, setActive, closeTab, closeGroup } = useEditorStore();
   const group = groups.find((candidate) => candidate.id === groupId);
   const groupTabs = group
@@ -29,16 +16,14 @@ export function TabBar({ groupId }: Props) {
       <button
         className="nav-button"
         title="Go Back"
-        disabled={!canNavigateBack()}
-        onClick={navigateBack}
+        onClick={() => void import('../editor/navigationHistory').then(({ navigateBack }) => navigateBack())}
       >
         ←
       </button>
       <button
         className="nav-button"
         title="Go Forward"
-        disabled={!canNavigateForward()}
-        onClick={navigateForward}
+        onClick={() => void import('../editor/navigationHistory').then(({ navigateForward }) => navigateForward())}
       >
         →
       </button>
@@ -61,7 +46,7 @@ export function TabBar({ groupId }: Props) {
             onClose={() => {
               if (tab.dirty && !confirm(`Discard unsaved changes to ${tab.title}?`)) return;
               const closed = closeTab(tab.id);
-              if (closed) disposeModel(closed.uri);
+              if (closed) void import('../editor/models').then(({ disposeModel }) => disposeModel(closed.uri));
             }}
           />
         ))}

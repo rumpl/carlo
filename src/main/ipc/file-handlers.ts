@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, ipcMain } from 'electron';
+import { BrowserWindow, dialog, ipcMain, type IpcMainInvokeEvent } from 'electron';
 import { execFile } from 'node:child_process';
 import { constants, watch, type FSWatcher } from 'node:fs';
 import { access, cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
@@ -17,14 +17,20 @@ import type {
   GitFileStatus,
   OpenFileResult,
   SaveAsDialogRequest,
+  ReadFileRequest,
   SaveFileRequest,
 } from '@shared/file-types';
 
 const ignoredNames = new Set(['.git', 'node_modules', 'out', 'dist', 'build', '.DS_Store']);
 const ignoredWatchNames = new Set(['node_modules', 'out', 'dist', 'build', '.DS_Store']);
 
-let workspaceWatcher: FSWatcher | undefined;
-let watchedRootPath: string | undefined;
+interface WindowWorkspaceState {
+  initialRootPath?: string;
+  watcher?: FSWatcher;
+  watchedRootPath?: string;
+}
+
+const windowWorkspaceStates = new Map<number, WindowWorkspaceState>();
 
 const execFileAsync = promisify(execFile);
 
@@ -32,6 +38,31 @@ function assertSafeChildName(name: string): void {
   if (!name || name === '.' || name === '..' || name !== basename(name)) {
     throw new Error('Invalid name');
   }
+}
+
+function windowFromEvent(event: IpcMainInvokeEvent): BrowserWindow {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (!win) throw new Error('Window not found');
+  return win;
+}
+
+function workspaceStateFor(win: BrowserWindow): WindowWorkspaceState {
+  let state = windowWorkspaceStates.get(win.webContents.id);
+  if (!state) {
+    state = {};
+    windowWorkspaceStates.set(win.webContents.id, state);
+  }
+  return state;
+}
+
+export function registerWindowWorkspace(win: BrowserWindow, initialRootPath?: string): void {
+  const webContentsId = win.webContents.id;
+  windowWorkspaceStates.set(webContentsId, { initialRootPath });
+  win.on('closed', () => {
+    const state = windowWorkspaceStates.get(webContentsId);
+    state?.watcher?.close();
+    windowWorkspaceStates.delete(webContentsId);
+  });
 }
 
 async function pathExists(path: string): Promise<boolean> {
@@ -81,19 +112,20 @@ function isIgnoredWatchPath(path: string): boolean {
 }
 
 function ensureWorkspaceWatcher(win: BrowserWindow, rootPath: string): void {
-  if (watchedRootPath === rootPath && workspaceWatcher) return;
-  workspaceWatcher?.close();
-  watchedRootPath = rootPath;
+  const state = workspaceStateFor(win);
+  if (state.watchedRootPath === rootPath && state.watcher) return;
+  state.watcher?.close();
+  state.watchedRootPath = rootPath;
   try {
-    workspaceWatcher = watch(rootPath, (eventType, filename) => {
+    state.watcher = watch(rootPath, (eventType, filename) => {
       const relativePath = filename?.toString();
       if (relativePath && isIgnoredWatchPath(relativePath)) return;
       const path = relativePath ? join(rootPath, relativePath) : undefined;
       win.webContents.send(IPC.workspaceChanged, { rootPath, path, eventType });
     });
-    workspaceWatcher.on('error', (error) => console.error('workspace watcher failed', error));
+    state.watcher.on('error', (error) => console.error('workspace watcher failed', error));
   } catch (error) {
-    workspaceWatcher = undefined;
+    state.watcher = undefined;
     console.error('failed to watch workspace', error);
   }
 }
@@ -205,14 +237,9 @@ async function listTree(
   );
 }
 
-export function registerFileHandlers(win: BrowserWindow): void {
-  win.on('closed', () => {
-    workspaceWatcher?.close();
-    workspaceWatcher = undefined;
-    watchedRootPath = undefined;
-  });
-
-  ipcMain.handle(IPC.fileOpenDialog, async (): Promise<OpenFileResult | null> => {
+export function registerFileHandlers(): void {
+  ipcMain.handle(IPC.fileOpenDialog, async (event): Promise<OpenFileResult | null> => {
+    const win = windowFromEvent(event);
     const result = await dialog.showOpenDialog(win, { properties: ['openFile'] });
     if (result.canceled || result.filePaths.length === 0) return null;
     const path = result.filePaths[0]!;
@@ -225,7 +252,7 @@ export function registerFileHandlers(win: BrowserWindow): void {
     };
   });
 
-  ipcMain.handle(IPC.fileRead, async (_event, { path }: { path: string }) => ({
+  ipcMain.handle(IPC.fileRead, async (_event, { path }: ReadFileRequest) => ({
     content: await readFile(path, 'utf8'),
   }));
 
@@ -234,7 +261,8 @@ export function registerFileHandlers(win: BrowserWindow): void {
     return { ok: true };
   });
 
-  ipcMain.handle(IPC.fileSaveAsDialog, async (_event, request: SaveAsDialogRequest) => {
+  ipcMain.handle(IPC.fileSaveAsDialog, async (event, request: SaveAsDialogRequest) => {
+    const win = windowFromEvent(event);
     const result = await dialog.showSaveDialog(win, {
       defaultPath: request.suggestedName ?? 'untitled.txt',
     });
@@ -276,16 +304,19 @@ export function registerFileHandlers(win: BrowserWindow): void {
     return operationResult(destinationPath);
   });
 
-  ipcMain.handle(IPC.workspaceOpenFolderDialog, async () => {
+  ipcMain.handle(IPC.workspaceOpenFolderDialog, async (event) => {
+    const win = windowFromEvent(event);
     const result = await dialog.showOpenDialog(win, { properties: ['openDirectory'] });
     if (result.canceled || result.filePaths.length === 0) return null;
     const rootPath = result.filePaths[0]!;
+    workspaceStateFor(win).initialRootPath = rootPath;
     ensureWorkspaceWatcher(win, rootPath);
     return { rootPath, rootUri: pathToFileURL(rootPath).toString(), name: basename(rootPath) };
   });
 
-  ipcMain.handle(IPC.workspaceCurrentFolder, async () => {
-    const rootPath = initialWorkspacePath();
+  ipcMain.handle(IPC.workspaceCurrentFolder, async (event) => {
+    const win = windowFromEvent(event);
+    const rootPath = workspaceStateFor(win).initialRootPath ?? initialWorkspacePath();
     ensureWorkspaceWatcher(win, rootPath);
     return { rootPath, rootUri: pathToFileURL(rootPath).toString(), name: basename(rootPath) };
   });
@@ -293,13 +324,14 @@ export function registerFileHandlers(win: BrowserWindow): void {
   ipcMain.handle(
     IPC.workspaceListTree,
     async (
-      _event,
+      event,
       {
         rootPath,
         watch: shouldWatch = true,
         recursive = false,
       }: { rootPath: string; watch?: boolean; recursive?: boolean },
     ) => {
+      const win = windowFromEvent(event);
       if (shouldWatch) ensureWorkspaceWatcher(win, rootPath);
       return { children: await listTree(rootPath, { recursive, gitStatus: await getGitStatusContext(rootPath) }) };
     },

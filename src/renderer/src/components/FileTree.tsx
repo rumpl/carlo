@@ -4,8 +4,6 @@ import type { IconifyIcon } from '@iconify/types';
 import type { FileTreeNode, GitFileStatus } from '@shared/file-types';
 import { getIconForFile, getIconForFolder, getIconForOpenFolder } from 'vscode-icons-js';
 import { languageIdFromPath } from '@shared/language-registry';
-import { getOrCreateModel } from '../editor/models';
-import { ensureLanguageClient } from '../lsp/LanguageClientService';
 import { useEditorStore } from '../store/useEditorStore';
 
 function titleFromPath(path: string): string {
@@ -442,12 +440,15 @@ export function FileTree() {
   async function openNode(node: FileTreeNode): Promise<void> {
     const languageId = languageIdFromPath(node.path);
     const file = await window.api.file.read(node.path);
+    const { getOrCreateModel } = await import('../editor/models');
     getOrCreateModel(node.uri, file.content, languageId);
     useEditorStore
       .getState()
       .openFile({ uri: node.uri, path: node.path, languageId, title: titleFromPath(node.path) });
-    if (workspace)
+    if (workspace) {
+      const { ensureLanguageClient } = await import('../lsp/LanguageClientService');
       await ensureLanguageClient(languageId, workspace.rootUri, node.uri).catch(console.error);
+    }
   }
 
   function targetDirectory(menu: TreeContextMenu): string | undefined {

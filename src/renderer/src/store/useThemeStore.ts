@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import * as monaco from '@codingame/monaco-vscode-editor-api';
+import { ensureVscodeServices } from '../vscode/servicesReady';
 
 export const THEMES = [
   { id: 'Nord', label: 'Nord', kind: 'dark' },
@@ -27,10 +27,13 @@ function themeKind(themeId: ThemeId): ThemeKind {
 export const useThemeStore = create<ThemeState>((set, get) => ({
   themeId: 'Nord',
   setTheme: (themeId) => {
-    monaco.editor.setTheme(themeId);
     document.documentElement.dataset.theme = themeKind(themeId);
     document.documentElement.dataset.themeId = themeId;
     set({ themeId });
+    void ensureVscodeServices()
+      .then(() => import('@codingame/monaco-vscode-editor-api'))
+      .then((monaco) => monaco.editor.setTheme(themeId))
+      .catch(console.error);
   },
   toggleTheme: () =>
     get().setTheme(themeKind(get().themeId) === 'dark' ? 'Default Light Modern' : 'Nord'),

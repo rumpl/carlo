@@ -1,11 +1,9 @@
-import { useEffect, useState } from 'react';
-import { registerBuiltinCommands } from './commands/builtinCommands';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { FileTree } from './components/FileTree';
 import { SettingsPanel } from './components/SettingsPanel';
 import { StatusBar } from './components/StatusBar';
 import { TabBar } from './components/TabBar';
-import { MonacoEditor } from './editor/MonacoEditor';
-import { registerEditorOpener } from './editor/editorOpener';
+import { ensureVscodeServices } from './vscode/servicesReady';
 import { useKeybindings } from './hooks/useKeybindings';
 import { useWorkspaceExternalChanges } from './hooks/useWorkspaceExternalChanges';
 import { useEditorStore } from './store/useEditorStore';
@@ -14,6 +12,7 @@ import { useThemeStore } from './store/useThemeStore';
 
 const minSidebarWidth = 180;
 const maxSidebarWidth = 560;
+const MonacoEditor = lazy(() => import('./editor/MonacoEditor').then((module) => ({ default: module.MonacoEditor })));
 
 function initialSidebarWidth(): number {
   const stored = Number(localStorage.getItem('carlo.sidebarWidth'));
@@ -31,10 +30,18 @@ export function App() {
   const splitDirection = useEditorStore((state) => state.splitDirection);
   const [sidebarWidth, setSidebarWidth] = useState(initialSidebarWidth);
   useEffect(() => {
-    registerBuiltinCommands();
-    registerEditorOpener();
     useThemeStore.getState().setTheme(useThemeStore.getState().themeId);
     void useSettingsStore.getState().loadSettings().catch(console.error);
+    void ensureVscodeServices()
+      .then(async () => {
+        const [{ registerBuiltinCommands }, { registerEditorOpener }] = await Promise.all([
+          import('./commands/builtinCommands'),
+          import('./editor/editorOpener'),
+        ]);
+        registerBuiltinCommands();
+        registerEditorOpener();
+      })
+      .catch(console.error);
   }, []);
   return (
     <main
@@ -63,7 +70,9 @@ export function App() {
         {groups.map((group) => (
           <section className="editor-group" key={group.id}>
             <TabBar groupId={group.id} />
-            <MonacoEditor groupId={group.id} />
+            <Suspense fallback={<div className="editor-stack" />}>
+              <MonacoEditor groupId={group.id} />
+            </Suspense>
           </section>
         ))}
       </div>

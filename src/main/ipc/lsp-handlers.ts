@@ -1,27 +1,41 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, ipcMain, type WebContents } from 'electron';
 import { IPC } from '@shared/ipc';
 import type { LspStartOptions, LspToServerPayload } from '@shared/lsp-types';
 import { LspServerManager } from '../lsp/LspServerManager';
 
-export function registerLspHandlers(win: BrowserWindow): LspServerManager {
-  const manager = new LspServerManager((channel, payload) =>
-    win.webContents.send(channel, payload),
-  );
+const managers = new Map<number, LspServerManager>();
 
-  ipcMain.handle(IPC.lspStart, (_event, opts: LspStartOptions) => {
+function managerFor(sender: WebContents): LspServerManager {
+  const webContentsId = sender.id;
+  let manager = managers.get(webContentsId);
+  if (!manager) {
+    manager = new LspServerManager((channel, payload) => sender.send(channel, payload));
+    managers.set(webContentsId, manager);
+    sender.once('destroyed', () => {
+      manager?.stopAll();
+      managers.delete(webContentsId);
+    });
+  }
+  return manager;
+}
+
+export function registerLspHandlers(): void {
+  ipcMain.handle(IPC.lspStart, (event, opts: LspStartOptions) => {
     try {
-      return { connectionId: manager.start(opts) };
+      return { connectionId: managerFor(event.sender).start(opts) };
     } catch (error) {
       return { error: error instanceof Error ? error.message : String(error) };
     }
   });
-  ipcMain.handle(IPC.lspStop, (_event, { connectionId }: { connectionId: string }) => {
-    manager.stop(connectionId);
+  ipcMain.handle(IPC.lspStop, (event, { connectionId }: { connectionId: string }) => {
+    managerFor(event.sender).stop(connectionId);
     return { ok: true };
   });
-  ipcMain.on(IPC.lspToServer, (_event, payload: LspToServerPayload) =>
-    manager.toServer(payload.connectionId, payload.message),
+  ipcMain.on(IPC.lspToServer, (event, payload: LspToServerPayload) =>
+    managerFor(event.sender).toServer(payload.connectionId, payload.message),
   );
-  app.on('before-quit', () => manager.stopAll());
-  return manager;
+  app.on('before-quit', () => {
+    for (const manager of managers.values()) manager.stopAll();
+    managers.clear();
+  });
 }

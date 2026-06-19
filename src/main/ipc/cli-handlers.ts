@@ -55,17 +55,7 @@ function shellQuote(value: string): string {
 }
 
 function scriptContents(): string | undefined {
-  if (process.platform === 'darwin') {
-    const appPath = macAppPath();
-    if (!appPath) return undefined;
-    return `#!/bin/sh
-set -e
-if [ "$#" -eq 0 ]; then
-  set -- "$PWD"
-fi
-open -n ${shellQuote(appPath)} --args "$@"
-`;
-  }
+  if (process.platform === 'darwin' && !macAppPath()) return undefined;
 
   return `#!/bin/sh
 set -e

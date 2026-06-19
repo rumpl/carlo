@@ -1,8 +1,11 @@
 import { BrowserWindow, Menu, type MenuItemConstructorOptions } from 'electron';
 import { IPC } from '@shared/ipc';
 
-export function installAppMenu(win: BrowserWindow): void {
-  const sendCommand = (commandId: string) => win.webContents.send(IPC.menuCommand, { commandId });
+export function installAppMenu(): void {
+  const sendCommand = (commandId: string) => {
+    const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows().at(-1);
+    win?.webContents.send(IPC.menuCommand, { commandId });
+  };
   const template: MenuItemConstructorOptions[] = [
     {
       label: 'File',

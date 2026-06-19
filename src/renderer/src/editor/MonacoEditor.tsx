@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as monaco from '@codingame/monaco-vscode-editor-api';
 import { WelcomeScreen } from '../components/WelcomeScreen';
+import { ensureVscodeServices } from '../vscode/servicesReady';
 import { activeTabInGroup, useEditorStore } from '../store/useEditorStore';
 import { editorOptions, softWrapEnabled } from './editorOptions';
 import { updateGitGutter } from './gitGutter';
@@ -78,28 +79,42 @@ export function MonacoEditor({ groupId }: Props) {
   const setActiveGroup = useEditorStore((state) => state.setActiveGroup);
   const viewStates = useRef(new Map<string, monaco.editor.ICodeEditorViewState | null>());
   const currentUri = useRef<string | null>(null);
+  const [editorVersion, setEditorVersion] = useState(0);
   const hasActiveTab = Boolean(activeTabInGroup(groupId));
 
   useEffect(() => {
     if (!containerRef.current || editors.has(groupId)) return;
-    const editor = monaco.editor.create(containerRef.current, { ...editorOptions, model: null });
-    editors.set(groupId, editor);
-    activeEditor = editor;
+    let disposed = false;
     let navigationTimer: ReturnType<typeof setTimeout> | undefined;
-    const focusDisposable = editor.onDidFocusEditorWidget(() => {
-      activeEditor = editor;
-      setActiveGroup(groupId);
-      recordNavigationLocation(editor);
-    });
-    const cursorDisposable = editor.onDidChangeCursorPosition(() => {
-      if (navigationTimer) clearTimeout(navigationTimer);
-      navigationTimer = setTimeout(() => recordNavigationLocation(editor), 350);
-    });
+    let focusDisposable: monaco.IDisposable | undefined;
+    let cursorDisposable: monaco.IDisposable | undefined;
+
+    void ensureVscodeServices()
+      .then(() => {
+        if (disposed || !containerRef.current || editors.has(groupId)) return;
+        const editor = monaco.editor.create(containerRef.current, { ...editorOptions, model: null });
+        editors.set(groupId, editor);
+        activeEditor = editor;
+        focusDisposable = editor.onDidFocusEditorWidget(() => {
+          activeEditor = editor;
+          setActiveGroup(groupId);
+          recordNavigationLocation(editor);
+        });
+        cursorDisposable = editor.onDidChangeCursorPosition(() => {
+          if (navigationTimer) clearTimeout(navigationTimer);
+          navigationTimer = setTimeout(() => recordNavigationLocation(editor), 350);
+        });
+        setEditorVersion((version) => version + 1);
+      })
+      .catch(console.error);
+
     return () => {
+      disposed = true;
       if (navigationTimer) clearTimeout(navigationTimer);
-      focusDisposable.dispose();
-      cursorDisposable.dispose();
-      editor.dispose();
+      focusDisposable?.dispose();
+      cursorDisposable?.dispose();
+      const editor = editors.get(groupId);
+      editor?.dispose();
       editors.delete(groupId);
       if (activeEditor === editor) activeEditor = editors.values().next().value ?? null;
     };
@@ -126,7 +141,7 @@ export function MonacoEditor({ groupId }: Props) {
       void updateGitGutter(editor, tab);
     }
     editor.focus();
-  }, [groupId, group?.activeTabId]);
+  }, [groupId, group?.activeTabId, editorVersion]);
 
   useEffect(() => {
     const editor = editors.get(groupId);
@@ -147,7 +162,7 @@ export function MonacoEditor({ groupId }: Props) {
       disposables.push({ dispose: () => gitTimer && clearTimeout(gitTimer) });
     }
     return () => disposables.forEach((disposable) => disposable.dispose());
-  }, [groupId, group?.activeTabId, markDirty]);
+  }, [groupId, group?.activeTabId, editorVersion, markDirty]);
 
   return (
     <div className="editor-stack">
