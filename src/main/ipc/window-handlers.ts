@@ -1,5 +1,12 @@
-import { ipcMain } from 'electron';
+import { BrowserWindow, app, dialog, ipcMain } from 'electron';
 import { IPC } from '@shared/ipc';
+
+const closeConfirmedWindowIds = new Set<number>();
+let isQuitting = false;
+
+app.on('before-quit', () => {
+  isQuitting = true;
+});
 
 const minZoomLevel = -4;
 const maxZoomLevel = 5;
@@ -7,6 +14,18 @@ const zoomStep = 0.5;
 
 function clamp(value: number): number {
   return Math.min(maxZoomLevel, Math.max(minZoomLevel, value));
+}
+
+export function shouldAllowWindowClose(win: BrowserWindow): boolean {
+  return closeConfirmedWindowIds.has(win.webContents.id);
+}
+
+export function requestWindowCloseConfirmation(win: BrowserWindow): void {
+  win.webContents.send(IPC.windowCloseRequested);
+}
+
+export function forgetWindowCloseState(webContentsId: number): void {
+  closeConfirmedWindowIds.delete(webContentsId);
 }
 
 export function registerWindowHandlers(): void {
@@ -25,5 +44,39 @@ export function registerWindowHandlers(): void {
   ipcMain.handle(IPC.windowZoomReset, (event) => {
     event.sender.setZoomLevel(0);
     return { zoomLevel: 0 };
+  });
+
+  ipcMain.handle(IPC.dialogUnsavedChanges, async (event, { name }: { name: string }) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    const options = {
+      type: 'warning' as const,
+      buttons: ['Save', 'Discard', 'Cancel'],
+      defaultId: 0,
+      cancelId: 2,
+      noLink: true,
+      message: `Do you want to save changes to ${name}?`,
+      detail: 'Your changes will be lost if you discard them.',
+    };
+    const result = win
+      ? await dialog.showMessageBox(win, options)
+      : await dialog.showMessageBox(options);
+    if (result.response === 0) return 'save';
+    if (result.response === 1) return 'discard';
+    return 'cancel';
+  });
+
+  ipcMain.handle(IPC.windowCloseProceed, (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+      closeConfirmedWindowIds.add(win.webContents.id);
+      if (isQuitting) app.quit();
+      else win.close();
+    }
+    return { ok: true };
+  });
+
+  ipcMain.handle(IPC.windowCloseCancel, () => {
+    isQuitting = false;
+    return { ok: true };
   });
 }

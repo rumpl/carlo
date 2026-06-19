@@ -88,11 +88,16 @@ export function MonacoEditor({ groupId }: Props) {
     let navigationTimer: ReturnType<typeof setTimeout> | undefined;
     let focusDisposable: monaco.IDisposable | undefined;
     let cursorDisposable: monaco.IDisposable | undefined;
+    let resizeObserver: ResizeObserver | undefined;
 
     void ensureVscodeServices()
       .then(() => {
         if (disposed || !containerRef.current || editors.has(groupId)) return;
-        const editor = monaco.editor.create(containerRef.current, { ...editorOptions, model: null });
+        const container = containerRef.current;
+        const editor = monaco.editor.create(container, { ...editorOptions, model: null });
+        resizeObserver = new ResizeObserver(() => editor.layout());
+        resizeObserver.observe(container);
+        requestAnimationFrame(() => editor.layout());
         editors.set(groupId, editor);
         activeEditor = editor;
         focusDisposable = editor.onDidFocusEditorWidget(() => {
@@ -113,6 +118,7 @@ export function MonacoEditor({ groupId }: Props) {
       if (navigationTimer) clearTimeout(navigationTimer);
       focusDisposable?.dispose();
       cursorDisposable?.dispose();
+      resizeObserver?.disconnect();
       const editor = editors.get(groupId);
       editor?.dispose();
       editors.delete(groupId);
@@ -131,6 +137,7 @@ export function MonacoEditor({ groupId }: Props) {
     currentUri.current = tab?.uri ?? null;
     const model = tab ? (getModel(tab.uri) ?? null) : null;
     editor.setModel(model);
+    requestAnimationFrame(() => editor.layout());
     if (tab) {
       editor.restoreViewState(viewStates.current.get(tab.uri) ?? null);
       const pendingReveal = pendingReveals.get(groupId);

@@ -12,7 +12,11 @@ export function useKeybindings(): void {
           event.shiftKey ? 'workbench.action.showCommands' : 'workbench.action.quickOpen',
         );
       }
-      if (mod && event.key.toLowerCase() === 's') {
+      if (mod && event.altKey && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        event.stopPropagation();
+        void runCommand('file.saveAll');
+      } else if (mod && event.key.toLowerCase() === 's') {
         event.preventDefault();
         void runCommand(event.shiftKey ? 'file.saveAs' : 'file.save');
       }

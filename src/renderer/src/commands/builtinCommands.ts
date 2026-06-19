@@ -1,6 +1,6 @@
 import { getEditor, setEditorsSoftWrap } from '../editor/MonacoEditor';
 import { toggleSoftWrapEnabled } from '../editor/editorOptions';
-import { getOrCreateModel, getModel, replaceModelUri } from '../editor/models';
+import { getOrCreateModel, getModel } from '../editor/models';
 import { ensureLanguageClient, restartLanguageClient } from '../lsp/LanguageClientService';
 import { navigateBack, navigateForward } from '../editor/navigationHistory';
 import { showNativeCommandPalette } from '../quickopen/nativeCommandPalette';
@@ -11,6 +11,7 @@ import { useSettingsStore } from '../store/useSettingsStore';
 import { useProblemsStore } from '../store/useProblemsStore';
 import { useSearchStore } from '../store/useSearchStore';
 import { navigateProblem } from '../problems/navigation';
+import { closeTabWithPrompt, saveActiveTab, saveAllTabs } from '../editor/saveActions';
 import { registerCommand } from './registry';
 
 function titleFromPath(path: string): string {
@@ -79,16 +80,7 @@ async function formatDocumentForSave(): Promise<void> {
 }
 
 async function saveFile(): Promise<void> {
-  const tab = activeTab();
-  if (!tab) return;
-  if (tab.uri.startsWith('untitled:')) {
-    await saveAs();
-    return;
-  }
-  await formatDocumentForSave();
-  const content = getModel(tab.uri)?.getValue() ?? '';
-  await window.api.file.save({ path: tab.path, content });
-  useEditorStore.getState().markSaved(tab.uri);
+  await saveActiveTab();
 }
 
 async function saveAs(): Promise<void> {
@@ -98,6 +90,7 @@ async function saveAs(): Promise<void> {
   const content = getModel(tab.uri)?.getValue() ?? '';
   const result = await window.api.file.saveAsDialog({ content, suggestedName: tab.title });
   if (!result) return;
+  const { replaceModelUri } = await import('../editor/models');
   const model = replaceModelUri(tab.uri, result.uri, content, result.languageId);
   getEditor()?.setModel(model);
   useEditorStore.getState().markSaved(tab.uri, result);
@@ -176,6 +169,7 @@ export function registerBuiltinCommands(): void {
     },
   });
   registerCommand({ id: 'file.save', title: 'Save', keybinding: 'Ctrl+S', run: saveFile });
+  registerCommand({ id: 'file.saveAll', title: 'Save All', run: saveAllTabs });
   registerCommand({
     id: 'editor.action.formatDocument',
     title: 'Format Document',
@@ -298,7 +292,7 @@ export function registerBuiltinCommands(): void {
     keybinding: 'Ctrl+W',
     run: () => {
       const tab = activeTab();
-      if (tab) useEditorStore.getState().closeTab(tab.id);
+      if (tab) void closeTabWithPrompt(tab);
     },
   });
   registerCommand({

@@ -36,6 +36,15 @@ export function App() {
   const problemsOpen = useProblemsStore((state) => state.isOpen);
   const searchOpen = useSearchStore((state) => state.isOpen);
   useEffect(() => {
+    const unsubscribe = window.api.window.onCloseRequested(() => {
+      void import('./editor/saveActions')
+        .then(({ handleWindowCloseRequest }) => handleWindowCloseRequest())
+        .catch(console.error);
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
     useThemeStore.getState().setTheme(useThemeStore.getState().themeId);
     void useSettingsStore.getState().loadSettings().catch(console.error);
     void ensureVscodeServices()

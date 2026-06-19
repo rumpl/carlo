@@ -6,7 +6,7 @@ interface Props {
 }
 
 export function TabBar({ groupId }: Props) {
-  const { tabs, groups, activeGroupId, setActive, closeTab, closeGroup } = useEditorStore();
+  const { tabs, groups, activeGroupId, setActive, closeGroup } = useEditorStore();
   const group = groups.find((candidate) => candidate.id === groupId);
   const groupTabs = group
     ? group.tabIds.flatMap((id) => tabs.find((tab) => tab.id === id) ?? [])
@@ -44,9 +44,9 @@ export function TabBar({ groupId }: Props) {
             active={tab.id === group?.activeTabId}
             onSelect={() => setActive(tab.id, groupId)}
             onClose={() => {
-              if (tab.dirty && !confirm(`Discard unsaved changes to ${tab.title}?`)) return;
-              const closed = closeTab(tab.id);
-              if (closed) void import('../editor/models').then(({ disposeModel }) => disposeModel(closed.uri));
+              void import('../editor/saveActions')
+                .then(({ closeTabWithPrompt }) => closeTabWithPrompt(tab))
+                .catch(console.error);
             }}
           />
         ))}

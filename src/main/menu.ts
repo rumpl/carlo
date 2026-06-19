@@ -19,6 +19,11 @@ export function installAppMenu(): void {
         { type: 'separator' },
         { label: 'Save', accelerator: 'CmdOrCtrl+S', click: () => sendCommand('file.save') },
         {
+          label: 'Save All',
+          accelerator: 'CmdOrCtrl+Alt+S',
+          click: () => sendCommand('file.saveAll'),
+        },
+        {
           label: 'Save As…',
           accelerator: 'CmdOrCtrl+Shift+S',
           click: () => sendCommand('file.saveAs'),

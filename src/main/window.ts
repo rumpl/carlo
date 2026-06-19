@@ -2,6 +2,11 @@ import { BrowserWindow, app, nativeTheme } from 'electron';
 import { join } from 'node:path';
 import { IPC } from '@shared/ipc';
 import { registerWindowWorkspace } from './ipc/file-handlers';
+import {
+  forgetWindowCloseState,
+  requestWindowCloseConfirmation,
+  shouldAllowWindowClose,
+} from './ipc/window-handlers';
 
 interface CreateWindowOptions {
   initialWorkspacePath?: string;
@@ -30,11 +35,21 @@ export function createWindow(options: CreateWindowOptions = {}): BrowserWindow {
   });
 
   registerWindowWorkspace(win, options.initialWorkspacePath);
+  const webContentsId = win.webContents.id;
+
+  win.on('close', (event) => {
+    if (shouldAllowWindowClose(win)) return;
+    event.preventDefault();
+    requestWindowCloseConfirmation(win);
+  });
 
   const sendOsTheme = () =>
     win.webContents.send(IPC.themeOsChanged, { shouldUseDark: nativeTheme.shouldUseDarkColors });
   nativeTheme.on('updated', sendOsTheme);
-  win.on('closed', () => nativeTheme.off('updated', sendOsTheme));
+  win.on('closed', () => {
+    forgetWindowCloseState(webContentsId);
+    nativeTheme.off('updated', sendOsTheme);
+  });
 
   if (!app.isPackaged && process.env.ELECTRON_RENDERER_URL) {
     void win.loadURL(process.env.ELECTRON_RENDERER_URL);

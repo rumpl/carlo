@@ -78,6 +78,13 @@ export const api = Object.freeze({
     zoomIn: () => ipcRenderer.invoke(IPC.windowZoomIn) as Promise<{ zoomLevel: number }>,
     zoomOut: () => ipcRenderer.invoke(IPC.windowZoomOut) as Promise<{ zoomLevel: number }>,
     zoomReset: () => ipcRenderer.invoke(IPC.windowZoomReset) as Promise<{ zoomLevel: number }>,
+    closeProceed: () => ipcRenderer.invoke(IPC.windowCloseProceed) as Promise<{ ok: true }>,
+    closeCancel: () => ipcRenderer.invoke(IPC.windowCloseCancel) as Promise<{ ok: true }>,
+    onCloseRequested: (cb: () => void) => on<void>(IPC.windowCloseRequested, cb),
+  },
+  dialog: {
+    unsavedChanges: (name: string) =>
+      ipcRenderer.invoke(IPC.dialogUnsavedChanges, { name }) as Promise<'save' | 'discard' | 'cancel'>,
   },
   workspace: {
     openFolderDialog: () =>
