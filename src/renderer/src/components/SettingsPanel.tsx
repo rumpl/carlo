@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { defaultUserConfig, type CarloUserConfig } from '@shared/app-config';
+import { CARLO_THEMES, defaultUserConfig, type CarloThemeId, type CarloUserConfig } from '@shared/app-config';
 import { useSettingsStore } from '../store/useSettingsStore';
 
 export function SettingsPanel() {
@@ -9,6 +9,7 @@ export function SettingsPanel() {
   const isOpen = useSettingsStore((state) => state.isOpen);
   const closeSettings = useSettingsStore((state) => state.closeSettings);
   const saveSettings = useSettingsStore((state) => state.saveSettings);
+  const [theme, setTheme] = useState<CarloThemeId>(config.theme);
   const [mainViewFont, setMainViewFont] = useState(config.mainView.fontFamily);
   const [treeViewFont, setTreeViewFont] = useState(config.treeView.fontFamily);
   const [fontSize, setFontSize] = useState(String(config.mainView.fontSize));
@@ -19,6 +20,7 @@ export function SettingsPanel() {
 
   useEffect(() => {
     if (!isOpen) return;
+    setTheme(config.theme);
     setMainViewFont(config.mainView.fontFamily);
     setTreeViewFont(config.treeView.fontFamily);
     setFontSize(String(config.mainView.fontSize));
@@ -30,6 +32,7 @@ export function SettingsPanel() {
   if (!isOpen) return null;
 
   const draft: CarloUserConfig = {
+    theme,
     mainView: {
       fontFamily: mainViewFont,
       fontSize: Number(fontSize),
@@ -55,6 +58,7 @@ export function SettingsPanel() {
 
   function resetDefaults(): void {
     const defaults = defaultUserConfig();
+    setTheme(defaults.theme);
     setMainViewFont(defaults.mainView.fontFamily);
     setTreeViewFont(defaults.treeView.fontFamily);
     setFontSize(String(defaults.mainView.fontSize));
@@ -83,9 +87,24 @@ export function SettingsPanel() {
         </header>
 
         <label className="settings-field">
+          <span>Theme</span>
+          <select
+            autoFocus
+            disabled={isLoading || isSaving}
+            onChange={(event) => setTheme(event.target.value as CarloThemeId)}
+            value={theme}
+          >
+            {CARLO_THEMES.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="settings-field">
           <span>Main editor font</span>
           <input
-            autoFocus
             disabled={isLoading || isSaving}
             onChange={(event) => setMainViewFont(event.target.value)}
             placeholder="Font family"

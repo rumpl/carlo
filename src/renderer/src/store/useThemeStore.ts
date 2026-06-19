@@ -1,18 +1,10 @@
+import { CARLO_DEFAULT_THEME, CARLO_THEMES, type CarloThemeId, type CarloThemeKind } from '@shared/app-config';
 import { create } from 'zustand';
 import { ensureVscodeServices } from '../vscode/servicesReady';
 
-export const THEMES = [
-  { id: 'Nord', label: 'Nord', kind: 'dark' },
-  { id: 'Default Dark Modern', label: 'Default Dark Modern', kind: 'dark' },
-  { id: 'Default Dark+', label: 'Default Dark+', kind: 'dark' },
-  { id: 'Visual Studio Dark', label: 'Visual Studio Dark', kind: 'dark' },
-  { id: 'Default Light Modern', label: 'Default Light Modern', kind: 'light' },
-  { id: 'Default Light+', label: 'Default Light+', kind: 'light' },
-  { id: 'Visual Studio Light', label: 'Visual Studio Light', kind: 'light' },
-] as const;
-
-export type ThemeId = (typeof THEMES)[number]['id'];
-type ThemeKind = (typeof THEMES)[number]['kind'];
+export const THEMES = CARLO_THEMES;
+export type ThemeId = CarloThemeId;
+type ThemeKind = CarloThemeKind;
 
 interface ThemeState {
   themeId: ThemeId;
@@ -25,7 +17,7 @@ function themeKind(themeId: ThemeId): ThemeKind {
 }
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
-  themeId: 'Nord',
+  themeId: CARLO_DEFAULT_THEME,
   setTheme: (themeId) => {
     document.documentElement.dataset.theme = themeKind(themeId);
     document.documentElement.dataset.themeId = themeId;

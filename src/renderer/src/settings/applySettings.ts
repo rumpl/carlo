@@ -1,6 +1,8 @@
 import type { CarloUserConfig } from '@shared/app-config';
+import { useThemeStore } from '../store/useThemeStore';
 
 export function applySettings(config: CarloUserConfig): void {
+  useThemeStore.getState().setTheme(config.theme);
   document.documentElement.style.setProperty('--tree-view-font-family', config.treeView.fontFamily);
   void import('../editor/editorOptions')
     .then(({ setEditorFontFamily, setEditorFontSize, setEditorTabSize, setEditorWordWrap }) => {
