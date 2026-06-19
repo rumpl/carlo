@@ -20,8 +20,8 @@ export class LspServerManager {
 
   start(opts: LspStartOptions): string {
     if (!hasLanguageServer(opts.languageId)) throw new Error(`No language server for ${opts.languageId}`);
-    const { command, args, cwd } = resolveServer(opts.languageId, opts.rootUri);
-    const proc = spawn(command, args, { cwd, stdio: ['pipe', 'pipe', 'pipe'] });
+    const { command, args, cwd, env } = resolveServer(opts.languageId, opts.rootUri);
+    const proc = spawn(command, args, { cwd, env, stdio: ['pipe', 'pipe', 'pipe'] });
     const reader = new StreamMessageReader(proc.stdout);
     const writer = new StreamMessageWriter(proc.stdin);
     const connectionId = randomUUID();
