@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
+import { Breadcrumbs } from './components/Breadcrumbs';
 import { FileTree } from './components/FileTree';
 import { SettingsPanel } from './components/SettingsPanel';
 import { StatusBar } from './components/StatusBar';
@@ -88,6 +89,7 @@ export function App() {
           {groups.map((group) => (
             <section className="editor-group" key={group.id}>
               <TabBar groupId={group.id} />
+              <Breadcrumbs groupId={group.id} />
               <Suspense fallback={<div className="editor-stack" />}>
                 <MonacoEditor groupId={group.id} />
               </Suspense>
