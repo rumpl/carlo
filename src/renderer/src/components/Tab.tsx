@@ -1,3 +1,4 @@
+import type { MouseEvent } from 'react';
 import type { EditorTab } from '../store/useEditorStore';
 
 interface Props {
@@ -5,12 +6,14 @@ interface Props {
   active: boolean;
   onSelect: () => void;
   onClose: () => void;
+  onContextMenu: (event: MouseEvent) => void;
 }
-export function Tab({ tab, active, onSelect, onClose }: Props) {
+export function Tab({ tab, active, onSelect, onClose, onContextMenu }: Props) {
   return (
     <button
       className={`tab ${active ? 'active' : ''}`}
       onClick={onSelect}
+      onContextMenu={onContextMenu}
       onAuxClick={(event) => {
         if (event.button !== 1) return;
         event.preventDefault();
