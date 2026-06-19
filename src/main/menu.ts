@@ -8,10 +8,18 @@ export function installAppMenu(win: BrowserWindow): void {
       label: 'File',
       submenu: [
         { label: 'Open File…', accelerator: 'CmdOrCtrl+O', click: () => sendCommand('file.open') },
-        { label: 'Open Folder…', accelerator: 'CmdOrCtrl+K', click: () => sendCommand('workspace.openFolder') },
+        {
+          label: 'Open Folder…',
+          accelerator: 'CmdOrCtrl+K',
+          click: () => sendCommand('workspace.openFolder'),
+        },
         { type: 'separator' },
         { label: 'Save', accelerator: 'CmdOrCtrl+S', click: () => sendCommand('file.save') },
-        { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: () => sendCommand('file.saveAs') },
+        {
+          label: 'Save As…',
+          accelerator: 'CmdOrCtrl+Shift+S',
+          click: () => sendCommand('file.saveAs'),
+        },
         { type: 'separator' },
         { role: 'quit' },
       ],
@@ -19,7 +27,11 @@ export function installAppMenu(win: BrowserWindow): void {
     {
       label: 'View',
       submenu: [
-        { label: 'Command Palette…', accelerator: 'CmdOrCtrl+Shift+P', click: () => sendCommand('workbench.action.showCommands') },
+        {
+          label: 'Command Palette…',
+          accelerator: 'CmdOrCtrl+Shift+P',
+          click: () => sendCommand('workbench.action.showCommands'),
+        },
         { type: 'separator' },
         { role: 'toggleDevTools' },
       ],

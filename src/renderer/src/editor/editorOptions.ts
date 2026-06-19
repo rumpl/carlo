@@ -9,4 +9,5 @@ export const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions =
   tabCompletion: 'off',
   wordBasedSuggestions: 'off',
   parameterHints: { enabled: false },
+  cursorStyle: 'block',
 };

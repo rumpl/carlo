@@ -38,4 +38,21 @@ export interface SaveAsDialogResult {
 export interface WorkspaceFolderResult {
   rootUri: string;
   rootPath: string;
+  name: string;
+}
+
+export interface FileTreeNode {
+  name: string;
+  path: string;
+  uri: string;
+  type: 'file' | 'directory';
+  children?: FileTreeNode[];
+}
+
+export interface GitBaselineResult {
+  isGitRepo: boolean;
+  tracked: boolean;
+  rootPath?: string;
+  content?: string;
+  error?: string;
 }

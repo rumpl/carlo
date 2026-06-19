@@ -10,57 +10,154 @@ export interface EditorTab {
   dirty: boolean;
 }
 
+export interface EditorGroup {
+  id: string;
+  tabIds: string[];
+  activeTabId: string | null;
+}
+
 interface WorkspaceState {
   rootUri: string;
   rootPath: string;
+  name: string;
 }
 
 interface EditorState {
   tabs: EditorTab[];
+  groups: EditorGroup[];
+  activeGroupId: string;
   activeTabId: string | null;
+  splitDirection: 'vertical' | 'horizontal';
   workspace: WorkspaceState | null;
   setWorkspace: (workspace: WorkspaceState) => void;
   openFile: (tab: Omit<EditorTab, 'id' | 'dirty'>) => void;
   closeTab: (id: string) => EditorTab | undefined;
-  setActive: (id: string) => void;
+  setActive: (id: string, groupId?: string) => void;
+  setActiveGroup: (id: string) => void;
+  splitActive: (direction: 'vertical' | 'horizontal') => void;
+  closeGroup: (id: string) => void;
   markDirty: (uri: string) => void;
-  markSaved: (uri: string, nextPath?: string) => void;
+  markSaved: (
+    uri: string,
+    savedAs?: { path: string; uri: string; languageId: LanguageId },
+  ) => void;
 }
 
+const initialGroupId = crypto.randomUUID();
 const titleFromPath = (path: string) => path.split(/[\\/]/).pop() ?? path;
+
+function currentActiveTabId(groups: EditorGroup[], activeGroupId: string): string | null {
+  return groups.find((group) => group.id === activeGroupId)?.activeTabId ?? null;
+}
 
 export const useEditorStore = create<EditorState>((set, get) => ({
   tabs: [],
+  groups: [{ id: initialGroupId, tabIds: [], activeTabId: null }],
+  activeGroupId: initialGroupId,
   activeTabId: null,
+  splitDirection: 'vertical',
   workspace: null,
   setWorkspace: (workspace) => set({ workspace }),
   openFile: (tab) =>
     set((state) => {
       const existing = state.tabs.find((candidate) => candidate.uri === tab.uri);
-      if (existing) return { activeTabId: existing.id };
+      const activeGroupId = state.activeGroupId;
+      if (existing) {
+        const groups = state.groups.map((group) =>
+          group.id === activeGroupId && !group.tabIds.includes(existing.id)
+            ? { ...group, tabIds: [...group.tabIds, existing.id], activeTabId: existing.id }
+            : group.id === activeGroupId
+              ? { ...group, activeTabId: existing.id }
+              : group,
+        );
+        return { groups, activeTabId: existing.id };
+      }
+
       const id = crypto.randomUUID();
-      return { tabs: [...state.tabs, { ...tab, id, dirty: false }], activeTabId: id };
+      const groups = state.groups.map((group) =>
+        group.id === activeGroupId
+          ? { ...group, tabIds: [...group.tabIds, id], activeTabId: id }
+          : group,
+      );
+      return { tabs: [...state.tabs, { ...tab, id, dirty: false }], groups, activeTabId: id };
     }),
   closeTab: (id) => {
     const tab = get().tabs.find((candidate) => candidate.id === id);
     set((state) => {
-      const tabs = state.tabs.filter((candidate) => candidate.id !== id);
-      const activeTabId = state.activeTabId === id ? (tabs.at(-1)?.id ?? null) : state.activeTabId;
-      return { tabs, activeTabId };
+      let groups = state.groups.map((group) => {
+        const tabIds = group.tabIds.filter((candidate) => candidate !== id);
+        const activeTabId = group.activeTabId === id ? (tabIds.at(-1) ?? null) : group.activeTabId;
+        return { ...group, tabIds, activeTabId };
+      });
+      groups = groups.length > 1 ? groups.filter((group) => group.tabIds.length > 0) : groups;
+      const activeGroupId = groups.some((group) => group.id === state.activeGroupId)
+        ? state.activeGroupId
+        : (groups.at(-1)?.id ?? initialGroupId);
+      return {
+        tabs: state.tabs.filter((candidate) => candidate.id !== id),
+        groups,
+        activeGroupId,
+        activeTabId: currentActiveTabId(groups, activeGroupId),
+      };
     });
     return tab;
   },
-  setActive: (id) => set({ activeTabId: id }),
-  markDirty: (uri) => set((state) => ({ tabs: state.tabs.map((tab) => (tab.uri === uri ? { ...tab, dirty: true } : tab)) })),
-  markSaved: (uri, nextPath) =>
+  setActive: (id, groupId) =>
+    set((state) => {
+      const activeGroupId = groupId ?? state.groups.find((group) => group.tabIds.includes(id))?.id ?? state.activeGroupId;
+      const groups = state.groups.map((group) =>
+        group.id === activeGroupId ? { ...group, activeTabId: id } : group,
+      );
+      return { groups, activeGroupId, activeTabId: id };
+    }),
+  setActiveGroup: (id) =>
+    set((state) => ({ activeGroupId: id, activeTabId: currentActiveTabId(state.groups, id) })),
+  splitActive: (direction) =>
+    set((state) => {
+      const source = state.groups.find((group) => group.id === state.activeGroupId);
+      const activeTabId = source?.activeTabId;
+      if (!activeTabId) return { splitDirection: direction };
+      const group: EditorGroup = { id: crypto.randomUUID(), tabIds: [activeTabId], activeTabId };
+      return {
+        groups: [...state.groups, group],
+        activeGroupId: group.id,
+        activeTabId,
+        splitDirection: direction,
+      };
+    }),
+  closeGroup: (id) =>
+    set((state) => {
+      if (state.groups.length <= 1) return {};
+      const groups = state.groups.filter((group) => group.id !== id);
+      const activeGroupId = state.activeGroupId === id ? groups[0]!.id : state.activeGroupId;
+      return { groups, activeGroupId, activeTabId: currentActiveTabId(groups, activeGroupId) };
+    }),
+  markDirty: (uri) =>
+    set((state) => ({ tabs: state.tabs.map((tab) => (tab.uri === uri ? { ...tab, dirty: true } : tab)) })),
+  markSaved: (uri, savedAs) =>
     set((state) => ({
       tabs: state.tabs.map((tab) =>
-        tab.uri === uri ? { ...tab, dirty: false, path: nextPath ?? tab.path, title: nextPath ? titleFromPath(nextPath) : tab.title } : tab,
+        tab.uri === uri
+          ? {
+              ...tab,
+              uri: savedAs?.uri ?? tab.uri,
+              languageId: savedAs?.languageId ?? tab.languageId,
+              dirty: false,
+              path: savedAs?.path ?? tab.path,
+              title: savedAs ? titleFromPath(savedAs.path) : tab.title,
+            }
+          : tab,
       ),
     })),
 }));
 
 export function activeTab(): EditorTab | undefined {
   const { tabs, activeTabId } = useEditorStore.getState();
+  return tabs.find((tab) => tab.id === activeTabId);
+}
+
+export function activeTabInGroup(groupId: string): EditorTab | undefined {
+  const { tabs, groups } = useEditorStore.getState();
+  const activeTabId = groups.find((group) => group.id === groupId)?.activeTabId;
   return tabs.find((tab) => tab.id === activeTabId);
 }

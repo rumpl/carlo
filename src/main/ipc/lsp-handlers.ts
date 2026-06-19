@@ -4,7 +4,9 @@ import type { LspStartOptions, LspToServerPayload } from '@shared/lsp-types';
 import { LspServerManager } from '../lsp/LspServerManager';
 
 export function registerLspHandlers(win: BrowserWindow): LspServerManager {
-  const manager = new LspServerManager((channel, payload) => win.webContents.send(channel, payload));
+  const manager = new LspServerManager((channel, payload) =>
+    win.webContents.send(channel, payload),
+  );
 
   ipcMain.handle(IPC.lspStart, (_event, opts: LspStartOptions) => {
     try {
@@ -17,7 +19,9 @@ export function registerLspHandlers(win: BrowserWindow): LspServerManager {
     manager.stop(connectionId);
     return { ok: true };
   });
-  ipcMain.on(IPC.lspToServer, (_event, payload: LspToServerPayload) => manager.toServer(payload.connectionId, payload.message));
+  ipcMain.on(IPC.lspToServer, (_event, payload: LspToServerPayload) =>
+    manager.toServer(payload.connectionId, payload.message),
+  );
   app.on('before-quit', () => manager.stopAll());
   return manager;
 }

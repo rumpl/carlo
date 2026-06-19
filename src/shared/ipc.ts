@@ -4,7 +4,13 @@ export const IPC = {
   fileRead: 'file:read',
   fileSave: 'file:save',
   fileSaveAsDialog: 'file:saveAsDialog',
+  gitBaseline: 'git:baseline',
   workspaceOpenFolderDialog: 'workspace:openFolderDialog',
+  workspaceCurrentFolder: 'workspace:currentFolder',
+  workspaceListTree: 'workspace:listTree',
+  windowZoomIn: 'window:zoomIn',
+  windowZoomOut: 'window:zoomOut',
+  windowZoomReset: 'window:zoomReset',
   menuCommand: 'menu:command',
   themeOsChanged: 'theme:osChanged',
   lspStart: 'lsp:start',
@@ -12,6 +18,8 @@ export const IPC = {
   lspToServer: 'lsp:toServer',
   lspFromServer: 'lsp:fromServer',
   lspServerExit: 'lsp:serverExit',
+  lspServerStderr: 'lsp:serverStderr',
+  lspServerLog: 'lsp:serverLog',
 } as const;
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC];

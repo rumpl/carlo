@@ -1,14 +1,65 @@
+import { useSyncExternalStore } from 'react';
 import { disposeModel } from '../editor/models';
+import {
+  canNavigateBack,
+  canNavigateForward,
+  navigateBack,
+  navigateForward,
+  subscribeNavigationHistory,
+} from '../editor/navigationHistory';
 import { useEditorStore } from '../store/useEditorStore';
 import { Tab } from './Tab';
 
-export function TabBar() {
-  const { tabs, activeTabId, setActive, closeTab } = useEditorStore();
-  return <div className="tab-bar">
-    {tabs.map((tab) => <Tab key={tab.id} tab={tab} active={tab.id === activeTabId} onSelect={() => setActive(tab.id)} onClose={() => {
-      if (tab.dirty && !confirm(`Discard unsaved changes to ${tab.title}?`)) return;
-      const closed = closeTab(tab.id);
-      if (closed) disposeModel(closed.uri);
-    }} />)}
-  </div>;
+interface Props {
+  groupId: string;
+}
+
+export function TabBar({ groupId }: Props) {
+  useSyncExternalStore(
+    subscribeNavigationHistory,
+    () => `${canNavigateBack()}:${canNavigateForward()}`,
+  );
+  const { tabs, groups, activeGroupId, setActive, closeTab, closeGroup } = useEditorStore();
+  const group = groups.find((candidate) => candidate.id === groupId);
+  const groupTabs = group
+    ? group.tabIds.flatMap((id) => tabs.find((tab) => tab.id === id) ?? [])
+    : [];
+  return (
+    <div className={`tab-bar ${groupId === activeGroupId ? 'active-group' : ''}`}>
+      <button
+        className="nav-button"
+        title="Go Back"
+        disabled={!canNavigateBack()}
+        onClick={navigateBack}
+      >
+        ←
+      </button>
+      <button
+        className="nav-button"
+        title="Go Forward"
+        disabled={!canNavigateForward()}
+        onClick={navigateForward}
+      >
+        →
+      </button>
+      {groupTabs.map((tab) => (
+        <Tab
+          key={tab.id}
+          tab={tab}
+          active={tab.id === group?.activeTabId}
+          onSelect={() => setActive(tab.id, groupId)}
+          onClose={() => {
+            if (tab.dirty && !confirm(`Discard unsaved changes to ${tab.title}?`)) return;
+            const closed = closeTab(tab.id);
+            if (closed) disposeModel(closed.uri);
+          }}
+        />
+      ))}
+      {groups.length > 1 ? (
+        <button className="group-close" title="Close split" onClick={() => closeGroup(groupId)}>
+          ×
+        </button>
+      ) : null}
+    </div>
+  );
 }

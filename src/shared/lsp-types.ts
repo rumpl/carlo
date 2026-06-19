@@ -41,4 +41,16 @@ export interface LspServerExit {
   signal: string | null;
 }
 
+export interface LspServerStderr {
+  connectionId: string;
+  languageId: LanguageId;
+  data: string;
+}
+
+export interface LspServerLog {
+  connectionId: string;
+  languageId: LanguageId;
+  message: string;
+}
+
 export type LspStatus = 'stopped' | 'starting' | 'running' | 'error';

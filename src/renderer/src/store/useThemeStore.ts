@@ -1,7 +1,18 @@
 import { create } from 'zustand';
 import * as monaco from '@codingame/monaco-vscode-editor-api';
 
-export type ThemeId = 'Default Dark Modern' | 'Default Light Modern';
+export const THEMES = [
+  { id: 'Nord', label: 'Nord', kind: 'dark' },
+  { id: 'Default Dark Modern', label: 'Default Dark Modern', kind: 'dark' },
+  { id: 'Default Dark+', label: 'Default Dark+', kind: 'dark' },
+  { id: 'Visual Studio Dark', label: 'Visual Studio Dark', kind: 'dark' },
+  { id: 'Default Light Modern', label: 'Default Light Modern', kind: 'light' },
+  { id: 'Default Light+', label: 'Default Light+', kind: 'light' },
+  { id: 'Visual Studio Light', label: 'Visual Studio Light', kind: 'light' },
+] as const;
+
+export type ThemeId = (typeof THEMES)[number]['id'];
+type ThemeKind = (typeof THEMES)[number]['kind'];
 
 interface ThemeState {
   themeId: ThemeId;
@@ -9,12 +20,18 @@ interface ThemeState {
   toggleTheme: () => void;
 }
 
+function themeKind(themeId: ThemeId): ThemeKind {
+  return THEMES.find((theme) => theme.id === themeId)?.kind ?? 'dark';
+}
+
 export const useThemeStore = create<ThemeState>((set, get) => ({
-  themeId: 'Default Dark Modern',
+  themeId: 'Nord',
   setTheme: (themeId) => {
     monaco.editor.setTheme(themeId);
-    document.documentElement.dataset.theme = themeId.includes('Dark') ? 'dark' : 'light';
+    document.documentElement.dataset.theme = themeKind(themeId);
+    document.documentElement.dataset.themeId = themeId;
     set({ themeId });
   },
-  toggleTheme: () => get().setTheme(get().themeId.includes('Dark') ? 'Default Light Modern' : 'Default Dark Modern'),
+  toggleTheme: () =>
+    get().setTheme(themeKind(get().themeId) === 'dark' ? 'Default Light Modern' : 'Nord'),
 }));
