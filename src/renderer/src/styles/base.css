@@ -1,20 +1,34 @@
 :root {
-  --bg: #2e3440;
-  --fg: #d8dee9;
-  --panel: #3b4252;
-  --panel2: #434c5e;
-  --border: #4c566a;
-  --accent: #5e81ac;
-  --tree-view-font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
-  --status-bg: #3b4252;
-  --status-fg: #d8dee9;
-  --git-added: #81b88b;
-  --git-modified: #e2c08d;
-  --git-deleted: #c74e39;
-  --git-renamed: #73c991;
-  --git-untracked: #73c991;
-  --git-ignored: #8c8c8c;
-  --git-conflict: #e4676b;
+  color-scheme: dark;
+  --font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono-font-family: 'SFMono-Regular', 'Cascadia Code', 'Liberation Mono', Menlo, Monaco, Consolas, monospace;
+  --tree-view-font-family: var(--mono-font-family);
+  --bg: #111318;
+  --fg: #e6e8ec;
+  --panel: #171a21;
+  --panel2: #1d2129;
+  --surface: #222731;
+  --border: #2a303a;
+  --border-subtle: rgba(255, 255, 255, 0.035);
+  --muted: #8f98a8;
+  --muted-strong: #b7beca;
+  --accent: #7aa2f7;
+  --accent-soft: color-mix(in srgb, var(--accent) 18%, transparent);
+  --hover: rgba(255, 255, 255, 0.045);
+  --active: rgba(122, 162, 247, 0.16);
+  --status-bg: #151820;
+  --status-fg: #aeb7c7;
+  --shadow: 0 20px 70px rgba(0, 0, 0, 0.38);
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --git-added: #8ec07c;
+  --git-modified: #e0af68;
+  --git-deleted: #f7768e;
+  --git-renamed: #73daca;
+  --git-untracked: #9ece6a;
+  --git-ignored: #6f7785;
+  --git-conflict: #ff9e64;
   --vscode-focusBorder: var(--accent);
   --vscode-contrastActiveBorder: var(--accent);
   --vscode-list-focusOutline: var(--accent);
@@ -22,37 +36,61 @@
   --vscode-inputValidation-infoBorder: var(--accent);
   --vscode-inputValidation-warningBorder: var(--accent);
 }
+
 :root[data-theme='dark'] {
-  --bg: #1e1e1e;
-  --fg: #d4d4d4;
-  --panel: #252526;
-  --panel2: #2d2d2d;
-  --border: #3c3c3c;
-  --accent: #0e639c;
+  color-scheme: dark;
+  --bg: #101114;
+  --fg: #e7e7e8;
+  --panel: #16181d;
+  --panel2: #1c1f26;
+  --surface: #232732;
+  --border: #2b303a;
+  --muted: #9299a5;
+  --muted-strong: #babfc8;
+  --accent: #78a8ff;
+  --status-bg: #14161b;
+  --status-fg: #aeb4bf;
 }
+
 :root[data-theme='light'] {
-  --bg: #ffffff;
-  --fg: #1f1f1f;
-  --panel: #f3f3f3;
-  --panel2: #ececec;
-  --border: #d4d4d4;
-  --accent: #006ab1;
-  --git-added: #587c0c;
-  --git-modified: #895503;
-  --git-deleted: #ad0707;
-  --git-renamed: #007100;
-  --git-untracked: #007100;
-  --git-ignored: #8e8e90;
-  --git-conflict: #ad0707;
+  color-scheme: light;
+  --bg: #fbfbfa;
+  --fg: #1b1d22;
+  --panel: #f3f3f1;
+  --panel2: #ededeb;
+  --surface: #ffffff;
+  --border: #dededb;
+  --border-subtle: rgba(0, 0, 0, 0.045);
+  --muted: #707783;
+  --muted-strong: #464c57;
+  --accent: #2563eb;
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --hover: rgba(0, 0, 0, 0.045);
+  --active: rgba(37, 99, 235, 0.12);
+  --status-bg: #f0f0ee;
+  --status-fg: #4f5662;
+  --shadow: 0 20px 70px rgba(19, 24, 32, 0.16);
+  --git-added: #287a35;
+  --git-modified: #9a6700;
+  --git-deleted: #cf222e;
+  --git-renamed: #1a7f37;
+  --git-untracked: #1a7f37;
+  --git-ignored: #8c959f;
+  --git-conflict: #bc4c00;
 }
+
 :root[data-theme-id='Nord'] {
-  --bg: #2e3440;
-  --fg: #d8dee9;
-  --panel: #3b4252;
-  --panel2: #434c5e;
-  --border: #4c566a;
-  --accent: #5e81ac;
-  --status-bg: #3b4252;
+  color-scheme: dark;
+  --bg: #242933;
+  --fg: #eceff4;
+  --panel: #2b313d;
+  --panel2: #313848;
+  --surface: #3b4252;
+  --border: #434c5e;
+  --muted: #a7b0c0;
+  --muted-strong: #d8dee9;
+  --accent: #88c0d0;
+  --status-bg: #2b313d;
   --status-fg: #d8dee9;
   --git-added: #a3be8c;
   --git-modified: #ebcb8b;
@@ -62,6 +100,11 @@
   --git-ignored: #7d8798;
   --git-conflict: #d08770;
 }
+
+* {
+  box-sizing: border-box;
+}
+
 html,
 body,
 #root {
@@ -69,60 +112,93 @@ body,
   margin: 0;
   overflow: hidden;
 }
+
 body {
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+  font-family: var(--font-family);
   background: var(--bg);
   color: var(--fg);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
+
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
+
+button {
+  color: inherit;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 44%, transparent);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--muted) 62%, transparent);
+  background-clip: padding-box;
+}
+
 .app-shell {
   display: grid;
-  grid-template-columns: 260px 4px minmax(0, 1fr);
-  grid-template-rows: 34px minmax(0, 1fr) 24px;
+  grid-template-columns: 42px 260px 4px minmax(0, 1fr);
+  grid-template-rows: 36px minmax(0, 1fr) 24px;
   height: 100%;
   background: var(--bg);
   color: var(--fg);
 }
+
 .app-titlebar {
   -webkit-app-region: drag;
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(140px, 260px) minmax(0, 1fr) minmax(140px, 260px);
+  grid-template-columns: minmax(120px, 240px) minmax(0, 1fr) minmax(120px, 240px);
   align-items: center;
   min-width: 0;
   min-height: 0;
   padding: 0 12px 0 76px;
-  border-bottom: 1px solid var(--border);
-  background: var(--panel);
+  background: color-mix(in srgb, var(--panel) 92%, var(--bg));
   color: var(--fg);
 }
+
 .app-titlebar-brand {
   min-width: 0;
   overflow: hidden;
   font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
 }
+
 .app-titlebar-center {
   display: flex;
   justify-content: center;
   min-width: 0;
   overflow: hidden;
-  color: color-mix(in srgb, var(--fg) 78%, transparent);
+  color: var(--muted);
   font-size: 12px;
 }
+
 .activity-bar {
   grid-column: 1;
   grid-row: 2;
@@ -131,66 +207,85 @@ input {
   align-items: center;
   min-width: 0;
   min-height: 0;
-  padding-top: 6px;
-  border-right: 1px solid var(--border);
-  background: color-mix(in srgb, var(--panel) 88%, var(--bg));
+  padding: 8px 5px;
+  background: var(--bg);
 }
+
 .activity-bar-button {
   position: relative;
   display: grid;
   place-items: center;
-  width: 100%;
-  height: 46px;
+  width: 32px;
+  height: 32px;
+  margin: 1px 0;
   padding: 0;
   border: 0;
+  border-radius: 0;
   background: transparent;
-  color: color-mix(in srgb, var(--fg) 62%, transparent);
+  color: var(--muted);
   cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
 }
+
 .activity-bar-button:hover,
 .activity-bar-button.active {
+  background: transparent;
   color: var(--fg);
 }
+
+.activity-bar-button.active {
+  background: transparent;
+  color: var(--accent);
+}
+
 .activity-bar-button.active::before {
   content: '';
   position: absolute;
-  top: 7px;
-  bottom: 7px;
-  left: 0;
+  top: 8px;
+  bottom: 8px;
+  left: -5px;
   width: 2px;
+  border-radius: 999px;
   background: var(--accent);
 }
+
 .activity-bar-button svg {
-  width: 23px;
-  height: 23px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.8;
+  stroke-width: 1.75;
 }
+
 .sidebar-resizer {
   z-index: 5;
   min-width: 4px;
-  background: var(--border);
+  background: transparent;
   cursor: col-resize;
   transition: background 120ms ease;
 }
+
 .sidebar-resizer:hover,
 .sidebar-resizer:active {
   background: var(--accent);
 }
+
 .file-tree,
 .sidebar-resizer,
 .main-area {
   grid-row: 2;
 }
+
 .file-tree {
   grid-column: 2;
 }
+
 .sidebar-resizer {
   grid-column: 3;
 }
+
 .main-area {
   grid-column: 4;
   display: grid;
@@ -198,28 +293,33 @@ input {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  background: var(--bg);
 }
+
 .workbench {
   display: flex;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
 }
+
 .workbench.split-vertical {
   flex-direction: row;
 }
+
 .workbench.split-horizontal {
   flex-direction: column;
 }
+
 .editor-group {
   display: grid;
   grid-template-rows: 34px minmax(0, 1fr);
   flex: 1 1 0;
   min-width: 0;
   min-height: 0;
-  border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  background: var(--bg);
 }
+
 .editor-group:last-child {
   border-right: 0;
   border-bottom: 0;

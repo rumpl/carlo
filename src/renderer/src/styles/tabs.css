@@ -5,8 +5,8 @@
   min-width: 0;
   overflow: hidden;
   background: var(--panel);
-  border-bottom: 1px solid var(--border);
 }
+
 .tab-strip {
   -webkit-app-region: no-drag;
   display: flex;
@@ -17,67 +17,74 @@
   scrollbar-width: none;
   overscroll-behavior-x: contain;
 }
+
 .tab-strip::-webkit-scrollbar {
   display: none;
 }
-.tab-bar.active-group {
-  box-shadow: inset 0 1px 0 var(--accent);
-}
+
 .tab-bar-spacer {
   -webkit-app-region: drag;
   flex: 1 1 auto;
   min-width: 24px;
 }
-.group-close {
-  -webkit-app-region: no-drag;
-  flex: 0 0 auto;
-  margin-left: auto;
-  padding: 0 10px;
-  border: 0;
-  border-left: 1px solid var(--border);
-  background: transparent;
-  color: var(--fg);
-  cursor: pointer;
-}
-.group-close:hover {
-  background: var(--panel2);
-}
+
+.group-close,
 .nav-button {
   -webkit-app-region: no-drag;
-  flex: 0 0 30px;
-  width: 30px;
+  flex: 0 0 auto;
   border: 0;
-  border-right: 1px solid var(--border);
   background: transparent;
-  color: var(--fg);
+  color: var(--muted);
   cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
 }
+
+.group-close {
+  margin-left: auto;
+  padding: 0 10px;
+}
+
+.nav-button {
+  width: 30px;
+}
+
+.group-close:hover,
 .nav-button:hover:not(:disabled) {
-  background: var(--panel2);
+  background: var(--hover);
+  color: var(--fg);
 }
+
 .nav-button:disabled {
   cursor: default;
-  opacity: 0.35;
+  opacity: 0.34;
 }
+
 .tab {
   -webkit-app-region: no-drag;
   display: flex;
-  flex: 0 1 220px;
+  flex: 0 1 210px;
   align-items: center;
   gap: 8px;
-  min-width: 140px;
-  max-width: 220px;
-  padding: 0 8px 0 10px;
+  min-width: 132px;
+  max-width: 210px;
+  padding: 0 8px 0 12px;
   border: 0;
-  border-right: 1px solid var(--border);
-  background: var(--panel);
-  color: var(--fg);
+  background: transparent;
+  color: var(--muted-strong);
   cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
 }
+
+.tab:hover {
+  background: var(--hover);
+  color: var(--fg);
+}
+
 .tab.active {
   background: var(--bg);
-  box-shadow: inset 0 2px 0 var(--accent);
+  color: var(--fg);
 }
+
 .tab-title {
   flex: 1 1 auto;
   min-width: 0;
@@ -86,46 +93,59 @@
   white-space: nowrap;
   text-align: left;
 }
+
 .tab-close {
   flex: 0 0 auto;
-  opacity: 0.75;
-  font-weight: 700;
+  opacity: 0.58;
+  font-weight: 600;
 }
+
+.tab:hover .tab-close,
+.tab.active .tab-close {
+  opacity: 0.9;
+}
+
 .tab-context-menu {
   -webkit-app-region: no-drag;
   position: fixed;
   z-index: 130;
-  min-width: 188px;
-  padding: 4px 0;
+  min-width: 190px;
+  padding: 6px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: var(--panel);
-  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow);
   color: var(--fg);
   font-size: 13px;
 }
+
 .tab-context-menu button {
   display: block;
   width: 100%;
-  padding: 7px 12px;
+  padding: 7px 10px;
   border: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--fg);
   text-align: left;
   cursor: pointer;
 }
+
 .tab-context-menu button:hover:not(:disabled) {
-  background: var(--panel2);
+  background: var(--hover);
 }
+
 .tab-context-menu button:disabled {
   cursor: default;
   opacity: 0.45;
 }
+
 .tab-context-separator {
   height: 1px;
-  margin: 4px 0;
-  background: var(--border);
+  margin: 5px 4px;
+  background: var(--border-subtle);
 }
+
 .breadcrumbs {
   -webkit-app-region: no-drag;
   display: flex;
@@ -133,39 +153,43 @@
   gap: 0;
   min-width: 0;
   overflow: hidden;
-  padding: 0 10px;
-  border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--panel) 82%, var(--bg));
-  color: color-mix(in srgb, var(--fg) 72%, transparent);
+  padding: 0 12px;
+  background: color-mix(in srgb, var(--panel) 70%, var(--bg));
+  color: var(--muted);
   font-family: var(--tree-view-font-family);
   font-size: 12px;
   white-space: nowrap;
 }
+
 .breadcrumb-part {
   display: inline-flex;
   align-items: center;
   min-width: 0;
 }
+
 .breadcrumb-part span:first-child {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .breadcrumb-current {
   color: var(--fg);
-  font-weight: 700;
+  font-weight: 600;
 }
+
 .breadcrumb-separator {
   flex: 0 0 auto;
   padding: 0 7px;
-  opacity: 0.55;
+  opacity: 0.48;
 }
+
 .breadcrumbs.compact {
   max-width: min(680px, 100%);
   height: 24px;
   padding: 0 12px;
-  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
-  border-radius: 5px;
-  background: color-mix(in srgb, var(--bg) 52%, transparent);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   font-family: inherit;
 }

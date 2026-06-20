@@ -1,130 +1,136 @@
 .file-tree {
-  min-width: 0;
-  min-height: 0;
-  border-right: 1px solid var(--border);
-  background: var(--panel);
   display: grid;
   grid-template-rows: 34px minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  background: var(--panel);
   font-family: var(--tree-view-font-family);
 }
+
 .file-tree-header {
   -webkit-app-region: no-drag;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 10px;
-  border-bottom: 1px solid var(--border);
-  font-size: 12px;
+  padding: 0 12px;
+  color: var(--muted-strong);
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
 .file-tree-header-actions {
   -webkit-app-region: no-drag;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
+
 .file-tree-header button {
   -webkit-app-region: no-drag;
+  width: 24px;
+  height: 24px;
   border: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--fg);
+  color: var(--muted);
   cursor: pointer;
 }
+
 .file-tree-header button:hover {
-  color: var(--accent);
+  background: var(--hover);
+  color: var(--fg);
 }
+
 .file-tree-body {
   overflow: auto;
-  padding: 4px 0;
+  padding: 6px 6px 10px;
   font-size: 13px;
-  scrollbar-color: rgba(121, 130, 145, 0.62) transparent;
-  scrollbar-width: auto;
+  scrollbar-color: color-mix(in srgb, var(--muted) 48%, transparent) transparent;
+  scrollbar-width: thin;
 }
-.file-tree-body::-webkit-scrollbar {
-  width: 14px;
-  height: 14px;
-}
-.file-tree-body::-webkit-scrollbar-track,
-.file-tree-body::-webkit-scrollbar-track-piece {
-  background: transparent;
-}
-.file-tree-body::-webkit-scrollbar-thumb {
-  min-height: 32px;
-  border: 0;
-  border-radius: 0;
-  background: rgba(121, 130, 145, 0.62);
-}
-.file-tree-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(140, 149, 163, 0.72);
-}
-.file-tree-body::-webkit-scrollbar-corner {
-  background: transparent;
-}
+
 .file-tree ul {
   margin: 0;
   padding: 0;
   list-style: none;
 }
+
 .tree-row {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   width: 100%;
-  height: 24px;
+  height: 26px;
   border: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--fg);
+  color: var(--muted-strong);
   text-align: left;
   cursor: pointer;
 }
+
 .tree-row:hover {
-  background: var(--panel2);
+  background: var(--hover);
+  color: var(--fg);
 }
+
 .tree-row.active {
-  background: color-mix(in srgb, var(--accent) 38%, transparent);
-  color: #fff;
+  background: var(--active);
+  color: var(--fg);
 }
+
 .tree-row.active:hover {
-  background: color-mix(in srgb, var(--accent) 50%, transparent);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
 }
+
 .tree-row.git-added,
 .tree-row.git-added .tree-git-badge {
   color: var(--git-added);
 }
+
 .tree-row.git-modified,
 .tree-row.git-modified .tree-git-badge {
   color: var(--git-modified);
 }
+
 .tree-row.git-deleted,
 .tree-row.git-deleted .tree-git-badge {
   color: var(--git-deleted);
 }
+
 .tree-row.git-renamed,
 .tree-row.git-renamed .tree-git-badge {
   color: var(--git-renamed);
 }
+
 .tree-row.git-untracked,
 .tree-row.git-untracked .tree-git-badge {
   color: var(--git-untracked);
 }
+
 .tree-row.git-ignored,
 .tree-row.git-ignored .tree-git-badge {
   color: var(--git-ignored);
 }
+
 .tree-row.git-conflict,
 .tree-row.git-conflict .tree-git-badge {
   color: var(--git-conflict);
 }
+
 .tree-row.active,
 .tree-row.active .tree-git-badge {
-  color: #fff;
+  color: var(--fg);
 }
+
 .tree-chevron {
   width: 10px;
-  opacity: 0.75;
+  color: var(--muted);
+  opacity: 0.8;
 }
+
 .tree-devicon {
   display: inline-flex;
   flex: 0 0 18px;
@@ -133,11 +139,13 @@
   width: 18px;
   height: 18px;
 }
+
 .tree-devicon svg {
   display: block;
   width: 16px;
   height: 16px;
 }
+
 .tree-name {
   min-width: 0;
   overflow: hidden;
@@ -145,70 +153,82 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .tree-git-badge {
   flex: 0 0 auto;
   margin-left: auto;
-  padding-right: 8px;
+  padding-right: 7px;
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
   opacity: 0.9;
 }
+
 .tree-empty {
   padding: 10px;
-  opacity: 0.7;
+  color: var(--muted);
 }
+
 .tree-context-menu {
   position: fixed;
   z-index: 120;
-  min-width: 168px;
-  padding: 4px 0;
+  min-width: 170px;
+  padding: 6px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: var(--panel);
-  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow);
   font-family: var(--font-family);
   font-size: 13px;
 }
+
 .tree-context-menu button {
   display: block;
   width: 100%;
-  padding: 7px 12px;
+  padding: 7px 10px;
   border: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--fg);
   text-align: left;
   cursor: pointer;
 }
+
 .tree-context-menu button:hover:not(:disabled) {
-  background: var(--panel2);
+  background: var(--hover);
 }
+
 .tree-context-menu button:disabled {
   cursor: default;
   opacity: 0.45;
 }
+
 .tree-context-menu button.danger:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--git-deleted) 22%, transparent);
+  background: color-mix(in srgb, var(--git-deleted) 16%, transparent);
   color: var(--git-deleted);
 }
+
 .tree-context-separator {
   height: 1px;
-  margin: 4px 0;
-  background: var(--border);
+  margin: 5px 4px;
+  background: var(--border-subtle);
 }
+
 .tree-create-row {
   cursor: default;
 }
+
 .tree-create-row:hover {
   background: transparent;
 }
+
 .tree-create-input {
   min-width: 0;
   flex: 1 1 auto;
-  height: 18px;
-  padding: 0 4px;
+  height: 20px;
+  padding: 0 6px;
   border: 1px solid var(--accent);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   outline: none;
   background: var(--bg);
   color: var(--fg);
