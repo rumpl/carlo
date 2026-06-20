@@ -317,7 +317,6 @@ button {
   flex: 1 1 0;
   min-width: 0;
   min-height: 0;
-  border-right: 1px solid var(--border-subtle);
   background: var(--bg);
 }
 

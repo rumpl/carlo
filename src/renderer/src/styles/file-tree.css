@@ -3,7 +3,6 @@
   grid-template-rows: 34px minmax(0, 1fr);
   min-width: 0;
   min-height: 0;
-  border-right: 1px solid var(--border-subtle);
   background: var(--panel);
   font-family: var(--tree-view-font-family);
 }
