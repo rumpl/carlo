@@ -5,107 +5,134 @@
   min-height: 0;
   background: var(--panel);
 }
+
 .git-panel-header {
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 0;
-  padding: 0 10px;
-  border-bottom: 1px solid var(--border);
-  background: var(--panel2);
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--panel);
 }
+
 .git-panel-title {
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
+
 .git-panel-summary {
   display: flex;
   flex: 1 1 auto;
   gap: 10px;
   min-width: 0;
   overflow: hidden;
-  color: color-mix(in srgb, var(--fg) 72%, transparent);
+  color: var(--muted);
   font-size: 12px;
   white-space: nowrap;
 }
+
 .git-panel-count {
   font-weight: 700;
 }
+
 .git-panel-header button {
   flex: 0 0 auto;
+  padding: 4px 8px;
   border: 1px solid var(--border);
-  background: var(--panel);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
   color: var(--fg);
   cursor: pointer;
   font-size: 12px;
 }
+
 .git-panel-header button:hover:not(:disabled) {
   border-color: var(--accent);
+  background: var(--hover);
 }
+
 .git-panel-header button:disabled {
   cursor: default;
   opacity: 0.5;
 }
+
 .git-panel-header .git-panel-close {
   border: 0;
   background: transparent;
+  color: var(--muted);
   font-size: 20px;
   line-height: 1;
 }
+
+.git-panel-header .git-panel-close:hover {
+  color: var(--fg);
+}
+
 .git-panel-body {
   min-height: 0;
   overflow: auto;
-  padding: 6px 0;
+  padding: 8px 6px;
   font-family: var(--tree-view-font-family);
   font-size: 12px;
 }
+
 .git-panel-empty {
-  padding: 12px;
-  opacity: 0.72;
+  padding: 10px;
+  color: var(--muted);
 }
+
 .git-panel-error {
   color: var(--git-deleted);
-  opacity: 1;
 }
+
 .git-panel-list {
   margin: 0;
   padding: 0;
   list-style: none;
 }
+
 .git-panel-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: stretch;
+  border-radius: var(--radius-sm);
 }
+
 .git-panel-open {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   min-width: 0;
-  padding: 5px 12px;
+  padding: 5px 8px;
   border: 0;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
   background: transparent;
   color: var(--fg);
   text-align: left;
   cursor: pointer;
 }
+
 .git-panel-row:hover,
 .git-panel-open:hover,
 .git-panel-action:hover {
-  background: var(--panel2);
+  background: var(--hover);
 }
+
 .git-panel-status {
   font-weight: 800;
 }
+
 .git-panel-file {
   display: flex;
   gap: 8px;
   min-width: 0;
   align-items: baseline;
 }
+
 .git-panel-file span,
 .git-panel-file small {
   min-width: 0;
@@ -113,59 +140,71 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .git-panel-file small {
-  opacity: 0.6;
+  color: var(--muted);
 }
+
 .git-panel-action {
-  padding: 0 12px;
+  padding: 0 10px;
   border: 0;
-  border-left: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-left: 1px solid var(--border-subtle);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background: transparent;
-  color: color-mix(in srgb, var(--fg) 72%, transparent);
+  color: var(--muted);
   cursor: pointer;
   font-size: 12px;
 }
+
 .git-panel-status.git-added,
 .git-panel-count.git-added {
   color: var(--git-added);
 }
+
 .git-panel-status.git-modified,
 .git-panel-count.git-modified {
   color: var(--git-modified);
 }
+
 .git-panel-status.git-deleted,
 .git-panel-count.git-deleted {
   color: var(--git-deleted);
 }
+
 .git-panel-status.git-renamed,
 .git-panel-count.git-renamed,
 .git-panel-status.git-untracked,
 .git-panel-count.git-untracked {
   color: var(--git-untracked);
 }
+
 .git-panel-status.git-conflict,
 .git-panel-count.git-conflict {
   color: var(--git-conflict);
 }
+
 .git-diff-stack {
   display: grid;
-  grid-template-rows: 28px minmax(0, 1fr);
+  grid-template-rows: 30px minmax(0, 1fr);
 }
+
 .git-diff-title {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
-  padding: 0 10px;
-  border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--panel) 82%, var(--bg));
-  color: color-mix(in srgb, var(--fg) 82%, transparent);
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--panel) 70%, var(--bg));
+  color: var(--muted-strong);
   font-family: var(--tree-view-font-family);
   font-size: 12px;
 }
+
 .git-diff-title span {
   color: var(--git-deleted);
 }
+
 .git-diff-host {
   min-height: 0;
 }
