@@ -220,7 +220,7 @@ button {
   margin: 1px 0;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
@@ -229,12 +229,12 @@ button {
 
 .activity-bar-button:hover,
 .activity-bar-button.active {
-  background: var(--hover);
+  background: transparent;
   color: var(--fg);
 }
 
 .activity-bar-button.active {
-  background: var(--active);
+  background: transparent;
   color: var(--accent);
 }
 
