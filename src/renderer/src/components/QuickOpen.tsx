@@ -33,6 +33,7 @@ export function QuickOpen() {
   const { open, query, setQuery, closeQuickOpen } = useQuickOpenStore();
   const workspace = useEditorStore((state) => state.workspace);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
   const [files, setFiles] = useState<QuickOpenItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(0);
@@ -73,6 +74,12 @@ export function QuickOpen() {
     return () => clearTimeout(timerId);
   }, [open, workspace, loadFiles]);
 
+  useEffect(() => {
+    if (!listRef.current) return;
+    const selectedEl = listRef.current.querySelector<HTMLElement>('button.selected');
+    if (selectedEl) selectedEl.scrollIntoView({ block: 'nearest' });
+  }, [selected]);
+
   if (!open) return null;
 
   return (
@@ -104,7 +111,7 @@ export function QuickOpen() {
             }
           }}
         />
-        <div className="palette-list">
+        <div className="palette-list" ref={listRef}>
           {results.map((result, index) => (
             <button
               key={result.obj.path}
