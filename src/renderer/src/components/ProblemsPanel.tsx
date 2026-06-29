@@ -21,7 +21,6 @@ const severityIcon: Record<ProblemItem['severity'], string> = {
 export function ProblemsPanel() {
   const workspace = useEditorStore((state) => state.workspace);
   const problems = useProblemsStore((state) => state.problems);
-  const closeProblems = useProblemsStore((state) => state.closeProblems);
   const counts = useMemo(() => problemCounts(problems), [problems]);
   const groupedProblems = useMemo(() => {
     const groups = new Map<string, ProblemItem[]>();
@@ -42,9 +41,6 @@ export function ProblemsPanel() {
           <span className="problem-count problem-severity-warning">{counts.warnings} warnings</span>
           <span className="problem-count problem-severity-info">{counts.infos + counts.hints} info</span>
         </div>
-        <button className="problems-close" type="button" onClick={closeProblems} title="Close Problems">
-          ×
-        </button>
       </header>
       <div className="problems-body">
         {problems.length === 0 ? (
