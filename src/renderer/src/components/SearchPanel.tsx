@@ -23,6 +23,7 @@ async function openSearchResult(result: WorkspaceSearchMatch): Promise<void> {
 export function SearchPanel() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const searchSeq = useRef(0);
+  const debounceHandle = useRef<number | undefined>(undefined);
   const workspace = useEditorStore((state) => state.workspace);
   const query = useSearchStore((state) => state.query);
   const results = useSearchStore((state) => state.results);
@@ -84,8 +85,8 @@ export function SearchPanel() {
       setResults([], false);
       return;
     }
-    const handle = window.setTimeout(() => void runSearch(query, seq), 250);
-    return () => window.clearTimeout(handle);
+    debounceHandle.current = window.setTimeout(() => void runSearch(query, seq), 250);
+    return () => window.clearTimeout(debounceHandle.current);
   }, [query, workspace?.rootPath, runSearch, setLoading, setError, setResults]);
 
   return (
@@ -94,6 +95,7 @@ export function SearchPanel() {
         <div className="search-title">Search</div>
         <form className="search-form" onSubmit={(event) => {
           event.preventDefault();
+          window.clearTimeout(debounceHandle.current);
           void runSearch(query, ++searchSeq.current);
         }}>
           <input
