@@ -1,11 +1,12 @@
 import * as monaco from '@codingame/monaco-vscode-editor-api';
 import { useEditorStore } from '../store/useEditorStore';
-import { getEditor } from './MonacoEditor';
+import { getEditor, getEditorGroupId, getEditorForGroup } from './MonacoEditor';
 
 interface Location {
   uri: string;
   lineNumber: number;
   column: number;
+  groupId?: string;
 }
 
 const history: Location[] = [];
@@ -29,7 +30,8 @@ function currentLocation(editor: monaco.editor.IStandaloneCodeEditor): Location 
   const model = editor.getModel();
   const position = editor.getPosition();
   if (!model || !position) return undefined;
-  return { uri: model.uri.toString(), lineNumber: position.lineNumber, column: position.column };
+  const groupId = getEditorGroupId(editor);
+  return { uri: model.uri.toString(), lineNumber: position.lineNumber, column: position.column, groupId };
 }
 
 export function subscribeNavigationHistory(listener: () => void): () => void {
@@ -73,10 +75,10 @@ function reveal(location: Location): void {
   if (!tab) return;
 
   navigating = true;
-  state.setActive(tab.id);
+  state.setActive(tab.id, location.groupId);
 
   setTimeout(() => {
-    const editor = getEditor();
+    const editor = location.groupId ? getEditorForGroup(location.groupId) ?? getEditor() : getEditor();
     if (!editor || editor.getModel()?.uri.toString() !== location.uri) {
       navigating = false;
       return;
