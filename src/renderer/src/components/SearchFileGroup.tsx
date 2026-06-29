@@ -1,5 +1,5 @@
 import type { WorkspaceSearchMatch } from '@shared/file-types';
-import { openSearchResult } from '../editor/openSearchResult';
+import { openSearchResult } from '../search/openSearchResult';
 import { relativePath } from '../commands/builtin/pathUtils';
 import { HighlightedPreview } from './HighlightedPreview';
 
