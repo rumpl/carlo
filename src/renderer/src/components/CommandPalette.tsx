@@ -12,7 +12,7 @@ export function CommandPalette() {
     const item = listRef.current?.children[selected] as HTMLElement | undefined;
     item?.scrollIntoView({ block: 'nearest' });
   }, [selected]);
-  const commands = getCommands();
+  const commands = useMemo(() => getCommands(), [paletteOpen]);
   const matches = useMemo(
     () =>
       query
