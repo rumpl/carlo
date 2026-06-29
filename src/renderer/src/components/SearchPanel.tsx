@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { WorkspaceSearchMatch } from '@shared/file-types';
 import { useEditorStore } from '../store/useEditorStore';
 import { useSearchStore } from '../store/useSearchStore';
@@ -50,7 +50,7 @@ export function SearchPanel() {
     return () => window.clearTimeout(handle);
   }, []);
 
-  async function runSearch(searchQuery = query, seq = ++searchSeq.current): Promise<void> {
+  const runSearch = useCallback(async (searchQuery: string, seq: number): Promise<void> => {
     const trimmedQuery = searchQuery.trim();
     if (!workspace || !trimmedQuery) {
       setLoading(false);
@@ -74,7 +74,7 @@ export function SearchPanel() {
     } finally {
       if (seq === searchSeq.current) setLoading(false);
     }
-  }
+  }, [workspace, setLoading, setError, setResults]);
 
   useEffect(() => {
     const seq = ++searchSeq.current;
@@ -86,7 +86,7 @@ export function SearchPanel() {
     }
     const handle = window.setTimeout(() => void runSearch(query, seq), 250);
     return () => window.clearTimeout(handle);
-  }, [query, workspace?.rootPath]);
+  }, [query, workspace?.rootPath, runSearch, setLoading, setError, setResults]);
 
   return (
     <section className="search-panel" aria-label="Search">
@@ -94,7 +94,7 @@ export function SearchPanel() {
         <div className="search-title">Search</div>
         <form className="search-form" onSubmit={(event) => {
           event.preventDefault();
-          void runSearch();
+          void runSearch(query, ++searchSeq.current);
         }}>
           <input
             ref={inputRef}
