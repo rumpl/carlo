@@ -1,17 +1,7 @@
 import { useEffect } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
 import { Breadcrumbs } from './Breadcrumbs';
-
-function titleFromState(): string {
-  const { activeGroupId, groups, tabs, workspace } = useEditorStore.getState();
-  const activeTabId = groups.find((group) => group.id === activeGroupId)?.activeTabId;
-  const tab = tabs.find((candidate) => candidate.id === activeTabId);
-  if (tab) {
-    const dirty = tab.dirty ? '● ' : '';
-    return workspace ? `${dirty}${tab.title} — ${workspace.name} — Carlo` : `${dirty}${tab.title} — Carlo`;
-  }
-  return workspace ? `${workspace.name} — Carlo` : 'Carlo';
-}
+import { titleFromState } from './appTitleUtils';
 
 export function AppTitleBar() {
   const activeGroupId = useEditorStore((state) => state.activeGroupId);
