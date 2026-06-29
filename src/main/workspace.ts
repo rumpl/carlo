@@ -1,14 +1,14 @@
-import { app } from 'electron';
 import { existsSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 export function initialWorkspacePath(argv: string[] = process.argv, cwd: string = process.cwd()): string {
-  // In Electron's main process, process.argv is:
-  //   packaged:   [electronExePath, appPath, ...userArgs]
-  //   unpackaged: [electronExePath, ...userArgs]
-  // Slicing from index 2 when packaged (or 1 when unpackaged) ensures the app
-  // bundle / packed JS entry is not treated as a workspace candidate.
-  const sliceFrom = app.isPackaged ? 2 : 1;
+  // In Electron's main process, process.argv is always:
+  //   [electronExePath, appEntryScript, ...userArgs]
+  // This holds for both packaged and unpackaged (dev) builds — the entry
+  // script (e.g. out/main/index.js) sits at index 1.  Slicing from index 2
+  // unconditionally ensures neither the executable nor the app entry script
+  // is ever treated as a workspace candidate.
+  const sliceFrom = 2;
 
   const candidates = argv
     .slice(sliceFrom)
