@@ -34,8 +34,9 @@ export function GitPanel() {
   const workspace = useEditorStore((state) => state.workspace);
   const closeGitPanel = useGitPanelStore((state) => state.closeGitPanel);
   const [files, setFiles] = useState<GitChangedFile[]>([]);
-  const [isGitRepo, setIsGitRepo] = useState(true);
+  const [isGitRepo, setIsGitRepo] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const counts = useMemo(() => {
     const result = new Map<GitFileStatus, number>();
@@ -48,6 +49,7 @@ export function GitPanel() {
     if (!currentWorkspace) {
       setFiles([]);
       setIsGitRepo(false);
+      setHasFetched(true);
       return;
     }
     setLoading(true);
@@ -61,6 +63,7 @@ export function GitPanel() {
       setError(refreshError instanceof Error ? refreshError.message : 'Could not load git status');
     } finally {
       setLoading(false);
+      setHasFetched(true);
     }
   }, []);
 
@@ -98,15 +101,15 @@ export function GitPanel() {
       </header>
       <div className="git-panel-body">
         {!workspace ? <div className="git-panel-empty">Open a folder to show source control.</div> : null}
-        {workspace && loading ? <div className="git-panel-empty">Loading changes…</div> : null}
-        {workspace && error ? <div className="git-panel-empty git-panel-error">{error}</div> : null}
-        {workspace && !loading && !error && !isGitRepo ? (
+        {workspace && (loading || !hasFetched) ? <div className="git-panel-empty">Loading changes…</div> : null}
+        {workspace && hasFetched && !loading && error ? <div className="git-panel-empty git-panel-error">{error}</div> : null}
+        {workspace && hasFetched && !loading && !error && !isGitRepo ? (
           <div className="git-panel-empty">This folder is not a git repository.</div>
         ) : null}
-        {workspace && !loading && !error && isGitRepo && files.length === 0 ? (
+        {workspace && hasFetched && !loading && !error && isGitRepo && files.length === 0 ? (
           <div className="git-panel-empty">No changes.</div>
         ) : null}
-        {workspace && !loading && !error && files.length > 0 ? (
+        {workspace && hasFetched && !loading && !error && files.length > 0 ? (
           <ul className="git-panel-list">
             {files.map((file) => (
               <li className="git-panel-row" key={file.path} title={`${statusTitles[file.status]} · ${file.relativePath}`}>
