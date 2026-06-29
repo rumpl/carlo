@@ -1,6 +1,7 @@
 import type { FormEvent, MouseEvent, RefObject } from 'react';
 import type { FileTreeNode, GitFileStatus } from '@shared/file-types';
-import { DevIcon, iconForNode } from './icons';
+import { DevIcon } from './DevIcon';
+import { iconForNode } from './icons';
 import { InlineCreateRow } from './InlineCreateRow';
 import type { TreeCreatePrompt } from './types';
 
