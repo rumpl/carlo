@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { LanguageId } from '@shared/language-registry';
-import { activeTab, useEditorStore } from '../store/useEditorStore';
+import { useEditorStore } from '../store/useEditorStore';
 import { problemCounts, useProblemsStore } from '../store/useProblemsStore';
 
 type LspStatus = 'running' | 'starting' | 'stopped' | 'error' | 'unavailable';
@@ -14,8 +14,10 @@ const lspIcons: Record<string, string> = {
 };
 
 export function StatusBar() {
-  useEditorStore((state) => state.activeTabId);
-  const tab = activeTab();
+  const tab = useEditorStore((state) => {
+    const activeTabId = state.groups.find((group) => group.id === state.activeGroupId)?.activeTabId;
+    return state.tabs.find((tab) => tab.id === activeTabId);
+  });
   const [lsp, setLsp] = useState<{ status: LspStatus; detail?: string }>({ status: 'stopped' });
   const problems = useProblemsStore((state) => state.problems);
   const toggleProblems = useProblemsStore((state) => state.toggleProblems);
