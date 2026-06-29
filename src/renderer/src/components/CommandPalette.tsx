@@ -34,10 +34,10 @@ export function CommandPalette() {
           onKeyDown={(event) => {
             if (event.key === 'Escape') closePalette();
             if (event.key === 'ArrowDown')
-              setSelected((selected + 1) % Math.max(matches.length, 1));
+              setSelected((prev) => (prev + 1) % Math.max(matches.length, 1));
             if (event.key === 'ArrowUp')
               setSelected(
-                (selected - 1 + Math.max(matches.length, 1)) % Math.max(matches.length, 1),
+                (prev) => (prev - 1 + Math.max(matches.length, 1)) % Math.max(matches.length, 1),
               );
             if (event.key === 'Enter') void run(matches[selected]);
           }}
