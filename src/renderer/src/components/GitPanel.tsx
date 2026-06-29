@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { GitChangedFile, GitFileStatus } from '@shared/file-types';
 import { openGitChanges } from '../git/diffTabs';
 import { useEditorStore } from '../store/useEditorStore';
@@ -46,8 +46,9 @@ export function GitPanel() {
     return result;
   }, [files]);
 
-  async function refresh(): Promise<void> {
-    if (!workspace) {
+  const refresh = useCallback(async (): Promise<void> => {
+    const currentWorkspace = useEditorStore.getState().workspace;
+    if (!currentWorkspace) {
       setFiles([]);
       setIsGitRepo(false);
       return;
@@ -55,7 +56,7 @@ export function GitPanel() {
     setLoading(true);
     setError(null);
     try {
-      const result = await window.api.git.status(workspace.rootPath);
+      const result = await window.api.git.status(currentWorkspace.rootPath);
       setIsGitRepo(result.isGitRepo);
       setFiles(result.files);
     } catch (refreshError) {
@@ -64,11 +65,11 @@ export function GitPanel() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     void refresh();
-  }, [workspace?.rootPath]);
+  }, [workspace?.rootPath, refresh]);
 
   useEffect(() => {
     if (!workspace) return;
@@ -82,7 +83,7 @@ export function GitPanel() {
       unsubscribe();
       if (timer) window.clearTimeout(timer);
     };
-  }, [workspace?.rootPath]);
+  }, [workspace?.rootPath, refresh]);
 
   return (
     <section className="git-panel" aria-label="Git changes">
