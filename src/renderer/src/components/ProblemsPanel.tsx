@@ -1,22 +1,7 @@
 import { useMemo } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
-import { type ProblemItem, problemCounts, useProblemsStore } from '../store/useProblemsStore';
-import { openProblem } from '../problems/navigation';
-import { relativePath } from '../commands/builtin/pathUtils';
-
-const severityLabel: Record<ProblemItem['severity'], string> = {
-  1: 'Error',
-  2: 'Warning',
-  3: 'Info',
-  4: 'Hint',
-};
-
-const severityIcon: Record<ProblemItem['severity'], string> = {
-  1: '⛔',
-  2: '⚠',
-  3: 'ⓘ',
-  4: '◇',
-};
+import { problemCounts, useProblemsStore } from '../store/useProblemsStore';
+import { ProblemFileSection } from './ProblemFileSection';
 
 export function ProblemsPanel() {
   const workspace = useEditorStore((state) => state.workspace);
@@ -24,7 +9,7 @@ export function ProblemsPanel() {
   const closeProblems = useProblemsStore((state) => state.closeProblems);
   const counts = useMemo(() => problemCounts(problems), [problems]);
   const groupedProblems = useMemo(() => {
-    const groups = new Map<string, ProblemItem[]>();
+    const groups = new Map<string, typeof problems>();
     for (const problem of problems) {
       const group = groups.get(problem.path) ?? [];
       group.push(problem);
@@ -51,29 +36,12 @@ export function ProblemsPanel() {
           <div className="problems-empty">No problems detected.</div>
         ) : (
           groupedProblems.map(([path, fileProblems]) => (
-            <section className="problem-file" key={path}>
-              <div className="problem-file-title" title={path}>
-                {relativePath(path, workspace?.rootPath)}
-                <span>{fileProblems.length}</span>
-              </div>
-              <ul>
-                {fileProblems.map((problem) => (
-                  <li key={problem.id}>
-                    <button
-                      className={`problem-row problem-severity-${severityLabel[problem.severity].toLowerCase()}`}
-                      type="button"
-                      onClick={() => void openProblem(problem).catch(console.error)}
-                      title={`${severityLabel[problem.severity]} at ${problem.startLineNumber}:${problem.startColumn}`}
-                    >
-                      <span className="problem-icon" aria-hidden="true">{severityIcon[problem.severity]}</span>
-                      <span className="problem-message">{problem.message}</span>
-                      <span className="problem-source">{problem.owner}</span>
-                      <span className="problem-location">{problem.startLineNumber}:{problem.startColumn}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <ProblemFileSection
+              key={path}
+              path={path}
+              problems={fileProblems}
+              rootPath={workspace?.rootPath}
+            />
           ))
         )}
       </div>
