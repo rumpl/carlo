@@ -4,6 +4,7 @@ import { useEditorStore } from '../store/useEditorStore';
 import { isMarkdownTab } from '../markdown/previewTabs';
 import { runCommand } from '../commands/registry';
 import { Tab } from './Tab';
+import { relativePath } from '../commands/builtin/pathUtils';
 
 interface TabContextMenu {
   x: number;
@@ -58,13 +59,6 @@ export function TabBar({ groupId }: Props) {
   function runContextAction(action: () => void | Promise<void>): void {
     setContextMenu(undefined);
     void Promise.resolve(action()).catch(console.error);
-  }
-
-  function relativePath(path: string): string {
-    if (!workspace) return path;
-    const root = workspace.rootPath.replaceAll('\\', '/').replace(/\/+$/, '');
-    const normalizedPath = path.replaceAll('\\', '/');
-    return normalizedPath.startsWith(`${root}/`) ? normalizedPath.slice(root.length + 1) : path;
   }
 
   const contextTabIndex = contextMenu
@@ -171,7 +165,7 @@ export function TabBar({ groupId }: Props) {
           <button
             type="button"
             disabled={contextMenu.tab.uri.startsWith('untitled:')}
-            onClick={() => runContextAction(() => navigator.clipboard.writeText(relativePath(contextMenu.tab.path)))}
+            onClick={() => runContextAction(() => navigator.clipboard.writeText(relativePath(contextMenu.tab.path, workspace?.rootPath)))}
           >
             Copy Relative Path
           </button>

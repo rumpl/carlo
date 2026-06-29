@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
 import { type ProblemItem, problemCounts, useProblemsStore } from '../store/useProblemsStore';
 import { openProblem } from '../problems/navigation';
+import { relativePath } from '../commands/builtin/pathUtils';
 
 const severityLabel: Record<ProblemItem['severity'], string> = {
   1: 'Error',
@@ -16,15 +17,6 @@ const severityIcon: Record<ProblemItem['severity'], string> = {
   3: 'ⓘ',
   4: '◇',
 };
-
-function relativePath(path: string, rootPath: string | undefined): string {
-  if (!rootPath) return path;
-  const normalizedRoot = rootPath.replaceAll('\\', '/').replace(/\/+$/, '');
-  const normalizedPath = path.replaceAll('\\', '/');
-  return normalizedPath.startsWith(`${normalizedRoot}/`)
-    ? normalizedPath.slice(normalizedRoot.length + 1)
-    : path;
-}
 
 export function ProblemsPanel() {
   const workspace = useEditorStore((state) => state.workspace);
