@@ -1,21 +1,9 @@
+import { relativePath } from '../commands/builtin/pathUtils';
 import { useEditorStore } from '../store/useEditorStore';
 
 interface Props {
   groupId: string;
   compact?: boolean;
-}
-
-function normalizePath(path: string): string {
-  return path.replaceAll('\\', '/');
-}
-
-function relativePath(path: string, rootPath: string | undefined): string {
-  if (!rootPath) return path;
-  const normalizedRoot = normalizePath(rootPath).replace(/\/+$/, '');
-  const normalizedPath = normalizePath(path);
-  return normalizedPath.startsWith(`${normalizedRoot}/`)
-    ? normalizedPath.slice(normalizedRoot.length + 1)
-    : path;
 }
 
 export function Breadcrumbs({ groupId, compact = false }: Props) {

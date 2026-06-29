@@ -4,15 +4,7 @@ import { useEditorStore } from '../store/useEditorStore';
 import { useSearchStore } from '../store/useSearchStore';
 import { openFileByPath } from '../editor/openFileByPath';
 import { HighlightedPreview } from './HighlightedPreview';
-
-function relativePath(path: string, rootPath: string | undefined): string {
-  if (!rootPath) return path;
-  const normalizedRoot = rootPath.replaceAll('\\', '/').replace(/\/+$/, '');
-  const normalizedPath = path.replaceAll('\\', '/');
-  return normalizedPath.startsWith(`${normalizedRoot}/`)
-    ? normalizedPath.slice(normalizedRoot.length + 1)
-    : path;
-}
+import { relativePath } from '../commands/builtin/pathUtils';
 
 async function openSearchResult(result: WorkspaceSearchMatch): Promise<void> {
   const [{ getEditor, revealPosition, setPendingReveal }, { useEditorStore: editorStore }] = await Promise.all([
