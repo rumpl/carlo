@@ -1,16 +1,8 @@
 import { type MouseEvent, useEffect, useState } from 'react';
 import type { EditorTab } from '../store/useEditorStore';
 import { useEditorStore } from '../store/useEditorStore';
-import { isMarkdownTab } from '../markdown/previewTabs';
-import { runCommand } from '../commands/registry';
 import { Tab } from './Tab';
-import { relativePath } from '../commands/builtin/pathUtils';
-
-interface TabContextMenu {
-  x: number;
-  y: number;
-  tab: EditorTab;
-}
+import { TabContextMenu, type TabContextMenuState } from './TabContextMenu';
 
 interface Props {
   groupId: string;
@@ -18,11 +10,12 @@ interface Props {
 
 export function TabBar({ groupId }: Props) {
   const { tabs, groups, activeGroupId, setActive, closeGroup, workspace } = useEditorStore();
-  const [contextMenu, setContextMenu] = useState<TabContextMenu | undefined>(undefined);
+  const [contextMenu, setContextMenu] = useState<TabContextMenuState | undefined>(undefined);
   const group = groups.find((candidate) => candidate.id === groupId);
   const groupTabs = group
     ? group.tabIds.flatMap((id) => tabs.find((tab) => tab.id === id) ?? [])
     : [];
+
   useEffect(() => {
     if (!contextMenu) return;
     const close = () => setContextMenu(undefined);
@@ -60,13 +53,6 @@ export function TabBar({ groupId }: Props) {
     setContextMenu(undefined);
     void Promise.resolve(action()).catch(console.error);
   }
-
-  const contextTabIndex = contextMenu
-    ? groupTabs.findIndex((tab) => tab.id === contextMenu.tab.id)
-    : -1;
-  const tabsToRight = contextTabIndex >= 0 ? groupTabs.slice(contextTabIndex + 1) : [];
-  const otherTabs = contextMenu ? groupTabs.filter((tab) => tab.id !== contextMenu.tab.id) : [];
-  const savedTabs = groupTabs.filter((tab) => !tab.dirty);
 
   return (
     <div className={`tab-bar ${groupId === activeGroupId ? 'active-group' : ''}`}>
@@ -116,72 +102,16 @@ export function TabBar({ groupId }: Props) {
         </button>
       ) : null}
       {contextMenu ? (
-        <div
-          className="tab-context-menu"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-          onClick={(event) => event.stopPropagation()}
-          onContextMenu={(event) => event.preventDefault()}
-        >
-          {isMarkdownTab(contextMenu.tab) ? (
-            <>
-              <button type="button" onClick={() => runContextAction(() => runCommand('markdown.showPreviewToSide'))}>
-                Open Markdown Preview to Side
-              </button>
-              <div className="tab-context-separator" />
-            </>
-          ) : null}
-          <button type="button" onClick={() => runContextAction(() => closeTabsWithPrompt([contextMenu.tab]))}>
-            Close
-          </button>
-          <button
-            type="button"
-            disabled={otherTabs.length === 0}
-            onClick={() => runContextAction(() => closeTabsWithPrompt(otherTabs))}
-          >
-            Close Others
-          </button>
-          <button
-            type="button"
-            disabled={tabsToRight.length === 0}
-            onClick={() => runContextAction(() => closeTabsWithPrompt(tabsToRight))}
-          >
-            Close Tabs to the Right
-          </button>
-          <button
-            type="button"
-            disabled={savedTabs.length === 0}
-            onClick={() => runContextAction(() => closeTabsWithPrompt(savedTabs))}
-          >
-            Close Saved
-          </button>
-          <div className="tab-context-separator" />
-          <button
-            type="button"
-            disabled={contextMenu.tab.uri.startsWith('untitled:')}
-            onClick={() => runContextAction(() => navigator.clipboard.writeText(contextMenu.tab.path))}
-          >
-            Copy Path
-          </button>
-          <button
-            type="button"
-            disabled={contextMenu.tab.uri.startsWith('untitled:')}
-            onClick={() => runContextAction(() => navigator.clipboard.writeText(relativePath(contextMenu.tab.path, workspace?.rootPath)))}
-          >
-            Copy Relative Path
-          </button>
-          <button
-            type="button"
-            disabled={contextMenu.tab.uri.startsWith('untitled:')}
-            onClick={() => runContextAction(async () => {
-              await window.api.file.revealInFolder(contextMenu.tab.path);
-            })}
-          >
-            Reveal in Finder
-          </button>
-          <button type="button" onClick={() => runContextAction(() => setActive(contextMenu.tab.id, groupId))}>
-            Reveal in File Tree
-          </button>
-        </div>
+        <TabContextMenu
+          contextMenu={contextMenu}
+          groupTabs={groupTabs}
+          groupId={groupId}
+          workspace={workspace}
+          onClose={() => setContextMenu(undefined)}
+          onRunAction={runContextAction}
+          onSetActive={setActive}
+          onCloseTabsWithPrompt={closeTabsWithPrompt}
+        />
       ) : null}
     </div>
   );
