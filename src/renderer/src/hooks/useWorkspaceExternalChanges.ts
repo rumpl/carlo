@@ -6,9 +6,9 @@ function isGitMetadataPath(path: string): boolean {
 }
 
 export function useWorkspaceExternalChanges(): void {
-  useEffect(
-    () =>
-      window.api.workspace.onChanged(async ({ path }) => {
+  useEffect(() => {
+    const unsubscribe = window.api.workspace.onChanged(({ path }) => {
+      void (async () => {
         const [{ refreshVisibleGitGutters, refreshVisibleGitGuttersForPath }, gitGutter, models] =
           await Promise.all([
             import('../editor/MonacoEditor'),
@@ -41,7 +41,8 @@ export function useWorkspaceExternalChanges(): void {
           }),
         );
         refreshVisibleGitGuttersForPath(path);
-      }),
-    [],
-  );
+      })();
+    });
+    return unsubscribe;
+  }, []);
 }
