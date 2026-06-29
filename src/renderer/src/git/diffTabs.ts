@@ -1,4 +1,5 @@
 import { languageIdFromPath } from '@shared/language-registry';
+import { titleFromPath } from '../commands/builtin/pathUtils';
 import { useEditorStore } from '../store/useEditorStore';
 
 const diffPrefix = 'git-diff:';
@@ -13,10 +14,6 @@ export function isGitDiffUri(uri: string): boolean {
 
 export function pathFromGitDiffUri(uri: string): string {
   return decodeURIComponent(uri.slice(diffPrefix.length));
-}
-
-function titleFromPath(path: string): string {
-  return path.split(/[\\/]/).pop() ?? path;
 }
 
 export function openGitChanges(path: string): void {

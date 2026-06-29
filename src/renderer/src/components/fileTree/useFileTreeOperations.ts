@@ -5,7 +5,8 @@ import { languageIdFromPath } from '@shared/language-registry';
 import { useEditorStore } from '../../store/useEditorStore';
 import type { useWorkspaceTree } from './useWorkspaceTree';
 import type { TreeClipboard, TreeContextMenu, TreeCreatePrompt } from './types';
-import { hasValidChildName, normalizePath, parentDirectory, titleFromPath } from './treeUtils';
+import { hasValidChildName, normalizePath, parentDirectory } from './treeUtils';
+import { titleFromPath } from '../../commands/builtin/pathUtils';
 
 type WorkspaceTree = ReturnType<typeof useWorkspaceTree>;
 

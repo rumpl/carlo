@@ -7,7 +7,7 @@ import { isMarkdownTab, markdownPreviewUri } from '../../markdown/previewTabs';
 import { activeTab, useEditorStore } from '../../store/useEditorStore';
 import { useSettingsStore } from '../../store/useSettingsStore';
 import { registerCommand } from '../registry';
-import { rootFor } from './pathUtils';
+import { rootFor, titleFromPath } from './pathUtils';
 
 async function withActiveEditorLsp(actionId: string): Promise<void> {
   const tab = activeTab();
@@ -68,10 +68,6 @@ export async function formatDocumentForSave(): Promise<void> {
 
 function toggleSoftWrap(): void {
   setEditorsSoftWrap(toggleSoftWrapEnabled());
-}
-
-function titleFromPath(path: string): string {
-  return path.split(/[\\/]/).pop() ?? path;
 }
 
 function openMarkdownPreviewToSide(): void {

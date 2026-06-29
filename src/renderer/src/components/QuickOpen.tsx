@@ -6,6 +6,7 @@ import { getOrCreateModel } from '../editor/models';
 import { ensureLanguageClient } from '../lsp/LanguageClientService';
 import { useEditorStore } from '../store/useEditorStore';
 import { useQuickOpenStore } from '../store/useQuickOpenStore';
+import { titleFromPath } from '../commands/builtin/pathUtils';
 
 interface QuickOpenItem {
   name: string;
@@ -26,10 +27,6 @@ function flatten(nodes: FileTreeNode[], rootPath: string): QuickOpenItem[] {
       },
     ];
   });
-}
-
-function titleFromPath(path: string): string {
-  return path.split(/[\\/]/).pop() ?? path;
 }
 
 export function QuickOpen() {

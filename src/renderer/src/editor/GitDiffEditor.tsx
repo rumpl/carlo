@@ -4,14 +4,11 @@ import { ensureVscodeServices } from '../vscode/servicesReady';
 import { editorOptions } from './editorOptions';
 import { getModel } from './models';
 import { pathFromGitDiffUri } from '../git/diffTabs';
+import { titleFromPath } from '../commands/builtin/pathUtils';
 import { activeTabInGroup } from '../store/useEditorStore';
 
 interface Props {
   groupId: string;
-}
-
-function titleFromPath(path: string): string {
-  return path.split(/[\\/]/).pop() ?? path;
 }
 
 export function GitDiffEditor({ groupId }: Props) {

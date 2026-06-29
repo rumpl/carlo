@@ -3,14 +3,11 @@ import { languageIdFromPath } from '@shared/language-registry';
 import { ensureLanguageClient } from '../lsp/LanguageClientService';
 import { useEditorStore } from '../store/useEditorStore';
 import { getEditorGroupId, revealPosition, setPendingReveal } from './editorRegistry';
+import { titleFromPath } from '../commands/builtin/pathUtils';
 import { getOrCreateModel, getModel } from './models';
 import { recordNavigationLocation } from './navigationHistory';
 
 let disposable: monaco.IDisposable | undefined;
-
-function titleFromPath(path: string): string {
-  return path.split(/[\\/]/).pop() ?? path;
-}
 
 function pathFromUri(uri: monaco.Uri): string {
   return uri.scheme === 'file' ? uri.path : uri.toString();

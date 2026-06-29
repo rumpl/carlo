@@ -1,9 +1,6 @@
 import { languageIdFromPath } from '@shared/language-registry';
+import { titleFromPath } from '../commands/builtin/pathUtils';
 import { useEditorStore } from '../store/useEditorStore';
-
-function titleFromPath(path: string): string {
-  return path.split(/[\\/]/).pop() ?? path;
-}
 
 function fileUriFromPath(path: string): string {
   return new URL(`file://${path}`).toString();

@@ -5,6 +5,7 @@ import { languageIdFromPath } from '@shared/language-registry';
 import { getOrCreateModel } from '../editor/models';
 import { ensureLanguageClient } from '../lsp/LanguageClientService';
 import { type RecentFile, useEditorStore } from '../store/useEditorStore';
+import { titleFromPath } from '../commands/builtin/pathUtils';
 
 interface QuickOpenItem extends IQuickPickItem {
   path: string;
@@ -37,10 +38,6 @@ function flatten(nodes: FileTreeNode[], rootPath: string): QuickOpenItem[] {
     if (node.type === 'directory') return flatten(node.children ?? [], rootPath);
     return [itemForFile({ uri: node.uri, path: node.path, languageId: languageIdFromPath(node.path), title: node.name }, rootPath)];
   });
-}
-
-function titleFromPath(path: string): string {
-  return path.split(/[\\/]/).pop() ?? path;
 }
 
 async function openFile(item: QuickOpenItem): Promise<void> {
