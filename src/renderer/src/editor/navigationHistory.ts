@@ -77,7 +77,7 @@ function reveal(location: Location): void {
   navigating = true;
   state.setActive(tab.id, location.groupId);
 
-  setTimeout(() => {
+  window.setTimeout(() => {
     const editor = location.groupId ? getEditorForGroup(location.groupId) ?? getEditor() : getEditor();
     if (!editor || editor.getModel()?.uri.toString() !== location.uri) {
       navigating = false;
@@ -87,7 +87,7 @@ function reveal(location: Location): void {
     editor.setPosition(position);
     editor.revealPositionInCenter(position, monaco.editor.ScrollType.Smooth);
     editor.focus();
-    setTimeout(() => {
+    window.setTimeout(() => {
       navigating = false;
     }, 0);
   }, 0);
