@@ -10,34 +10,41 @@ interface Props {
 }
 export function Tab({ tab, active, onSelect, onClose, onContextMenu }: Props) {
   return (
-    <button
+    <div
       className={`tab ${active ? 'active' : ''}`}
-      onClick={onSelect}
       onContextMenu={onContextMenu}
-      onAuxClick={(event) => {
-        if (event.button !== 1) return;
-        event.preventDefault();
-        event.stopPropagation();
-        onClose();
-      }}
-      onMouseDown={(event) => {
-        if (event.button === 1) event.preventDefault();
-      }}
-      title={tab.path}
     >
-      <span className="tab-title">
-        {tab.title}
-        {tab.dirty ? ' •' : ''}
-      </span>
-      <span
+      <button
+        type="button"
+        className="tab-select"
+        onClick={onSelect}
+        onAuxClick={(event) => {
+          if (event.button !== 1) return;
+          event.preventDefault();
+          event.stopPropagation();
+          onClose();
+        }}
+        onMouseDown={(event) => {
+          if (event.button === 1) event.preventDefault();
+        }}
+        title={tab.path}
+      >
+        <span className="tab-title">
+          {tab.title}
+          {tab.dirty ? ' •' : ''}
+        </span>
+      </button>
+      <button
+        type="button"
         className="tab-close"
+        aria-label={`Close ${tab.title}`}
         onClick={(event) => {
           event.stopPropagation();
           onClose();
         }}
       >
         ×
-      </span>
-    </button>
+      </button>
+    </div>
   );
 }
