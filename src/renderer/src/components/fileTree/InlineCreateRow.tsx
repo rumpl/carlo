@@ -1,5 +1,6 @@
 import type { FormEvent, RefObject } from 'react';
-import { DevIcon, iconForNode } from './icons';
+import { DevIcon } from './DevIcon';
+import { iconForNode } from './icons';
 import type { TreeCreatePrompt } from './types';
 
 export function InlineCreateRow({
