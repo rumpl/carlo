@@ -4,7 +4,6 @@ import { closeTabWithPrompt, saveActiveTab, saveAllTabs } from '../../editor/sav
 import { ensureLanguageClient } from '../../lsp/LanguageClientService';
 import { activeTab, useEditorStore } from '../../store/useEditorStore';
 import { registerCommand } from '../registry';
-import { formatDocumentForSave } from './editorCommands';
 import { rootFor, titleFromPath } from './pathUtils';
 
 function nextUntitledTitle(): string {
@@ -45,7 +44,6 @@ async function saveFile(): Promise<void> {
 async function saveAs(): Promise<void> {
   const tab = activeTab();
   if (!tab) return;
-  await formatDocumentForSave();
   const content = getModel(tab.uri)?.getValue() ?? '';
   const result = await window.api.file.saveAsDialog({ content, suggestedName: tab.title });
   if (!result) return;
