@@ -22,7 +22,7 @@ export function AppTitleBar() {
   });
   useEffect(() => {
     document.title = titleFromState();
-  }, [activeTab?.title, activeTab?.dirty, workspaceName]);
+  }, [activeTab?.title, activeTab?.dirty, workspaceName, activeGroupId]);
 
   return (
     <header className="app-titlebar">
