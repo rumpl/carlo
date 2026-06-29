@@ -5,20 +5,6 @@ import { useActiveEditorModel } from './useActiveEditorModel';
 import { useModelDirtyTracking } from './useModelDirtyTracking';
 import { useMonacoEditorInstance } from './useMonacoEditorInstance';
 
-export {
-  getEditor,
-  getEditorForGroup,
-  getEditorGroupId,
-  refreshVisibleGitGutters,
-  refreshVisibleGitGuttersForPath,
-  revealPosition,
-  setEditorsFontFamily,
-  setEditorsFontSize,
-  setEditorsSoftWrap,
-  setEditorsTabSize,
-  setPendingReveal,
-} from './editorRegistry';
-
 interface Props {
   groupId: string;
 }

@@ -1,4 +1,4 @@
-import { getEditor } from '../../editor/MonacoEditor';
+import { getEditor } from '../../editor/editorRegistry';
 import { getModel, getOrCreateModel } from '../../editor/models';
 import { closeTabWithPrompt, saveActiveTab, saveAllTabs } from '../../editor/saveActions';
 import { ensureLanguageClient } from '../../lsp/LanguageClientService';

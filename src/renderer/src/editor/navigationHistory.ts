@@ -1,6 +1,6 @@
 import * as monaco from '@codingame/monaco-vscode-editor-api';
 import { useEditorStore } from '../store/useEditorStore';
-import { getEditor, getEditorGroupId, getEditorForGroup } from './MonacoEditor';
+import { getEditor, getEditorGroupId, getEditorForGroup } from './editorRegistry';
 
 interface Location {
   uri: string;

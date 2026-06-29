@@ -2,7 +2,7 @@ import * as monaco from '@codingame/monaco-vscode-editor-api';
 import { languageIdFromPath } from '@shared/language-registry';
 import { ensureLanguageClient } from '../lsp/LanguageClientService';
 import { useEditorStore } from '../store/useEditorStore';
-import { getEditorGroupId, revealPosition, setPendingReveal } from './MonacoEditor';
+import { getEditorGroupId, revealPosition, setPendingReveal } from './editorRegistry';
 import { getOrCreateModel, getModel } from './models';
 import { recordNavigationLocation } from './navigationHistory';
 

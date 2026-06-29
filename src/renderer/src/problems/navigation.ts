@@ -3,7 +3,7 @@ import { type ProblemItem, useProblemsStore } from '../store/useProblemsStore';
 
 export async function openProblem(problem: ProblemItem): Promise<void> {
   const [{ getEditor, revealPosition, setPendingReveal }, { useEditorStore }] = await Promise.all([
-    import('../editor/MonacoEditor'),
+    import('../editor/editorRegistry'),
     import('../store/useEditorStore'),
   ]);
   const position = { lineNumber: problem.startLineNumber, column: problem.startColumn };
@@ -20,7 +20,7 @@ export async function openProblem(problem: ProblemItem): Promise<void> {
 export async function navigateProblem(direction: 'next' | 'previous'): Promise<void> {
   const problems = useProblemsStore.getState().problems;
   if (problems.length === 0) return;
-  const { getEditor } = await import('../editor/MonacoEditor');
+  const { getEditor } = await import('../editor/editorRegistry');
   const editor = getEditor();
   const uri = editor?.getModel()?.uri.toString();
   const position = editor?.getPosition();

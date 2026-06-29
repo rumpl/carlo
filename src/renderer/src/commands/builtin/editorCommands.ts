@@ -1,4 +1,4 @@
-import { getEditor, setEditorsSoftWrap } from '../../editor/MonacoEditor';
+import { getEditor, setEditorsSoftWrap } from '../../editor/editorRegistry';
 import { toggleSoftWrapEnabled } from '../../editor/editorOptions';
 import { getModel } from '../../editor/models';
 import { navigateBack, navigateForward } from '../../editor/navigationHistory';
