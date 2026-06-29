@@ -7,7 +7,7 @@ import { invalidateGitBaseline } from './gitGutter';
 async function formatActiveTabForSave(tab: EditorTab): Promise<void> {
   const currentTab = activeTab();
   if (currentTab?.id !== tab.id) return;
-  const { getEditor } = await import('./MonacoEditor');
+  const { getEditor } = await import('./editorRegistry');
   const editor = getEditor();
   if (!editor) return;
   const model = getModel(tab.uri);
@@ -23,7 +23,7 @@ export async function saveTab(tab: EditorTab): Promise<void> {
     if (!result) throw new Error('Save cancelled');
     const model = replaceModelUri(tab.uri, result.uri, content, result.languageId);
     if (activeTab()?.id === tab.id) {
-      const { getEditor } = await import('./MonacoEditor');
+      const { getEditor } = await import('./editorRegistry');
       getEditor()?.setModel(model);
     }
     invalidateGitBaseline(result.path);

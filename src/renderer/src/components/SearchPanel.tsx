@@ -16,7 +16,7 @@ function relativePath(path: string, rootPath: string | undefined): string {
 
 async function openSearchResult(result: WorkspaceSearchMatch): Promise<void> {
   const [{ getEditor, revealPosition, setPendingReveal }, { useEditorStore: editorStore }] = await Promise.all([
-    import('../editor/MonacoEditor'),
+    import('../editor/editorRegistry'),
     import('../store/useEditorStore'),
   ]);
   const position = { lineNumber: result.lineNumber, column: result.column };

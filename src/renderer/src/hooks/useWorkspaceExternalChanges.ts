@@ -11,7 +11,7 @@ export function useWorkspaceExternalChanges(): void {
       window.api.workspace.onChanged(async ({ path }) => {
         const [{ refreshVisibleGitGutters, refreshVisibleGitGuttersForPath }, gitGutter, models] =
           await Promise.all([
-            import('../editor/MonacoEditor'),
+            import('../editor/editorRegistry'),
             import('../editor/gitGutter'),
             import('../editor/models'),
           ]);

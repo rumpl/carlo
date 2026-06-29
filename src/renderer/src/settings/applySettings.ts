@@ -12,7 +12,7 @@ export function applySettings(config: CarloUserConfig): void {
       setEditorWordWrap(config.mainView.wordWrap);
     })
     .catch(console.error);
-  void import('../editor/MonacoEditor')
+  void import('../editor/editorRegistry')
     .then(({ setEditorsFontFamily, setEditorsFontSize, setEditorsSoftWrap, setEditorsTabSize }) => {
       setEditorsFontFamily(config.mainView.fontFamily);
       setEditorsFontSize(config.mainView.fontSize);
