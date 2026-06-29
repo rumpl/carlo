@@ -7,6 +7,7 @@ import { useMonacoEditorInstance } from './useMonacoEditorInstance';
 
 export {
   getEditor,
+  getEditorForGroup,
   getEditorGroupId,
   refreshVisibleGitGutters,
   refreshVisibleGitGuttersForPath,
