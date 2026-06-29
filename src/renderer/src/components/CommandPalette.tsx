@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import fuzzysort from 'fuzzysort';
 import { getCommands, type Command } from '../commands/registry';
 import { useCommandStore } from '../store/useCommandStore';
@@ -6,6 +6,12 @@ import { useCommandStore } from '../store/useCommandStore';
 export function CommandPalette() {
   const { paletteOpen, query, setQuery, closePalette } = useCommandStore();
   const [selected, setSelected] = useState(0);
+  const listRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const item = listRef.current?.children[selected] as HTMLElement | undefined;
+    item?.scrollIntoView({ block: 'nearest' });
+  }, [selected]);
   const commands = getCommands();
   const matches = useMemo(
     () =>
@@ -42,7 +48,7 @@ export function CommandPalette() {
             if (event.key === 'Enter') void run(matches[selected]);
           }}
         />
-        <div className="palette-list">
+        <div className="palette-list" ref={listRef}>
           {matches.map((command, index) => (
             <button
               key={command.id}
