@@ -3,6 +3,7 @@ import { ActivityBar } from './components/ActivityBar';
 import { AppTitleBar } from './components/AppTitleBar';
 import { FileTree } from './components/FileTree';
 import { BottomPanel } from './components/BottomPanel';
+import { CommandPalette } from './components/CommandPalette';
 import { SettingsPanel } from './components/SettingsPanel';
 import { StatusBar } from './components/StatusBar';
 import { TabBar } from './components/TabBar';
@@ -129,6 +130,7 @@ export function App() {
       </div>
       <StatusBar />
       <SettingsPanel />
+      <CommandPalette />
     </main>
   );
 }
