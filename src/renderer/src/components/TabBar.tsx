@@ -2,7 +2,8 @@ import { type MouseEvent, useEffect, useState } from 'react';
 import type { EditorTab } from '../store/useEditorStore';
 import { useEditorStore } from '../store/useEditorStore';
 import { Tab } from './Tab';
-import { TabContextMenu, type TabContextMenuState } from './TabContextMenu';
+import { TabContextMenu } from './TabContextMenu';
+import type { TabContextMenuState } from './TabContextMenuState';
 
 interface Props {
   groupId: string;

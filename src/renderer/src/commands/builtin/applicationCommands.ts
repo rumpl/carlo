@@ -1,5 +1,5 @@
+import { showNativeCommandPalette } from '../../quickopen/nativeCommandPalette';
 import { showNativeQuickOpen } from '../../quickopen/nativeQuickOpen';
-import { useCommandStore } from '../../store/useCommandStore';
 import { registerCommand } from '../registry';
 
 async function installCommandLine(): Promise<void> {
@@ -25,7 +25,7 @@ export function registerApplicationCommands(): void {
     id: 'workbench.action.showCommands',
     title: 'Show Command Palette',
     keybinding: 'Ctrl+Shift+P',
-    run: () => useCommandStore.getState().openPalette(),
+    run: showNativeCommandPalette,
   });
   registerCommand({
     id: 'workbench.action.quickOpen',
