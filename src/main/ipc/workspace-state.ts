@@ -47,7 +47,7 @@ export function ensureWorkspaceWatcher(win: BrowserWindow, rootPath: string): vo
   state.watcher?.close();
   state.watchedRootPath = rootPath;
   try {
-    state.watcher = watch(rootPath, (eventType, filename) => {
+    state.watcher = watch(rootPath, { recursive: true }, (eventType, filename) => {
       const relativePath = filename?.toString();
       if (relativePath && isIgnoredWatchPath(relativePath)) return;
       const path = relativePath ? join(rootPath, relativePath) : undefined;

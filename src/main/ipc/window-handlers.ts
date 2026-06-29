@@ -1,4 +1,4 @@
-import { BrowserWindow, app, dialog, ipcMain } from 'electron';
+import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron';
 import { IPC } from '@shared/ipc';
 
 const closeConfirmedWindowIds = new Set<number>();
@@ -77,6 +77,11 @@ export function registerWindowHandlers(): void {
 
   ipcMain.handle(IPC.windowCloseCancel, () => {
     isQuitting = false;
+    return { ok: true };
+  });
+
+  ipcMain.handle(IPC.shellOpenExternal, async (_event, { url }: { url: string }) => {
+    await shell.openExternal(url);
     return { ok: true };
   });
 }

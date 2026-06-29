@@ -107,6 +107,9 @@ export function MarkdownPreview({ groupId }: Props) {
             const anchor = (event.target as Element).closest('a');
             if (!anchor) return;
             event.preventDefault();
+            const href = anchor.getAttribute('href');
+            if (!href || href.startsWith('#')) return;
+            void window.api.shell.openExternal(href).catch(console.error);
           }}
         />
       )}

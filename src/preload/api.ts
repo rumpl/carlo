@@ -135,6 +135,10 @@ export const api = Object.freeze({
   theme: {
     onOsChanged: (cb: (payload: { shouldUseDark: boolean }) => void) => on(IPC.themeOsChanged, cb),
   },
+  shell: {
+    openExternal: (url: string) =>
+      ipcRenderer.invoke(IPC.shellOpenExternal, { url }) as Promise<{ ok: true }>,
+  },
 });
 
 export type CarloApi = typeof api;

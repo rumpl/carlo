@@ -77,8 +77,9 @@ export function GitDiffEditor({ groupId }: Props) {
         tab.languageId,
         monaco.Uri.parse(`git-original:${encodeURIComponent(path)}`),
       );
+      const content: string = modifiedContent ?? '';
       const modified = monaco.editor.createModel(
-        modifiedContent,
+        content,
         tab.languageId,
         monaco.Uri.parse(`git-modified:${encodeURIComponent(path)}`),
       );
