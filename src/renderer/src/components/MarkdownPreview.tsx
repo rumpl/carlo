@@ -99,7 +99,7 @@ export function MarkdownPreview({ groupId }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [sourceUri, tab]);
+  }, [sourceUri, tab?.uri, tab?.path]);
 
   useEffect(() => {
     if (!tab) return;
@@ -131,7 +131,7 @@ export function MarkdownPreview({ groupId }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [content, tab]);
+  }, [content, tab?.path]);
 
   const html = useMemo(
     () =>
