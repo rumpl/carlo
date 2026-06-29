@@ -40,6 +40,7 @@ export const IPC = {
   lspServerExit: 'lsp:serverExit',
   lspServerStderr: 'lsp:serverStderr',
   lspServerLog: 'lsp:serverLog',
+  shellOpenExternal: 'shell:openExternal',
 } as const;
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC];
