@@ -2,23 +2,8 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { WorkspaceSearchMatch } from '@shared/file-types';
 import { useEditorStore } from '../store/useEditorStore';
 import { useSearchStore } from '../store/useSearchStore';
-import { openFileByPath } from '../editor/openFileByPath';
-import { HighlightedPreview } from './HighlightedPreview';
-import { relativePath } from '../commands/builtin/pathUtils';
-
-async function openSearchResult(result: WorkspaceSearchMatch): Promise<void> {
-  const [{ getEditor, revealPosition, setPendingReveal }, { useEditorStore: editorStore }] = await Promise.all([
-    import('../editor/editorRegistry'),
-    import('../store/useEditorStore'),
-  ]);
-  const position = { lineNumber: result.lineNumber, column: result.column };
-  setPendingReveal(editorStore.getState().activeGroupId, result.uri, position);
-  await openFileByPath(result.path, result.uri);
-  requestAnimationFrame(() => {
-    const editor = getEditor();
-    if (editor?.getModel()?.uri.toString() === result.uri) revealPosition(editor, position);
-  });
-}
+import { openSearchResult } from '../search/openSearchResult';
+import { SearchFileSection } from './SearchFileSection';
 
 export function SearchPanel() {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -125,27 +110,13 @@ export function SearchPanel() {
               {truncated ? ' (truncated)' : ''}
             </div>
             {groupedResults.map(([path, fileResults]) => (
-              <section className="search-file" key={path}>
-                <div className="search-file-title" title={path}>
-                  {relativePath(path, workspace.rootPath)}
-                  <span>{fileResults.length}</span>
-                </div>
-                <ul>
-                  {fileResults.map((result) => (
-                    <li key={`${result.path}:${result.lineNumber}:${result.column}:${result.preview}`}>
-                      <button
-                        className="search-row"
-                        type="button"
-                        onClick={() => void openSearchResult(result).catch(console.error)}
-                        title={`${result.lineNumber}:${result.column}`}
-                      >
-                        <span className="search-location">{result.lineNumber}:{result.column}</span>
-                        <HighlightedPreview result={result} />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+              <SearchFileSection
+                key={path}
+                path={path}
+                results={fileResults}
+                rootPath={workspace.rootPath}
+                onOpen={(result) => void openSearchResult(result).catch(console.error)}
+              />
             ))}
           </>
         ) : null}
