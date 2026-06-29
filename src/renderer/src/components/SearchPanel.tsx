@@ -3,6 +3,7 @@ import type { WorkspaceSearchMatch } from '@shared/file-types';
 import { useEditorStore } from '../store/useEditorStore';
 import { useSearchStore } from '../store/useSearchStore';
 import { openFileByPath } from '../editor/openFileByPath';
+import { HighlightedPreview } from './HighlightedPreview';
 
 function relativePath(path: string, rootPath: string | undefined): string {
   if (!rootPath) return path;
@@ -11,16 +12,6 @@ function relativePath(path: string, rootPath: string | undefined): string {
   return normalizedPath.startsWith(`${normalizedRoot}/`)
     ? normalizedPath.slice(normalizedRoot.length + 1)
     : path;
-}
-
-function HighlightedPreview({ result }: { result: WorkspaceSearchMatch }) {
-  return (
-    <span className="search-preview">
-      {result.preview.slice(0, result.matchStart)}
-      <mark>{result.preview.slice(result.matchStart, result.matchEnd)}</mark>
-      {result.preview.slice(result.matchEnd)}
-    </span>
-  );
 }
 
 async function openSearchResult(result: WorkspaceSearchMatch): Promise<void> {
