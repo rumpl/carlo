@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { GitChangedFile, GitFileStatus } from '@shared/file-types';
 import { openGitChanges } from '../git/diffTabs';
-import { titleFromPath } from '../commands/builtin/pathUtils';
+import { directoryFromRelativePath, titleFromPath } from '../commands/builtin/pathUtils';
 import { useEditorStore } from '../store/useEditorStore';
 import { useGitPanelStore } from '../store/useGitPanelStore';
 
@@ -24,11 +24,6 @@ const statusTitles: Record<GitFileStatus, string> = {
   ignored: 'Ignored',
   conflict: 'Conflict',
 };
-
-function directoryFromRelativePath(path: string): string | undefined {
-  const slash = path.replaceAll('\\', '/').lastIndexOf('/');
-  return slash >= 0 ? path.slice(0, slash) : undefined;
-}
 
 export function GitPanel() {
   const workspace = useEditorStore((state) => state.workspace);

@@ -1,3 +1,8 @@
+export function directoryFromRelativePath(path: string): string | undefined {
+  const slash = path.replaceAll('\\', '/').lastIndexOf('/');
+  return slash >= 0 ? path.slice(0, slash) : undefined;
+}
+
 export function titleFromPath(path: string): string {
   return path.split(/[\\/]/).pop() ?? path;
 }
