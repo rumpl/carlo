@@ -2,6 +2,7 @@ import type { EditorTab } from '../store/useEditorStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { activeTab, useEditorStore } from '../store/useEditorStore';
 import { disposeModel, getModel, replaceModelUri } from './models';
+import { invalidateGitBaseline } from './gitGutter';
 
 async function formatActiveTabForSave(tab: EditorTab): Promise<void> {
   const currentTab = activeTab();
@@ -25,6 +26,7 @@ export async function saveTab(tab: EditorTab): Promise<void> {
       const { getEditor } = await import('./MonacoEditor');
       getEditor()?.setModel(model);
     }
+    invalidateGitBaseline(result.path);
     useEditorStore.getState().markSaved(tab.uri, result);
     return;
   }
@@ -33,6 +35,7 @@ export async function saveTab(tab: EditorTab): Promise<void> {
     await formatActiveTabForSave(tab);
   }
   await window.api.file.save({ path: tab.path, content: getModel(tab.uri)?.getValue() ?? content });
+  invalidateGitBaseline(tab.path);
   useEditorStore.getState().markSaved(tab.uri);
 }
 
