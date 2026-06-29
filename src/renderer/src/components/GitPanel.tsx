@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { GitChangedFile, GitFileStatus } from '@shared/file-types';
 import { openGitChanges } from '../git/diffTabs';
+import { titleFromPath } from '../commands/builtin/pathUtils';
 import { useEditorStore } from '../store/useEditorStore';
 import { useGitPanelStore } from '../store/useGitPanelStore';
 
@@ -23,10 +24,6 @@ const statusTitles: Record<GitFileStatus, string> = {
   ignored: 'Ignored',
   conflict: 'Conflict',
 };
-
-function titleFromPath(path: string): string {
-  return path.split(/[\\/]/).pop() ?? path;
-}
 
 function directoryFromRelativePath(path: string): string | undefined {
   const slash = path.replaceAll('\\', '/').lastIndexOf('/');

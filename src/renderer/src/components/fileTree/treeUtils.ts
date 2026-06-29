@@ -1,9 +1,5 @@
 import type { FileTreeNode } from '@shared/file-types';
 
-export function titleFromPath(path: string): string {
-  return path.split(/[\\/]/).pop() ?? path;
-}
-
 export function replaceNodeChildren(
   nodes: FileTreeNode[],
   targetPath: string,

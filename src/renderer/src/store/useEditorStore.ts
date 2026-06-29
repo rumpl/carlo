@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { languageIdFromPath, type LanguageId } from '@shared/language-registry';
+import { titleFromPath } from '../commands/builtin/pathUtils';
 
 export interface EditorTab {
   id: string;
@@ -55,7 +56,6 @@ interface EditorState {
 const recentFilesStorageKey = 'carlo.recentFiles';
 const maxRecentFiles = 30;
 const initialGroupId = crypto.randomUUID();
-const titleFromPath = (path: string) => path.split(/[\\/]/).pop() ?? path;
 
 function loadRecentFiles(): RecentFile[] {
   try {
