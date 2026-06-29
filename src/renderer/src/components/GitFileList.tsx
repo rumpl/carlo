@@ -1,26 +1,7 @@
-import type { GitChangedFile, GitFileStatus } from '@shared/file-types';
+import type { GitChangedFile } from '@shared/file-types';
 import { openGitChanges } from '../git/diffTabs';
 import { directoryFromRelativePath, titleFromPath } from '../commands/builtin/pathUtils';
-
-const statusLabels: Record<GitFileStatus, string> = {
-  added: 'A',
-  modified: 'M',
-  deleted: 'D',
-  renamed: 'R',
-  untracked: 'U',
-  ignored: 'I',
-  conflict: 'C',
-};
-
-const statusTitles: Record<GitFileStatus, string> = {
-  added: 'Added',
-  modified: 'Modified',
-  deleted: 'Deleted',
-  renamed: 'Renamed',
-  untracked: 'Untracked',
-  ignored: 'Ignored',
-  conflict: 'Conflict',
-};
+import { statusLabels, statusTitles } from '../git/gitStatusMaps';
 
 interface GitFileListProps {
   files: GitChangedFile[];

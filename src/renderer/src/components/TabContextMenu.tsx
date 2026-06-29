@@ -2,12 +2,7 @@ import type { EditorTab } from '../store/useEditorStore';
 import { isMarkdownTab } from '../markdown/previewTabs';
 import { runCommand } from '../commands/registry';
 import { relativePath } from '../commands/builtin/pathUtils';
-
-export interface TabContextMenuState {
-  x: number;
-  y: number;
-  tab: EditorTab;
-}
+import type { TabContextMenuState } from './TabContextMenuState';
 
 interface Props {
   contextMenu: TabContextMenuState;
