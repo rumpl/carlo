@@ -3,16 +3,7 @@ import type { GitChangedFile, GitFileStatus } from '@shared/file-types';
 import { useEditorStore } from '../store/useEditorStore';
 import { useGitPanelStore } from '../store/useGitPanelStore';
 import { GitFileList } from './GitFileList';
-
-const statusLabels: Record<GitFileStatus, string> = {
-  added: 'A',
-  modified: 'M',
-  deleted: 'D',
-  renamed: 'R',
-  untracked: 'U',
-  ignored: 'I',
-  conflict: 'C',
-};
+import { statusLabels } from '../git/gitStatusMaps';
 
 export function GitPanel() {
   const workspace = useEditorStore((state) => state.workspace);
