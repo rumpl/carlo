@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import fuzzysort from 'fuzzysort';
 import type { FileTreeNode } from '@shared/file-types';
 import { languageIdFromPath } from '@shared/language-registry';
@@ -40,7 +40,7 @@ export function QuickOpen() {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(0);
 
-  async function loadFiles(): Promise<void> {
+  const loadFiles = useCallback(async (): Promise<void> => {
     if (!workspace) return;
     setLoading(true);
     try {
@@ -53,7 +53,7 @@ export function QuickOpen() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [workspace]);
 
   const results = useMemo(() => {
     if (!query) return files.slice(0, 100).map((file) => ({ obj: file }));
@@ -72,8 +72,9 @@ export function QuickOpen() {
   useEffect(() => {
     if (!open || !workspace) return;
     void loadFiles().catch(console.error);
-    setTimeout(() => inputRef.current?.focus(), 0);
-  }, [open, workspace?.rootPath]);
+    const timerId = setTimeout(() => inputRef.current?.focus(), 0);
+    return () => clearTimeout(timerId);
+  }, [open, workspace, loadFiles]);
 
   if (!open) return null;
 
