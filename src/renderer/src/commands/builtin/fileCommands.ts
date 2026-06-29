@@ -25,9 +25,10 @@ async function openFile(): Promise<void> {
   const file = await window.api.file.openDialog();
   if (!file) return;
   getOrCreateModel(file.uri, file.content, file.languageId);
-  const workspace = useEditorStore.getState().workspace ?? rootFor(file.path);
-  const { rootUri } = workspace;
-  useEditorStore.getState().setWorkspace(workspace);
+  if (!useEditorStore.getState().workspace) {
+    useEditorStore.getState().setWorkspace(rootFor(file.path));
+  }
+  const { rootUri } = useEditorStore.getState().workspace ?? rootFor(file.path);
   useEditorStore.getState().openFile({
     uri: file.uri,
     path: file.path,
