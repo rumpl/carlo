@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { ActivityBar } from './components/ActivityBar';
 import { AppTitleBar } from './components/AppTitleBar';
 import { FileTree } from './components/FileTree';
@@ -9,6 +9,7 @@ import { TabBar } from './components/TabBar';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { ensureVscodeServices } from './vscode/servicesReady';
 import { useKeybindings } from './hooks/useKeybindings';
+import { useSidebarResize } from './hooks/useSidebarResize';
 import { useWorkspaceExternalChanges } from './hooks/useWorkspaceExternalChanges';
 import { activeTabInGroup, useEditorStore } from './store/useEditorStore';
 import { useSettingsStore } from './store/useSettingsStore';
@@ -18,20 +19,9 @@ import { isGitDiffUri } from './git/diffTabs';
 import { isMarkdownPreviewUri } from './markdown/previewTabs';
 
 const activityBarWidth = 42;
-const minSidebarWidth = 180;
-const maxSidebarWidth = 560;
 const MonacoEditor = lazy(() => import('./editor/MonacoEditor').then((module) => ({ default: module.MonacoEditor })));
 const GitDiffEditor = lazy(() => import('./editor/GitDiffEditor').then((module) => ({ default: module.GitDiffEditor })));
 const MarkdownPreview = lazy(() => import('./components/MarkdownPreview').then((module) => ({ default: module.MarkdownPreview })));
-
-function initialSidebarWidth(): number {
-  const stored = Number(localStorage.getItem('carlo.sidebarWidth'));
-  return Number.isFinite(stored) && stored > 0 ? stored : 260;
-}
-
-function clampSidebarWidth(width: number): number {
-  return Math.min(maxSidebarWidth, Math.max(minSidebarWidth, width));
-}
 
 export function App() {
   useKeybindings();
@@ -39,7 +29,12 @@ export function App() {
   const groups = useEditorStore((state) => state.groups);
   const splitDirection = useEditorStore((state) => state.splitDirection);
   const sidebarVisible = useWorkbenchUiStore((state) => state.sidebarVisible);
-  const [sidebarWidth, setSidebarWidth] = useState(initialSidebarWidth);
+  const { sidebarWidth, pointerHandlers } = useSidebarResize({
+    minWidth: 180,
+    maxWidth: 560,
+    storageKey: 'carlo.sidebarWidth',
+    offset: activityBarWidth,
+  });
   useEffect(() => {
     const unsubscribe = window.api.window.onCloseRequested(() => {
       void import('./editor/saveActions')
@@ -80,20 +75,7 @@ export function App() {
       {sidebarVisible ? (
         <div
           className="sidebar-resizer"
-          onPointerDown={(event) => {
-            event.currentTarget.setPointerCapture(event.pointerId);
-          }}
-          onPointerMove={(event) => {
-            if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
-            const nextWidth = clampSidebarWidth(event.clientX - activityBarWidth);
-            setSidebarWidth(nextWidth);
-            localStorage.setItem('carlo.sidebarWidth', String(nextWidth));
-          }}
-          onPointerUp={(event) => {
-            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-              event.currentTarget.releasePointerCapture(event.pointerId);
-            }
-          }}
+          {...pointerHandlers}
         />
       ) : null}
       <div className="main-area">

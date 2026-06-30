@@ -61,6 +61,7 @@ async function searchWithRipgrep({
   query,
   maxResults = 500,
 }: WorkspaceSearchRequest): Promise<WorkspaceSearchResult> {
+  const ignoredGlob = `!{${[...ignoredNames].join(',')}}/**`;
   const args = [
     '--json',
     '--smart-case',
@@ -68,7 +69,7 @@ async function searchWithRipgrep({
     '--color',
     'never',
     '--glob',
-    '!{.git,node_modules,out,dist,build}/**',
+    ignoredGlob,
     '--',
     query,
     rootPath,
@@ -81,12 +82,8 @@ async function searchWithRipgrep({
     return parseRipgrepJson(stdout, maxResults);
   } catch (error) {
     const maybeError = error as NodeJS.ErrnoException & { stdout?: string };
-    const exitCode = (error as { code?: unknown }).code;
-    if (exitCode === 1 && maybeError.stdout !== undefined) {
-      return parseRipgrepJson(maybeError.stdout, maxResults);
-    }
-    if (exitCode === 'ENOENT') throw maybeError;
     if (maybeError.stdout) return parseRipgrepJson(maybeError.stdout, maxResults);
+    if (maybeError.code === 'ENOENT') throw maybeError;
     throw error;
   }
 }

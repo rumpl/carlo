@@ -1,21 +1,14 @@
 import { useMemo } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
 import { problemCounts, useProblemsStore } from '../store/useProblemsStore';
+import { groupByPath } from '../utils/groupByPath';
 import { ProblemFileSection } from './ProblemFileSection';
 
 export function ProblemsPanel() {
   const workspace = useEditorStore((state) => state.workspace);
   const problems = useProblemsStore((state) => state.problems);
   const counts = useMemo(() => problemCounts(problems), [problems]);
-  const groupedProblems = useMemo(() => {
-    const groups = new Map<string, typeof problems>();
-    for (const problem of problems) {
-      const group = groups.get(problem.path) ?? [];
-      group.push(problem);
-      groups.set(problem.path, group);
-    }
-    return [...groups.entries()];
-  }, [problems]);
+  const groupedProblems = useMemo(() => groupByPath(problems), [problems]);
 
   return (
     <section className="problems-panel" aria-label="Problems">
