@@ -62,14 +62,13 @@ export function GitPanel() {
   }, [files]);
 
   const refresh = useCallback(async (): Promise<void> => {
-    const currentWorkspace = useEditorStore.getState().workspace;
-    if (!currentWorkspace) {
+    if (!workspace) {
       dispatch({ type: 'NO_WORKSPACE' });
       return;
     }
     dispatch({ type: 'FETCH_START' });
     try {
-      const result = await window.api.git.status(currentWorkspace.rootPath);
+      const result = await window.api.git.status(workspace.rootPath);
       dispatch({ type: 'FETCH_SUCCESS', files: result.files, isGitRepo: result.isGitRepo });
     } catch (refreshError) {
       console.error(refreshError);
@@ -78,8 +77,10 @@ export function GitPanel() {
         error: refreshError instanceof Error ? refreshError.message : 'Could not load git status',
       });
     }
-  }, []);
+  }, [workspace]);
 
+  // Trigger a full refresh whenever the active workspace changes (covers initial
+  // mount as well as switching to a different folder).
   useEffect(() => {
     void refresh();
   }, [workspace?.rootPath, refresh]);
