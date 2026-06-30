@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
-import type { WorkspaceSearchMatch } from '@shared/file-types';
 import { useEditorStore } from '../store/useEditorStore';
 import { useSearchStore } from '../store/useSearchStore';
 import { openSearchResult } from '../search/openSearchResult';
+import { groupByPath } from '../utils/groupByPath';
 import { SearchFileSection } from './SearchFileSection';
 
 export function SearchPanel() {
@@ -29,15 +29,7 @@ export function SearchPanel() {
   // don't need their own subscriptions.
   const { closeSearch, setQuery, setLoading, setResults, setError } = useSearchStore.getState();
 
-  const groupedResults = useMemo(() => {
-    const groups = new Map<string, WorkspaceSearchMatch[]>();
-    for (const result of results) {
-      const group = groups.get(result.path) ?? [];
-      group.push(result);
-      groups.set(result.path, group);
-    }
-    return [...groups.entries()];
-  }, [results]);
+  const groupedResults = useMemo(() => groupByPath(results), [results]);
 
   useEffect(() => {
     const handle = window.setTimeout(() => inputRef.current?.focus(), 0);
