@@ -1,6 +1,8 @@
+import type { FormEvent } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
 import { InlineCreateRow } from './fileTree/InlineCreateRow';
 import { TreeNode } from './fileTree/TreeNode';
+import { CreateContext } from './fileTree/types';
 import { useActiveTabPath } from './fileTree/useActiveTabPath';
 import { useFileTreeOperations } from './fileTree/useFileTreeOperations';
 import { useInitialWorkspace } from './fileTree/useInitialWorkspace';
@@ -28,6 +30,15 @@ export function FileTree() {
     setNodes: tree.setNodes,
   });
 
+  const createContextValue = {
+    prompt: operations.createPrompt,
+    name: operations.createName,
+    inputRef: operations.createInputRef,
+    onNameChange: operations.setCreateName,
+    onSubmit: (event: FormEvent) => void operations.submitCreate(event),
+    onCancel: operations.cancelCreate,
+  };
+
   return (
     <aside className="file-tree">
       <div className="file-tree-header">
@@ -49,37 +60,33 @@ export function FileTree() {
         {tree.loading ? (
           <div className="tree-empty">Loading…</div>
         ) : (
-          <ul>
-            {workspace && operations.createPrompt?.parentPath === workspace.rootPath ? (
-              <InlineCreateRow
-                kind={operations.createPrompt.kind}
-                depth={0}
-                name={operations.createName}
-                inputRef={operations.createInputRef}
-                onChange={operations.setCreateName}
-                onSubmit={(event) => void operations.submitCreate(event)}
-                onCancel={operations.cancelCreate}
-              />
-            ) : null}
-            {tree.nodes.map((node) => (
-              <TreeNode
-                key={node.path}
-                node={node}
-                depth={0}
-                activePath={activeTabPath}
-                expandedPaths={tree.expandedPaths}
-                onToggleDirectory={tree.toggleDirectory}
-                onOpenFile={operations.openNode}
-                onContextMenu={openContextMenu}
-                createPrompt={operations.createPrompt}
-                createName={operations.createName}
-                createInputRef={operations.createInputRef}
-                onCreateNameChange={operations.setCreateName}
-                onCreateSubmit={(event) => void operations.submitCreate(event)}
-                onCreateCancel={operations.cancelCreate}
-              />
-            ))}
-          </ul>
+          <CreateContext.Provider value={createContextValue}>
+            <ul>
+              {workspace && operations.createPrompt?.parentPath === workspace.rootPath ? (
+                <InlineCreateRow
+                  kind={operations.createPrompt.kind}
+                  depth={0}
+                  name={operations.createName}
+                  inputRef={operations.createInputRef}
+                  onChange={operations.setCreateName}
+                  onSubmit={(event) => void operations.submitCreate(event)}
+                  onCancel={operations.cancelCreate}
+                />
+              ) : null}
+              {tree.nodes.map((node) => (
+                <TreeNode
+                  key={node.path}
+                  node={node}
+                  depth={0}
+                  activePath={activeTabPath}
+                  expandedPaths={tree.expandedPaths}
+                  onToggleDirectory={tree.toggleDirectory}
+                  onOpenFile={operations.openNode}
+                  onContextMenu={openContextMenu}
+                />
+              ))}
+            </ul>
+          </CreateContext.Provider>
         )}
       </div>
       {contextMenu ? (
@@ -93,7 +100,7 @@ export function FileTree() {
             Copy
           </button>
           <button disabled={!operations.clipboard} onClick={() => operations.pasteNode(contextMenu)}>
-            Paste{operations.clipboard ? ` “${operations.clipboard.name}”` : ''}
+            Paste{operations.clipboard ? ` "${operations.clipboard.name}"` : ''}
           </button>
           <div className="tree-context-separator" />
           <button disabled={!contextMenu.node} onClick={() => operations.copyAbsolutePath(contextMenu)}>
