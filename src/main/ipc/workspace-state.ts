@@ -2,7 +2,7 @@ import { BrowserWindow, type IpcMainInvokeEvent } from 'electron';
 import { watch, type FSWatcher } from 'node:fs';
 import { join } from 'node:path';
 import { IPC } from '@shared/ipc';
-import { ignoredWatchNames } from './ignored-paths';
+import { ignoredWatchNames, isIgnoredPath } from './ignored-paths';
 
 interface WindowWorkspaceState {
   initialRootPath?: string;
@@ -37,10 +37,6 @@ export function registerWindowWorkspace(win: BrowserWindow, initialRootPath?: st
   });
 }
 
-function isIgnoredWatchPath(path: string): boolean {
-  return path.split(/[\\/]/).some((part) => ignoredWatchNames.has(part));
-}
-
 export function ensureWorkspaceWatcher(win: BrowserWindow, rootPath: string): void {
   const state = workspaceStateFor(win);
   if (state.watchedRootPath === rootPath && state.watcher) return;
@@ -49,7 +45,7 @@ export function ensureWorkspaceWatcher(win: BrowserWindow, rootPath: string): vo
   try {
     state.watcher = watch(rootPath, { recursive: true }, (eventType, filename) => {
       const relativePath = filename?.toString();
-      if (relativePath && isIgnoredWatchPath(relativePath)) return;
+      if (relativePath && isIgnoredPath(relativePath, ignoredWatchNames)) return;
       const path = relativePath ? join(rootPath, relativePath) : undefined;
       win.webContents.send(IPC.workspaceChanged, { rootPath, path, eventType });
     });

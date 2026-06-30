@@ -8,7 +8,7 @@ import type {
   WorkspaceSearchRequest,
   WorkspaceSearchResult,
 } from '@shared/file-types';
-import { ignoredNames } from './ignored-paths';
+import { ignoredNames, isIgnoredPath } from './ignored-paths';
 
 const execFileAsync = promisify(execFile);
 
@@ -91,16 +91,12 @@ async function searchWithRipgrep({
   }
 }
 
-function isIgnoredSearchPath(path: string): boolean {
-  return path.split(/[\\/]/).some((part) => ignoredNames.has(part));
-}
-
 async function searchFallback(rootPath: string, query: string, maxResults: number): Promise<WorkspaceSearchResult> {
   const matches: WorkspaceSearchMatch[] = [];
   const needle = query.toLowerCase();
 
   async function walk(path: string): Promise<void> {
-    if (matches.length >= maxResults || isIgnoredSearchPath(path)) return;
+    if (matches.length >= maxResults || isIgnoredPath(path, ignoredNames)) return;
     const stats = await stat(path).catch(() => undefined);
     if (!stats) return;
     if (stats.isDirectory()) {
