@@ -1,5 +1,5 @@
-import { getEditor, setEditorsSoftWrap } from '../../editor/editorRegistry';
-import { toggleSoftWrapEnabled } from '../../editor/editorOptions';
+import { getEditor, setEditorsWordWrap } from '../../editor/editorRegistry';
+import { softWrapEnabled } from '../../editor/editorOptions';
 import { getModel } from '../../editor/models';
 import { navigateBack, navigateForward } from '../../editor/navigationHistory';
 import { ensureLanguageClient } from '../../lsp/LanguageClientService';
@@ -67,7 +67,7 @@ export async function formatDocumentForSave(): Promise<void> {
 }
 
 function toggleSoftWrap(): void {
-  setEditorsSoftWrap(toggleSoftWrapEnabled());
+  setEditorsWordWrap(!softWrapEnabled());
 }
 
 function openMarkdownPreviewToSide(): void {

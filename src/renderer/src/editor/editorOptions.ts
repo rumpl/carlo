@@ -31,27 +31,6 @@ export function setSoftWrapEnabled(enabled: boolean): void {
   editorOptions.wordWrap = wordWrapValue(enabled);
 }
 
-export function toggleSoftWrapEnabled(): boolean {
-  const enabled = !softWrapEnabled();
-  setSoftWrapEnabled(enabled);
-  return enabled;
-}
-
-export function setEditorFontFamily(fontFamily: string): void {
-  editorOptions.fontFamily = fontFamily;
-}
-
-export function setEditorFontSize(fontSize: number): void {
-  editorOptions.fontSize = fontSize;
-}
-
-export function setEditorTabSize(tabSize: number): void {
-  editorOptions.tabSize = tabSize;
-}
-
-export function setEditorWordWrap(enabled: boolean): void {
-  setSoftWrapEnabled(enabled);
-}
 
 export const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
   automaticLayout: true,

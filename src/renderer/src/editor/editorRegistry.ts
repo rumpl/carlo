@@ -1,6 +1,6 @@
 import * as monaco from '@codingame/monaco-vscode-editor-api';
 import { useEditorStore } from '../store/useEditorStore';
-import { softWrapEnabled } from './editorOptions';
+import { editorOptions, setSoftWrapEnabled } from './editorOptions';
 import { updateGitGutter } from './gitGutter';
 
 const editors = new Map<string, monaco.editor.IStandaloneCodeEditor>();
@@ -67,29 +67,34 @@ export function revealPosition(
   editor.revealPositionInCenter(position, scrollType);
 }
 
-export function setEditorsSoftWrap(enabled = softWrapEnabled()): void {
-  for (const editor of editors.values()) {
-    editor.updateOptions({ wordWrap: enabled ? 'on' : 'off' });
-  }
-}
-
 export function setEditorsFontFamily(fontFamily: string): void {
+  editorOptions.fontFamily = fontFamily;
   for (const editor of editors.values()) {
     editor.updateOptions({ fontFamily });
   }
 }
 
 export function setEditorsFontSize(fontSize: number): void {
+  editorOptions.fontSize = fontSize;
   for (const editor of editors.values()) {
     editor.updateOptions({ fontSize });
   }
 }
 
 export function setEditorsTabSize(tabSize: number): void {
+  editorOptions.tabSize = tabSize;
   for (const editor of editors.values()) {
     editor.updateOptions({ tabSize, insertSpaces: true, detectIndentation: false });
   }
 }
+
+export function setEditorsWordWrap(enabled: boolean): void {
+  setSoftWrapEnabled(enabled);
+  for (const editor of editors.values()) {
+    editor.updateOptions({ wordWrap: enabled ? 'on' : 'off' });
+  }
+}
+
 
 export function refreshVisibleGitGuttersForPath(path: string): void {
   const tabs = useEditorStore.getState().tabs.filter((tab) => tab.path === path);
