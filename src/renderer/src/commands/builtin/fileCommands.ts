@@ -58,7 +58,7 @@ export function registerFileCommands(): void {
   registerCommand({ id: 'file.new', title: 'New File', keybinding: 'Ctrl+N', run: newFile });
   registerCommand({ id: 'file.open', title: 'Open File', keybinding: 'Ctrl+O', run: openFile });
   registerCommand({ id: 'file.save', title: 'Save', keybinding: 'Ctrl+S', run: saveFile });
-  registerCommand({ id: 'file.saveAll', title: 'Save All', run: saveAllTabs });
+  registerCommand({ id: 'file.saveAll', title: 'Save All', keybinding: 'Ctrl+Alt+S', run: saveAllTabs });
   registerCommand({ id: 'file.saveAs', title: 'Save As', keybinding: 'Ctrl+Shift+S', run: saveAs });
   registerCommand({
     id: 'tab.close',
