@@ -12,18 +12,9 @@ export interface ResolvedServer {
   debug: string;
 }
 
-function exists(path: string): boolean {
+function checkAccess(path: string, mode: number): boolean {
   try {
-    accessSync(path, constants.F_OK);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function canExecute(path: string): boolean {
-  try {
-    accessSync(path, constants.X_OK);
+    accessSync(path, mode);
     return true;
   } catch {
     return false;
@@ -34,12 +25,16 @@ function binName(command: string): string {
   return process.platform === 'win32' ? `${command}.cmd` : command;
 }
 
-function scriptCandidates(command: string): string[] {
-  const roots = [
+function getScriptRoots(): string[] {
+  return [
     process.cwd(),
     app.getAppPath(),
     join(process.resourcesPath ?? '', 'app.asar.unpacked'),
   ];
+}
+
+function scriptCandidates(command: string): string[] {
+  const roots = getScriptRoots();
   if (command === 'typescript-language-server') {
     return roots.map((root) =>
       join(root, 'node_modules', 'typescript-language-server', 'lib', 'cli.mjs'),
@@ -82,12 +77,12 @@ export function resolveServer(languageId: ServerLanguageId, rootUri: string): Re
     ),
     ...pathCandidates,
   ];
-  const bin = binCandidates.find(canExecute);
+  const bin = binCandidates.find((p) => checkAccess(p, constants.X_OK));
   const cwd = rootUri.startsWith('file://') ? fileURLToPath(rootUri) : undefined;
   const debug = `command=${commandName} cwd=${cwd ?? process.cwd()} PATH=${env.PATH}`;
   if (bin) return { command: bin, args: [...server.args], cwd, env, debug: `${debug} resolved=${bin}` };
 
-  const script = scriptCandidates(commandName).find(exists);
+  const script = scriptCandidates(commandName).find((p) => checkAccess(p, constants.F_OK));
   if (script) {
     return {
       command: process.execPath,
