@@ -5,16 +5,6 @@ import { useSettingsStore } from '../../store/useSettingsStore';
 import { registerCommand } from '../registry';
 import { titleFromPath } from './pathUtils';
 
-async function openLanguageConfig(): Promise<void> {
-  const { path } = await window.api.config.languagePath();
-  await openJsonConfigFile(path);
-}
-
-async function openUserConfig(): Promise<void> {
-  const { path } = await window.api.config.userPath();
-  await openJsonConfigFile(path);
-}
-
 async function openJsonConfigFile(path: string): Promise<void> {
   const file = await window.api.file.read(path);
   const uri = new URL(`file://${path}`).toString();
@@ -38,12 +28,18 @@ export function registerPreferencesCommands(): void {
   registerCommand({
     id: 'preferences.openUserConfig',
     title: 'Preferences: Open User Config',
-    run: openUserConfig,
+    run: async () => {
+      const { path } = await window.api.config.userPath();
+      await openJsonConfigFile(path);
+    },
   });
   registerCommand({
     id: 'preferences.openLanguageConfig',
     title: 'Preferences: Open Language Config',
-    run: openLanguageConfig,
+    run: async () => {
+      const { path } = await window.api.config.languagePath();
+      await openJsonConfigFile(path);
+    },
   });
   registerCommand({
     id: 'workbench.action.selectTheme',
