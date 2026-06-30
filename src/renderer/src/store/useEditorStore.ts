@@ -237,3 +237,25 @@ export function activeTabInGroup(groupId: string): EditorTab | undefined {
   const activeTabId = groups.find((group) => group.id === groupId)?.activeTabId;
   return tabs.find((tab) => tab.id === activeTabId);
 }
+
+/**
+ * Reactive hook: returns the active tab in the currently active group.
+ * Re-renders only when the active tab changes.
+ */
+export function useActiveTab(): EditorTab | undefined {
+  return useEditorStore((state) => {
+    const activeTabId = state.groups.find((group) => group.id === state.activeGroupId)?.activeTabId;
+    return state.tabs.find((tab) => tab.id === activeTabId);
+  });
+}
+
+/**
+ * Reactive hook: returns the active tab in the specified group.
+ * Re-renders only when the active tab of that group changes.
+ */
+export function useActiveTabInGroup(groupId: string): EditorTab | undefined {
+  return useEditorStore((state) => {
+    const activeTabId = state.groups.find((group) => group.id === groupId)?.activeTabId;
+    return state.tabs.find((tab) => tab.id === activeTabId);
+  });
+}
