@@ -1,10 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { defaultUserConfig, mergeUserConfig, type CarloUserConfig } from '@shared/app-config';
-
-function configHome(): string {
-  return process.env.XDG_CONFIG_HOME || join(process.env.HOME ?? process.cwd(), '.config');
-}
+import { configHome } from './config-home';
 
 export function userConfigPath(): string {
   return join(configHome(), 'carlo', 'config.json');
