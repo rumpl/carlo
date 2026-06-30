@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
+import { useWorkspaceChangeDebounce } from '../hooks/useWorkspaceChangeDebounce';
 import type { GitChangedFile, GitFileStatus } from '@shared/file-types';
 import { useEditorStore } from '../store/useEditorStore';
 import { useGitPanelStore } from '../store/useGitPanelStore';
@@ -83,19 +84,7 @@ export function GitPanel() {
     void refresh();
   }, [workspace?.rootPath, refresh]);
 
-  useEffect(() => {
-    if (!workspace) return;
-    let timer: number | undefined;
-    const unsubscribe = window.api.workspace.onChanged(({ rootPath }) => {
-      if (rootPath !== workspace.rootPath) return;
-      if (timer) window.clearTimeout(timer);
-      timer = window.setTimeout(() => void refresh(), 180);
-    });
-    return () => {
-      unsubscribe();
-      if (timer) window.clearTimeout(timer);
-    };
-  }, [workspace?.rootPath, refresh]);
+  useWorkspaceChangeDebounce(workspace?.rootPath, () => void refresh(), 180);
 
   return (
     <section className="git-panel" aria-label="Git changes">
