@@ -6,7 +6,7 @@ import { useEditorStore } from '../../store/useEditorStore';
 import type { useWorkspaceTree } from './useWorkspaceTree';
 import type { TreeClipboard, TreeContextMenu, TreeCreatePrompt } from './types';
 import { hasValidChildName, normalizePath, parentDirectory } from './treeUtils';
-import { titleFromPath } from '../../commands/builtin/pathUtils';
+import { relativePath, titleFromPath } from '../../commands/builtin/pathUtils';
 
 type WorkspaceTree = ReturnType<typeof useWorkspaceTree>;
 
@@ -158,13 +158,6 @@ export function useFileTreeOperations({
     });
   }
 
-  function relativePath(path: string): string {
-    if (!workspace) return path;
-    const root = normalizePath(workspace.rootPath).replace(/\/+$/, '');
-    const normalizedPath = normalizePath(path);
-    return normalizedPath.startsWith(`${root}/`) ? normalizedPath.slice(root.length + 1) : path;
-  }
-
   function copyAbsolutePath(menu: TreeContextMenu): void {
     if (!menu.node) return;
     void navigator.clipboard.writeText(menu.node.path).catch(console.error);
@@ -173,7 +166,7 @@ export function useFileTreeOperations({
 
   function copyRelativePath(menu: TreeContextMenu): void {
     if (!menu.node) return;
-    void navigator.clipboard.writeText(relativePath(menu.node.path)).catch(console.error);
+    void navigator.clipboard.writeText(relativePath(menu.node.path, workspace?.rootPath)).catch(console.error);
     closeContextMenu();
   }
 
