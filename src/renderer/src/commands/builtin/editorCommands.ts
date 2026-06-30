@@ -25,45 +25,11 @@ async function withActiveEditorLsp(actionId: string): Promise<void> {
   await editor.getAction(actionId)?.run();
 }
 
-async function formatDocument(): Promise<void> {
-  await withActiveEditorLsp('editor.action.formatDocument');
-}
-
-async function renameSymbol(): Promise<void> {
-  await withActiveEditorLsp('editor.action.rename');
-}
-
-async function quickFix(): Promise<void> {
-  await withActiveEditorLsp('editor.action.quickFix');
-}
-
-async function sourceAction(): Promise<void> {
-  await withActiveEditorLsp('editor.action.sourceAction');
-}
-
-async function goToDefinition(): Promise<void> {
-  await withActiveEditorLsp('editor.action.revealDefinition');
-}
-
-async function peekDefinition(): Promise<void> {
-  await withActiveEditorLsp('editor.action.peekDefinition');
-}
-
-async function findReferences(): Promise<void> {
-  await withActiveEditorLsp('editor.action.referenceSearch.trigger');
-}
-
-async function goToImplementation(): Promise<void> {
-  await withActiveEditorLsp('editor.action.goToImplementation');
-}
-
-async function goToTypeDefinition(): Promise<void> {
-  await withActiveEditorLsp('editor.action.goToTypeDefinition');
-}
-
 export async function formatDocumentForSave(): Promise<void> {
   if (!useSettingsStore.getState().config.mainView.formatOnSave) return;
-  await formatDocument().catch((error) => console.error('Format on save failed', error));
+  await withActiveEditorLsp('editor.action.formatDocument').catch((error) =>
+    console.error('Format on save failed', error),
+  );
 }
 
 function toggleSoftWrap(): void {
@@ -102,56 +68,49 @@ async function runEditorAction(actionId: string): Promise<void> {
 }
 
 export function registerEditorCommands(): void {
-  registerCommand({
-    id: 'editor.action.formatDocument',
-    title: 'Format Document',
-    run: formatDocument,
-  });
-  registerCommand({
-    id: 'editor.action.rename',
-    title: 'Rename Symbol',
-    keybinding: 'F2',
-    run: renameSymbol,
-  });
-  registerCommand({
-    id: 'editor.action.quickFix',
-    title: 'Quick Fix...',
-    keybinding: 'Ctrl+.',
-    run: quickFix,
-  });
-  registerCommand({
-    id: 'editor.action.sourceAction',
-    title: 'Source Action...',
-    run: sourceAction,
-  });
-  registerCommand({
-    id: 'editor.action.revealDefinition',
-    title: 'Go to Definition',
-    keybinding: 'F12',
-    run: goToDefinition,
-  });
-  registerCommand({
-    id: 'editor.action.peekDefinition',
-    title: 'Peek Definition',
-    keybinding: 'Alt+F12',
-    run: peekDefinition,
-  });
-  registerCommand({
-    id: 'editor.action.referenceSearch.trigger',
-    title: 'Find References',
-    keybinding: 'Shift+F12',
-    run: findReferences,
-  });
-  registerCommand({
-    id: 'editor.action.goToImplementation',
-    title: 'Go to Implementation',
-    run: goToImplementation,
-  });
-  registerCommand({
-    id: 'editor.action.goToTypeDefinition',
-    title: 'Go to Type Definition',
-    run: goToTypeDefinition,
-  });
+  // LSP-backed commands – each delegates to withActiveEditorLsp
+  const lspCommands: { id: string; title: string; keybinding?: string }[] = [
+    { id: 'editor.action.formatDocument', title: 'Format Document' },
+    { id: 'editor.action.rename', title: 'Rename Symbol', keybinding: 'F2' },
+    { id: 'editor.action.quickFix', title: 'Quick Fix...', keybinding: 'Ctrl+.' },
+    { id: 'editor.action.sourceAction', title: 'Source Action...' },
+    { id: 'editor.action.revealDefinition', title: 'Go to Definition', keybinding: 'F12' },
+    { id: 'editor.action.peekDefinition', title: 'Peek Definition', keybinding: 'Alt+F12' },
+    {
+      id: 'editor.action.referenceSearch.trigger',
+      title: 'Find References',
+      keybinding: 'Shift+F12',
+    },
+    { id: 'editor.action.goToImplementation', title: 'Go to Implementation' },
+    { id: 'editor.action.goToTypeDefinition', title: 'Go to Type Definition' },
+  ];
+  for (const cmd of lspCommands) {
+    registerCommand({ ...cmd, run: () => withActiveEditorLsp(cmd.id) });
+  }
+
+  // Plain editor-action commands – each delegates to runEditorAction
+  const editorActionCommands: { id: string; title: string; keybinding?: string }[] = [
+    { id: 'actions.find', title: 'Find', keybinding: 'Ctrl+F' },
+    {
+      id: 'editor.action.startFindReplaceAction',
+      title: 'Replace',
+      keybinding: 'Ctrl+H',
+    },
+    {
+      id: 'editor.action.nextMatchFindAction',
+      title: 'Find Next',
+      keybinding: 'F3',
+    },
+    {
+      id: 'editor.action.previousMatchFindAction',
+      title: 'Find Previous',
+      keybinding: 'Shift+F3',
+    },
+  ];
+  for (const cmd of editorActionCommands) {
+    registerCommand({ ...cmd, run: () => runEditorAction(cmd.id) });
+  }
+
   registerCommand({
     id: 'editor.toggleSoftWrap',
     title: 'Editor: Toggle Soft Wrap',
@@ -162,30 +121,6 @@ export function registerEditorCommands(): void {
     title: 'Markdown: Open Preview to the Side',
     keybinding: 'Ctrl+Shift+V',
     run: openMarkdownPreviewToSide,
-  });
-  registerCommand({
-    id: 'actions.find',
-    title: 'Find',
-    keybinding: 'Ctrl+F',
-    run: () => runEditorAction('actions.find'),
-  });
-  registerCommand({
-    id: 'editor.action.startFindReplaceAction',
-    title: 'Replace',
-    keybinding: 'Ctrl+H',
-    run: () => runEditorAction('editor.action.startFindReplaceAction'),
-  });
-  registerCommand({
-    id: 'editor.action.nextMatchFindAction',
-    title: 'Find Next',
-    keybinding: 'F3',
-    run: () => runEditorAction('editor.action.nextMatchFindAction'),
-  });
-  registerCommand({
-    id: 'editor.action.previousMatchFindAction',
-    title: 'Find Previous',
-    keybinding: 'Shift+F3',
-    run: () => runEditorAction('editor.action.previousMatchFindAction'),
   });
   registerCommand({
     id: 'workbench.action.navigateBack',
