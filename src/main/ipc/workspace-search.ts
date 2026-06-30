@@ -61,6 +61,7 @@ async function searchWithRipgrep({
   query,
   maxResults = 500,
 }: WorkspaceSearchRequest): Promise<WorkspaceSearchResult> {
+  const ignoredGlob = `!{${[...ignoredNames].join(',')}}/**`;
   const args = [
     '--json',
     '--smart-case',
@@ -68,7 +69,7 @@ async function searchWithRipgrep({
     '--color',
     'never',
     '--glob',
-    '!{.git,node_modules,out,dist,build}/**',
+    ignoredGlob,
     '--',
     query,
     rootPath,
