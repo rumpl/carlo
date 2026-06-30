@@ -9,39 +9,15 @@ export function SettingsPanel() {
   const isOpen = useSettingsStore((state) => state.isOpen);
   const closeSettings = useSettingsStore((state) => state.closeSettings);
   const saveSettings = useSettingsStore((state) => state.saveSettings);
-  const [theme, setTheme] = useState<CarloThemeId>(config.theme);
-  const [mainViewFont, setMainViewFont] = useState(config.mainView.fontFamily);
-  const [treeViewFont, setTreeViewFont] = useState(config.treeView.fontFamily);
-  const [fontSize, setFontSize] = useState(String(config.mainView.fontSize));
-  const [tabSize, setTabSize] = useState(String(config.mainView.tabSize));
-  const [wordWrap, setWordWrap] = useState(config.mainView.wordWrap);
-  const [formatOnSave, setFormatOnSave] = useState(config.mainView.formatOnSave);
+  const [draft, setDraft] = useState<CarloUserConfig>(config);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
-    setTheme(config.theme);
-    setMainViewFont(config.mainView.fontFamily);
-    setTreeViewFont(config.treeView.fontFamily);
-    setFontSize(String(config.mainView.fontSize));
-    setTabSize(String(config.mainView.tabSize));
-    setWordWrap(config.mainView.wordWrap);
-    setFormatOnSave(config.mainView.formatOnSave);
+    setDraft(config);
   }, [config, isOpen]);
 
   if (!isOpen) return null;
-
-  const draft: CarloUserConfig = {
-    theme,
-    mainView: {
-      fontFamily: mainViewFont,
-      fontSize: Number(fontSize),
-      tabSize: Number(tabSize),
-      wordWrap,
-      formatOnSave,
-    },
-    treeView: { fontFamily: treeViewFont },
-  };
 
   async function save(): Promise<void> {
     setIsSaving(true);
@@ -57,14 +33,7 @@ export function SettingsPanel() {
   }
 
   function resetDefaults(): void {
-    const defaults = defaultUserConfig();
-    setTheme(defaults.theme);
-    setMainViewFont(defaults.mainView.fontFamily);
-    setTreeViewFont(defaults.treeView.fontFamily);
-    setFontSize(String(defaults.mainView.fontSize));
-    setTabSize(String(defaults.mainView.tabSize));
-    setWordWrap(defaults.mainView.wordWrap);
-    setFormatOnSave(defaults.mainView.formatOnSave);
+    setDraft(defaultUserConfig());
   }
 
   return (
@@ -91,8 +60,10 @@ export function SettingsPanel() {
           <select
             autoFocus
             disabled={isLoading || isSaving}
-            onChange={(event) => setTheme(event.target.value as CarloThemeId)}
-            value={theme}
+            onChange={(event) =>
+              setDraft((prev) => ({ ...prev, theme: event.target.value as CarloThemeId }))
+            }
+            value={draft.theme}
           >
             {CARLO_THEMES.map((item) => (
               <option key={item.id} value={item.id}>
@@ -106,9 +77,14 @@ export function SettingsPanel() {
           <span>Main editor font</span>
           <input
             disabled={isLoading || isSaving}
-            onChange={(event) => setMainViewFont(event.target.value)}
+            onChange={(event) =>
+              setDraft((prev) => ({
+                ...prev,
+                mainView: { ...prev.mainView, fontFamily: event.target.value },
+              }))
+            }
             placeholder="Font family"
-            value={mainViewFont}
+            value={draft.mainView.fontFamily}
           />
         </label>
 
@@ -119,9 +95,14 @@ export function SettingsPanel() {
               disabled={isLoading || isSaving}
               max={40}
               min={8}
-              onChange={(event) => setFontSize(event.target.value)}
+              onChange={(event) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  mainView: { ...prev.mainView, fontSize: Number(event.target.value) },
+                }))
+              }
               type="number"
-              value={fontSize}
+              value={draft.mainView.fontSize}
             />
           </label>
 
@@ -131,9 +112,14 @@ export function SettingsPanel() {
               disabled={isLoading || isSaving}
               max={12}
               min={1}
-              onChange={(event) => setTabSize(event.target.value)}
+              onChange={(event) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  mainView: { ...prev.mainView, tabSize: Number(event.target.value) },
+                }))
+              }
               type="number"
-              value={tabSize}
+              value={draft.mainView.tabSize}
             />
           </label>
         </div>
@@ -142,17 +128,27 @@ export function SettingsPanel() {
           <span>Tree view font</span>
           <input
             disabled={isLoading || isSaving}
-            onChange={(event) => setTreeViewFont(event.target.value)}
+            onChange={(event) =>
+              setDraft((prev) => ({
+                ...prev,
+                treeView: { ...prev.treeView, fontFamily: event.target.value },
+              }))
+            }
             placeholder="Font family"
-            value={treeViewFont}
+            value={draft.treeView.fontFamily}
           />
         </label>
 
         <label className="settings-checkbox">
           <input
-            checked={wordWrap}
+            checked={draft.mainView.wordWrap}
             disabled={isLoading || isSaving}
-            onChange={(event) => setWordWrap(event.target.checked)}
+            onChange={(event) =>
+              setDraft((prev) => ({
+                ...prev,
+                mainView: { ...prev.mainView, wordWrap: event.target.checked },
+              }))
+            }
             type="checkbox"
           />
           <span>Word wrap</span>
@@ -160,9 +156,14 @@ export function SettingsPanel() {
 
         <label className="settings-checkbox">
           <input
-            checked={formatOnSave}
+            checked={draft.mainView.formatOnSave}
             disabled={isLoading || isSaving}
-            onChange={(event) => setFormatOnSave(event.target.checked)}
+            onChange={(event) =>
+              setDraft((prev) => ({
+                ...prev,
+                mainView: { ...prev.mainView, formatOnSave: event.target.checked },
+              }))
+            }
             type="checkbox"
           />
           <span>Format on save</span>
