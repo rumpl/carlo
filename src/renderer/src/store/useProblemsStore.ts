@@ -17,7 +17,6 @@ export interface ProblemItem {
 }
 
 interface ProblemsState {
-  isOpen: boolean;
   problems: ProblemItem[];
   toggleProblems: () => void;
   openProblems: () => void;
@@ -26,20 +25,15 @@ interface ProblemsState {
 }
 
 export const useProblemsStore = create<ProblemsState>((set) => ({
-  isOpen: false,
   problems: [],
   toggleProblems: () => {
-    const willOpen = useBottomPanelStore.getState().activePanel !== 'problems';
     useBottomPanelStore.getState().togglePanel('problems');
-    set({ isOpen: willOpen });
   },
   openProblems: () => {
     useBottomPanelStore.getState().openPanel('problems');
-    set({ isOpen: true });
   },
   closeProblems: () => {
     useBottomPanelStore.getState().closePanel();
-    set({ isOpen: false });
   },
   setProblems: (problems) => set({ problems }),
 }));
