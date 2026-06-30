@@ -1,9 +1,9 @@
-import type { FormEvent, MouseEvent, RefObject } from 'react';
+import type { MouseEvent } from 'react';
 import type { FileTreeNode, GitFileStatus } from '@shared/file-types';
 import { DevIcon } from './DevIcon';
 import { iconForNode } from './icons';
 import { InlineCreateRow } from './InlineCreateRow';
-import type { TreeCreatePrompt } from './types';
+import { useCreateContext } from './types';
 
 const gitStatusLabels: Record<GitFileStatus, string> = {
   added: 'A',
@@ -23,12 +23,6 @@ export function TreeNode({
   onToggleDirectory,
   onOpenFile,
   onContextMenu,
-  createPrompt,
-  createName,
-  createInputRef,
-  onCreateNameChange,
-  onCreateSubmit,
-  onCreateCancel,
 }: {
   node: FileTreeNode;
   depth: number;
@@ -37,13 +31,8 @@ export function TreeNode({
   onToggleDirectory: (node: FileTreeNode) => void;
   onOpenFile: (node: FileTreeNode) => void;
   onContextMenu: (event: MouseEvent, node: FileTreeNode) => void;
-  createPrompt: TreeCreatePrompt | undefined;
-  createName: string;
-  createInputRef: RefObject<HTMLInputElement | null>;
-  onCreateNameChange: (name: string) => void;
-  onCreateSubmit: (event: FormEvent) => void;
-  onCreateCancel: () => void;
 }) {
+  const createCtx = useCreateContext();
   const expanded = expandedPaths.has(node.path);
   const isDirectory = node.type === 'directory';
   const icon = iconForNode(node, expanded);
@@ -64,15 +53,15 @@ export function TreeNode({
       </button>
       {isDirectory && expanded && node.children ? (
         <ul>
-          {createPrompt?.parentPath === node.path ? (
+          {createCtx.prompt?.parentPath === node.path ? (
             <InlineCreateRow
-              kind={createPrompt.kind}
+              kind={createCtx.prompt.kind}
               depth={depth + 1}
-              name={createName}
-              inputRef={createInputRef}
-              onChange={onCreateNameChange}
-              onSubmit={onCreateSubmit}
-              onCancel={onCreateCancel}
+              name={createCtx.name}
+              inputRef={createCtx.inputRef}
+              onChange={createCtx.onNameChange}
+              onSubmit={createCtx.onSubmit}
+              onCancel={createCtx.onCancel}
             />
           ) : null}
           {node.children.map((child) => (
@@ -85,12 +74,6 @@ export function TreeNode({
               onToggleDirectory={onToggleDirectory}
               onOpenFile={onOpenFile}
               onContextMenu={onContextMenu}
-              createPrompt={createPrompt}
-              createName={createName}
-              createInputRef={createInputRef}
-              onCreateNameChange={onCreateNameChange}
-              onCreateSubmit={onCreateSubmit}
-              onCreateCancel={onCreateCancel}
             />
           ))}
         </ul>
