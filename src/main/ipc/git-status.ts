@@ -1,19 +1,11 @@
-import { execFile } from 'node:child_process';
 import { join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { promisify } from 'node:util';
 import type { GitChangedFile, GitFileStatus, GitStatusResult } from '@shared/file-types';
-
-const execFileAsync = promisify(execFile);
+import { gitExec, gitExecRaw } from './git-exec';
 
 export interface GitStatusContext {
   rootPath: string;
   statuses: Map<string, GitFileStatus>;
-}
-
-async function git(args: string[], cwd: string): Promise<string> {
-  const { stdout } = await execFileAsync('git', args, { cwd, maxBuffer: 20 * 1024 * 1024 });
-  return stdout;
 }
 
 function statusFromPorcelain(indexStatus: string, workTreeStatus: string): GitFileStatus | undefined {
@@ -81,8 +73,8 @@ export function gitStatusForNode(
 
 export async function getGitStatusContext(path: string): Promise<GitStatusContext | undefined> {
   try {
-    const gitRootPath = (await git(['rev-parse', '--show-toplevel'], path)).trimEnd();
-    const status = await git(
+    const gitRootPath = await gitExec(['rev-parse', '--show-toplevel'], path);
+    const status = await gitExecRaw(
       ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--ignored=matching'],
       gitRootPath,
     );
