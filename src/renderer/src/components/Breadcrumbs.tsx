@@ -1,5 +1,5 @@
 import { relativePath } from '../commands/builtin/pathUtils';
-import { useEditorStore } from '../store/useEditorStore';
+import { useActiveTabInGroup, useEditorStore } from '../store/useEditorStore';
 
 interface Props {
   groupId: string;
@@ -7,10 +7,7 @@ interface Props {
 }
 
 export function Breadcrumbs({ groupId, compact = false }: Props) {
-  const tab = useEditorStore((state) => {
-    const activeTabId = state.groups.find((group) => group.id === groupId)?.activeTabId;
-    return state.tabs.find((candidate) => candidate.id === activeTabId);
-  });
+  const tab = useActiveTabInGroup(groupId);
   const workspace = useEditorStore((state) => state.workspace);
 
   const className = `breadcrumbs${compact ? ' compact' : ''}`;
