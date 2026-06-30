@@ -1,22 +1,16 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { defaultUserConfig, mergeUserConfig, type CarloUserConfig } from '@shared/app-config';
-import { configHome } from './config-home';
+import { configHome, ensureConfigFile } from './config-home';
 
 export function userConfigPath(): string {
   return join(configHome(), 'carlo', 'config.json');
 }
 
-function ensureUserConfig(path: string): void {
-  if (existsSync(path)) return;
-  mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, `${JSON.stringify(defaultUserConfig(), null, 2)}\n`, 'utf8');
-}
-
 export function loadUserConfig(): CarloUserConfig {
   const path = userConfigPath();
   const defaults = defaultUserConfig();
-  ensureUserConfig(path);
+  ensureConfigFile(path, defaults);
 
   try {
     const userConfig = JSON.parse(readFileSync(path, 'utf8')) as Partial<CarloUserConfig>;

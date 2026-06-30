@@ -1,22 +1,16 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { defaultConfig, mergeLanguageConfig, setLanguageConfig, type LanguageConfig } from '@shared/language-registry';
-import { configHome } from './config-home';
+import { configHome, ensureConfigFile } from './config-home';
 
 export function languageConfigPath(): string {
   return join(configHome(), 'carlo', 'languages.json');
 }
 
-function ensureUserConfig(path: string): void {
-  if (existsSync(path)) return;
-  mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, `${JSON.stringify(defaultConfig(), null, 2)}\n`, 'utf8');
-}
-
 export function loadLanguageConfig(): LanguageConfig {
   const path = languageConfigPath();
   const defaults = defaultConfig();
-  ensureUserConfig(path);
+  ensureConfigFile(path, defaults);
 
   try {
     const userConfig = JSON.parse(readFileSync(path, 'utf8')) as Partial<LanguageConfig>;
