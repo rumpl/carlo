@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useShallow } from 'zustand/shallow';
 import type { WorkspaceSearchMatch } from '@shared/file-types';
 import { useEditorStore } from '../store/useEditorStore';
 import { useSearchStore } from '../store/useSearchStore';
@@ -9,18 +10,25 @@ export function SearchPanel() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const searchSeq = useRef(0);
   const debounceHandle = useRef<number | undefined>(undefined);
+
   const workspace = useEditorStore((state) => state.workspace);
-  const query = useSearchStore((state) => state.query);
-  const results = useSearchStore((state) => state.results);
-  const loading = useSearchStore((state) => state.loading);
-  const truncated = useSearchStore((state) => state.truncated);
-  const error = useSearchStore((state) => state.error);
-  const hasSearched = useSearchStore((state) => state.hasSearched);
-  const closeSearch = useSearchStore((state) => state.closeSearch);
-  const setQuery = useSearchStore((state) => state.setQuery);
-  const setLoading = useSearchStore((state) => state.setLoading);
-  const setResults = useSearchStore((state) => state.setResults);
-  const setError = useSearchStore((state) => state.setError);
+
+  // Single subscription for all display state – shallow equality prevents spurious re-renders
+  const { query, results, loading, truncated, error, hasSearched } = useSearchStore(
+    useShallow((state) => ({
+      query: state.query,
+      results: state.results,
+      loading: state.loading,
+      truncated: state.truncated,
+      error: state.error,
+      hasSearched: state.hasSearched,
+    })),
+  );
+
+  // Actions are stable store references; grab them once via getState so they
+  // don't need their own subscriptions.
+  const { closeSearch, setQuery, setLoading, setResults, setError } = useSearchStore.getState();
+
   const groupedResults = useMemo(() => {
     const groups = new Map<string, WorkspaceSearchMatch[]>();
     for (const result of results) {
