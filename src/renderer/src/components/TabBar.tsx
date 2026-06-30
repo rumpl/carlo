@@ -1,6 +1,7 @@
-import { type MouseEvent, useEffect, useState } from 'react';
+import { type MouseEvent, useState } from 'react';
 import type { EditorTab } from '../store/useEditorStore';
 import { useEditorStore } from '../store/useEditorStore';
+import { useContextMenuDismiss } from '../hooks/useContextMenuDismiss';
 import { Tab } from './Tab';
 import { TabContextMenu } from './TabContextMenu';
 import type { TabContextMenuState } from './TabContextMenuState';
@@ -17,21 +18,7 @@ export function TabBar({ groupId }: Props) {
     ? group.tabIds.flatMap((id) => tabs.find((tab) => tab.id === id) ?? [])
     : [];
 
-  useEffect(() => {
-    if (!contextMenu) return;
-    const close = () => setContextMenu(undefined);
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
-    };
-    window.addEventListener('click', close);
-    window.addEventListener('blur', close);
-    window.addEventListener('keydown', closeOnEscape);
-    return () => {
-      window.removeEventListener('click', close);
-      window.removeEventListener('blur', close);
-      window.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [contextMenu]);
+  useContextMenuDismiss(contextMenu !== undefined, () => setContextMenu(undefined));
 
   async function closeTabsWithPrompt(tabsToClose: EditorTab[]): Promise<void> {
     const { closeTabWithPrompt } = await import('../editor/saveActions');

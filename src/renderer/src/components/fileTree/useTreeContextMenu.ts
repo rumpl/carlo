@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { MouseEvent } from 'react';
 import type { FileTreeNode, WorkspaceFolderResult } from '@shared/file-types';
+import { useContextMenuDismiss } from '../../hooks/useContextMenuDismiss';
 import type { TreeContextMenu } from './types';
 
 export function useTreeContextMenu(workspace: WorkspaceFolderResult | undefined) {
@@ -17,21 +18,7 @@ export function useTreeContextMenu(workspace: WorkspaceFolderResult | undefined)
     setContextMenu(undefined);
   }
 
-  useEffect(() => {
-    if (!contextMenu) return;
-    const close = () => setContextMenu(undefined);
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
-    };
-    window.addEventListener('click', close);
-    window.addEventListener('blur', close);
-    window.addEventListener('keydown', closeOnEscape);
-    return () => {
-      window.removeEventListener('click', close);
-      window.removeEventListener('blur', close);
-      window.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [contextMenu]);
+  useContextMenuDismiss(contextMenu !== undefined, closeContextMenu);
 
   return { contextMenu, openContextMenu, closeContextMenu };
 }
