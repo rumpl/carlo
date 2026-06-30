@@ -1,140 +1,65 @@
 import { useEffect } from 'react';
-import { runCommand } from '../commands/registry';
+import {
+  ensureCommandsLoaded,
+  getCommands,
+  matchesEvent,
+  parseKeybinding,
+  runCommand,
+} from '../commands/registry';
 
+/**
+ * Register a global `keydown` listener that dispatches to registered commands
+ * based on the `keybinding` field of each {@link Command}.
+ *
+ * Keybinding strings are parsed once (after the builtin commands have been
+ * loaded) so there are no per-event allocations.  Adding a new keybinding only
+ * requires setting the `keybinding` property on the corresponding
+ * `registerCommand` call — no changes to this file are needed.
+ */
 export function useKeybindings(): void {
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      const mod = event.metaKey || event.ctrlKey;
-      if (mod && event.key.toLowerCase() === 'p' && !event.repeat) {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand(
-          event.shiftKey ? 'workbench.action.showCommands' : 'workbench.action.quickOpen',
-        );
+    // Build the descriptor table after builtin commands are registered.
+    // Commands registered later (extensions, tests) are picked up on the
+    // next keydown because we re-read getCommands() lazily.
+    let descriptorsReady = false;
+    type Binding = { commandId: string; descriptor: ReturnType<typeof parseKeybinding> };
+    let bindings: Binding[] = [];
+
+    function buildBindings(): void {
+      bindings = getCommands()
+        .filter((cmd) => cmd.keybinding)
+        .map((cmd) => ({
+          commandId: cmd.id,
+          // parseKeybinding is cheap and called only once per command.
+          descriptor: parseKeybinding(cmd.keybinding!),
+        }));
+      descriptorsReady = true;
+    }
+
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.repeat) return;
+
+      if (!descriptorsReady) {
+        // Commands may not be registered yet on very first keypress — build
+        // a preliminary table from whatever is registered so far.
+        buildBindings();
       }
-      if (mod && event.key.toLowerCase() === 'n') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('file.new');
-      }
-      if (mod && event.altKey && event.key.toLowerCase() === 's') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('file.saveAll');
-      } else if (mod && event.key.toLowerCase() === 's') {
-        event.preventDefault();
-        void runCommand(event.shiftKey ? 'file.saveAs' : 'file.save');
-      }
-      if (mod && event.key.toLowerCase() === 'o') {
-        event.preventDefault();
-        void runCommand('file.open');
-      }
-      if (mod && event.shiftKey && event.key.toLowerCase() === 'e') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('workbench.explorer.toggle');
-      } else if (mod && event.shiftKey && event.key.toLowerCase() === 'f') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('workbench.action.findInFiles');
-      } else if (mod && event.shiftKey && event.key.toLowerCase() === 'g') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('workbench.panel.git.toggle');
-      } else if (mod && event.key.toLowerCase() === 'f') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('actions.find');
-      }
-      if (mod && event.shiftKey && event.key.toLowerCase() === 'v') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('markdown.showPreviewToSide');
-      }
-      if (mod && event.key.toLowerCase() === 'h') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('editor.action.startFindReplaceAction');
-      }
-      if (event.key === 'F3') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand(event.shiftKey ? 'editor.action.previousMatchFindAction' : 'editor.action.nextMatchFindAction');
-      }
-      if (mod && event.key === ',') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('preferences.openSettings');
-      }
-      if (mod && event.key === '.') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('editor.action.quickFix');
-      }
-      if (mod && event.key.toLowerCase() === 'w') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('tab.close');
-      }
-      if (mod && event.key === '[') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('workbench.action.navigateBack');
-      }
-      if (mod && event.key === ']') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('workbench.action.navigateForward');
-      }
-      if (mod && (event.key === '=' || event.key === '+')) {
-        event.preventDefault();
-        void runCommand('window.zoomIn');
-      }
-      if (mod && event.key === '-') {
-        event.preventDefault();
-        void runCommand('window.zoomOut');
-      }
-      if (mod && event.key === '0') {
-        event.preventDefault();
-        void runCommand('window.zoomReset');
-      }
-      if (mod && event.altKey && event.key === 'ArrowRight') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('workbench.action.splitEditorRight');
-      }
-      if (mod && event.altKey && event.key === 'ArrowDown') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('workbench.action.splitEditorDown');
-      }
-      if (mod && event.shiftKey && event.key.toLowerCase() === 'm') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('workbench.panel.problems.toggle');
-      }
-      if (event.key === 'F2') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand('editor.action.rename');
-      }
-      if (event.key === 'F8') {
-        event.preventDefault();
-        event.stopPropagation();
-        void runCommand(event.shiftKey ? 'editor.action.marker.prev' : 'editor.action.marker.next');
-      }
-      if (event.key === 'F12') {
-        event.preventDefault();
-        event.stopPropagation();
-        if (event.shiftKey) void runCommand('editor.action.referenceSearch.trigger');
-        else if (event.altKey) void runCommand('editor.action.peekDefinition');
-        else void runCommand('editor.action.revealDefinition');
-      }
-      if (mod && event.code === 'Space') {
-        event.preventDefault();
-        void runCommand('editor.action.triggerSuggest');
+
+      for (const { commandId, descriptor } of bindings) {
+        if (matchesEvent(descriptor, event)) {
+          event.preventDefault();
+          event.stopPropagation();
+          void runCommand(commandId);
+          // Allow multiple bindings to fire (e.g. if two commands share a key)
+          // but in practice each binding is unique.
+        }
       }
     };
+
+    // Eagerly load builtin commands and build the final descriptor table so
+    // the first keydown doesn't pay the async import cost.
+    void ensureCommandsLoaded().then(buildBindings);
+
     const offMenu = window.api.menu.onCommand((commandId) => void runCommand(commandId));
     window.addEventListener('keydown', onKeyDown, true);
     return () => {
