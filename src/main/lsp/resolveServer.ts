@@ -33,19 +33,17 @@ function getScriptRoots(): string[] {
   ];
 }
 
+const BUNDLED_SCRIPT_PATHS: Record<string, (root: string) => string> = {
+  'typescript-language-server': (root) =>
+    join(root, 'node_modules', 'typescript-language-server', 'lib', 'cli.mjs'),
+  'vscode-json-languageserver': (root) =>
+    join(root, 'node_modules', 'vscode-json-languageserver', 'bin', 'vscode-json-languageserver'),
+};
+
 function scriptCandidates(command: string): string[] {
-  const roots = getScriptRoots();
-  if (command === 'typescript-language-server') {
-    return roots.map((root) =>
-      join(root, 'node_modules', 'typescript-language-server', 'lib', 'cli.mjs'),
-    );
-  }
-  if (command === 'vscode-json-languageserver') {
-    return roots.map((root) =>
-      join(root, 'node_modules', 'vscode-json-languageserver', 'bin', 'vscode-json-languageserver'),
-    );
-  }
-  return [];
+  const resolver = BUNDLED_SCRIPT_PATHS[command];
+  if (!resolver) return [];
+  return getScriptRoots().map(resolver);
 }
 
 function augmentedEnv(): NodeJS.ProcessEnv {
