@@ -82,12 +82,8 @@ async function searchWithRipgrep({
     return parseRipgrepJson(stdout, maxResults);
   } catch (error) {
     const maybeError = error as NodeJS.ErrnoException & { stdout?: string };
-    const exitCode = (error as { code?: unknown }).code;
-    if (exitCode === 1 && maybeError.stdout !== undefined) {
-      return parseRipgrepJson(maybeError.stdout, maxResults);
-    }
-    if (exitCode === 'ENOENT') throw maybeError;
     if (maybeError.stdout) return parseRipgrepJson(maybeError.stdout, maxResults);
+    if (maybeError.code === 'ENOENT') throw maybeError;
     throw error;
   }
 }
