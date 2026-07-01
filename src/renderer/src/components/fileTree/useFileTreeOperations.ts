@@ -5,8 +5,9 @@ import { languageIdFromPath } from '@shared/language-registry';
 import { useEditorStore } from '../../store/useEditorStore';
 import type { useWorkspaceTree } from './useWorkspaceTree';
 import type { TreeClipboard, TreeContextMenu, TreeCreatePrompt } from './types';
-import { hasValidChildName, normalizePath, parentDirectory } from './treeUtils';
+import { hasValidChildName, parentDirectory } from './treeUtils';
 import { relativePath, titleFromPath } from '../../commands/builtin/pathUtils';
+import { fileUriFromPath } from '../../utils/uriUtils';
 
 type WorkspaceTree = ReturnType<typeof useWorkspaceTree>;
 
@@ -50,13 +51,17 @@ export function useFileTreeOperations({
     return menu.node.type === 'directory' ? menu.node.path : parentDirectory(menu.node.path);
   }
 
+  function showFileOperationError(error: unknown): void {
+    console.error(error);
+    window.alert(error instanceof Error ? error.message : 'File operation failed');
+  }
+
   async function runFileOperation(operation: () => Promise<void>): Promise<void> {
     closeContextMenu();
     try {
       await operation();
     } catch (error) {
-      console.error(error);
-      window.alert(error instanceof Error ? error.message : 'File operation failed');
+      showFileOperationError(error);
     }
   }
 
@@ -90,8 +95,7 @@ export function useFileTreeOperations({
       await tree.refreshDirectory(createPrompt.parentPath);
       cancelCreate();
     } catch (error) {
-      console.error(error);
-      window.alert(error instanceof Error ? error.message : 'File operation failed');
+      showFileOperationError(error);
     }
   }
 
@@ -150,7 +154,7 @@ export function useFileTreeOperations({
         for (const tab of tabsToRename) {
           const nextPath = tab.path === oldPath ? result.path : `${result.path}${tab.path.slice(oldPath.length)}`;
           const content = getModel(tab.uri)?.getValue();
-          if (content !== undefined) replaceModelUri(tab.uri, new URL(`file://${nextPath}`).toString(), content, languageIdFromPath(nextPath));
+          if (content !== undefined) replaceModelUri(tab.uri, fileUriFromPath(nextPath), content, languageIdFromPath(nextPath));
         }
         useEditorStore.getState().updateRenamedPath(oldPath, result.path, result.uri);
       }

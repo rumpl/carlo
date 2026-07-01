@@ -1,59 +1,24 @@
-import { useCallback, useEffect, useMemo, useReducer } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useWorkspaceChangeDebounce } from '../hooks/useWorkspaceChangeDebounce';
 import type { GitChangedFile, GitFileStatus } from '@shared/file-types';
 import { useEditorStore } from '../store/useEditorStore';
-import { useGitPanelStore } from '../store/useGitPanelStore';
+import { useBottomPanelStore } from '../store/useBottomPanelStore';
 import { GitFileList } from './GitFileList';
 import { statusLabels } from '../git/gitStatusMaps';
 
-// ---------------------------------------------------------------------------
-// Reducer-style state for all mutable git-panel data
-// ---------------------------------------------------------------------------
-
-interface GitPanelState {
-  files: GitChangedFile[];
-  isGitRepo: boolean;
-  loading: boolean;
-  hasFetched: boolean;
-  error: string | null;
-}
-
-type GitPanelAction =
-  | { type: 'FETCH_START' }
-  | { type: 'FETCH_SUCCESS'; files: GitChangedFile[]; isGitRepo: boolean }
-  | { type: 'FETCH_ERROR'; error: string }
-  | { type: 'NO_WORKSPACE' };
-
-const initialState: GitPanelState = {
-  files: [],
-  isGitRepo: false,
-  loading: false,
-  hasFetched: false,
-  error: null,
-};
-
-function reducer(state: GitPanelState, action: GitPanelAction): GitPanelState {
-  switch (action.type) {
-    case 'FETCH_START':
-      return { ...state, loading: true, error: null };
-    case 'FETCH_SUCCESS':
-      return { files: action.files, isGitRepo: action.isGitRepo, loading: false, hasFetched: true, error: null };
-    case 'FETCH_ERROR':
-      return { ...state, loading: false, hasFetched: true, error: action.error };
-    case 'NO_WORKSPACE':
-      return { files: [], isGitRepo: false, loading: false, hasFetched: true, error: null };
-    default:
-      return state;
-  }
-}
-
-// ---------------------------------------------------------------------------
-
 export function GitPanel() {
   const workspace = useEditorStore((state) => state.workspace);
-  const closeGitPanel = useGitPanelStore((state) => state.closeGitPanel);
+  const closeGitPanel = useCallback(() => useBottomPanelStore.getState().closePanel(), []);
 
-  const [{ files, isGitRepo, loading, hasFetched, error }, dispatch] = useReducer(reducer, initialState);
+  const [state, setState] = useState<{
+    files: GitChangedFile[];
+    isGitRepo: boolean;
+    loading: boolean;
+    hasFetched: boolean;
+    error: string | null;
+  }>({ files: [], isGitRepo: false, loading: false, hasFetched: false, error: null });
+
+  const { files, isGitRepo, loading, hasFetched, error } = state;
 
   const counts = useMemo(() => {
     const result = new Map<GitFileStatus, number>();
@@ -63,19 +28,21 @@ export function GitPanel() {
 
   const refresh = useCallback(async (): Promise<void> => {
     if (!workspace) {
-      dispatch({ type: 'NO_WORKSPACE' });
+      setState({ files: [], isGitRepo: false, loading: false, hasFetched: true, error: null });
       return;
     }
-    dispatch({ type: 'FETCH_START' });
+    setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       const result = await window.api.git.status(workspace.rootPath);
-      dispatch({ type: 'FETCH_SUCCESS', files: result.files, isGitRepo: result.isGitRepo });
+      setState({ files: result.files, isGitRepo: result.isGitRepo, loading: false, hasFetched: true, error: null });
     } catch (refreshError) {
       console.error(refreshError);
-      dispatch({
-        type: 'FETCH_ERROR',
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        hasFetched: true,
         error: refreshError instanceof Error ? refreshError.message : 'Could not load git status',
-      });
+      }));
     }
   }, [workspace]);
 

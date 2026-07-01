@@ -11,15 +11,6 @@ export type InstallCommandLineResult =
 
 const commandName = 'carlo';
 
-async function canWriteDirectory(path: string): Promise<boolean> {
-  try {
-    await access(path, constants.W_OK);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function pathContainsDirectory(directory: string): boolean {
   return (process.env.PATH ?? '').split(':').includes(directory);
 }
@@ -33,7 +24,7 @@ async function installDirectory(): Promise<{ path: string; warning?: string } | 
 
   for (const candidate of candidates) {
     if (candidate === userBin) await mkdir(candidate, { recursive: true });
-    if (!(await canWriteDirectory(candidate))) continue;
+    try { await access(candidate, constants.W_OK); } catch { continue; }
     const warning = pathContainsDirectory(candidate)
       ? undefined
       : `${candidate} does not appear to be in PATH. Add it to your shell PATH if 'carlo' is not found.`;

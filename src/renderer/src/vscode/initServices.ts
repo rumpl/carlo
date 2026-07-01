@@ -60,16 +60,10 @@ import './hcl-extension';
 import './nord-theme';
 import { configureWorkers } from './workers';
 
-declare global {
-  var __carloVscodeServicesPromise: Promise<void> | undefined;
-}
-
 export function initVscodeServices(): Promise<void> {
   if (servicesInitialized) return Promise.resolve();
 
-  globalThis.__carloVscodeServicesPromise ??= (async () => {
-    if (servicesInitialized) return;
-
+  return (async () => {
     configureWorkers();
     try {
       await initialize({
@@ -87,5 +81,4 @@ export function initVscodeServices(): Promise<void> {
       throw error;
     }
   })();
-  return globalThis.__carloVscodeServicesPromise;
 }

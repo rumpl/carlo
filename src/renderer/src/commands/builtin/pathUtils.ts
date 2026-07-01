@@ -1,3 +1,5 @@
+import { fileUriFromPath } from '../../utils/uriUtils';
+
 export function directoryFromRelativePath(path: string): string | undefined {
   const slash = path.replaceAll('\\', '/').lastIndexOf('/');
   return slash >= 0 ? path.slice(0, slash) : undefined;
@@ -26,7 +28,7 @@ export function rootFor(path: string): { rootPath: string; rootUri: string; name
   const rootPath = path.split(/[\\/]/).slice(0, -1).join('/') || '/';
   return {
     rootPath,
-    rootUri: new URL(`file://${rootPath}`).toString(),
+    rootUri: fileUriFromPath(rootPath),
     name: rootPath.split(/[\\/]/).pop() ?? rootPath,
   };
 }

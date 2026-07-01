@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { languageIdFromPath, type LanguageId } from '@shared/language-registry';
 import { titleFromPath } from '../commands/builtin/pathUtils';
+import { fileUriFromPath } from '../utils/uriUtils';
 
 export interface EditorTab {
   id: string;
@@ -215,7 +216,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         return {
           ...tab,
           path,
-          uri: new URL(`file://${path}`).toString(),
+          uri: fileUriFromPath(path),
           languageId: languageIdFromPath(path),
           title: titleFromPath(path),
         };
