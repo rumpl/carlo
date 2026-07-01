@@ -1,8 +1,6 @@
 import { restartLanguageClient } from '../../lsp/LanguageClientService';
 import { navigateProblem } from '../../problems/navigation';
 import { useEditorStore, activeTab } from '../../store/useEditorStore';
-import { useProblemsStore } from '../../store/useProblemsStore';
-import { useSearchStore } from '../../store/useSearchStore';
 import { useBottomPanelStore } from '../../store/useBottomPanelStore';
 import { useWorkbenchUiStore } from '../../store/useWorkbenchUiStore';
 import { registerCommand } from '../registry';
@@ -20,7 +18,7 @@ export function registerWorkbenchCommands(): void {
     id: 'workbench.action.findInFiles',
     title: 'Search: Find in Files',
     keybinding: 'Ctrl+Shift+F',
-    run: () => useSearchStore.getState().openSearch(),
+    run: () => useBottomPanelStore.getState().openPanel('search'),
   });
   registerCommand({
     id: 'workbench.explorer.toggle',
@@ -32,7 +30,7 @@ export function registerWorkbenchCommands(): void {
     id: 'workbench.panel.problems.toggle',
     title: 'View: Toggle Problems',
     keybinding: 'Ctrl+Shift+M',
-    run: () => useProblemsStore.getState().toggleProblems(),
+    run: () => useBottomPanelStore.getState().togglePanel('problems'),
   });
   registerCommand({
     id: 'workbench.panel.git.toggle',
