@@ -4,10 +4,11 @@ import { useEditorStore } from '../../store/useEditorStore';
 import { useSettingsStore } from '../../store/useSettingsStore';
 import { registerCommand } from '../registry';
 import { titleFromPath } from './pathUtils';
+import { fileUriFromPath } from '../../utils/uriUtils';
 
 async function openJsonConfigFile(path: string): Promise<void> {
   const file = await window.api.file.read(path);
-  const uri = new URL(`file://${path}`).toString();
+  const uri = fileUriFromPath(path);
   getOrCreateModel(uri, file.content, 'json');
   useEditorStore.getState().openFile({ uri, path, languageId: 'json', title: titleFromPath(path) });
 }
