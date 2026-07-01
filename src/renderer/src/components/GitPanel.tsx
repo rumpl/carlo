@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { useWorkspaceChangeDebounce } from '../hooks/useWorkspaceChangeDebounce';
 import type { GitChangedFile, GitFileStatus } from '@shared/file-types';
 import { useEditorStore } from '../store/useEditorStore';
-import { useGitPanelStore } from '../store/useGitPanelStore';
+import { useBottomPanelStore } from '../store/useBottomPanelStore';
 import { GitFileList } from './GitFileList';
 import { statusLabels } from '../git/gitStatusMaps';
 
@@ -51,7 +51,7 @@ function reducer(state: GitPanelState, action: GitPanelAction): GitPanelState {
 
 export function GitPanel() {
   const workspace = useEditorStore((state) => state.workspace);
-  const closeGitPanel = useGitPanelStore((state) => state.closeGitPanel);
+  const closeGitPanel = useCallback(() => useBottomPanelStore.getState().closePanel(), []);
 
   const [{ files, isGitRepo, loading, hasFetched, error }, dispatch] = useReducer(reducer, initialState);
 

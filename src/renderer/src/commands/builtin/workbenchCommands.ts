@@ -3,7 +3,7 @@ import { navigateProblem } from '../../problems/navigation';
 import { useEditorStore, activeTab } from '../../store/useEditorStore';
 import { useProblemsStore } from '../../store/useProblemsStore';
 import { useSearchStore } from '../../store/useSearchStore';
-import { useGitPanelStore } from '../../store/useGitPanelStore';
+import { useBottomPanelStore } from '../../store/useBottomPanelStore';
 import { useWorkbenchUiStore } from '../../store/useWorkbenchUiStore';
 import { registerCommand } from '../registry';
 
@@ -38,7 +38,7 @@ export function registerWorkbenchCommands(): void {
     id: 'workbench.panel.git.toggle',
     title: 'Git: Show Changes',
     keybinding: 'Ctrl+Shift+G',
-    run: () => useGitPanelStore.getState().toggleGitPanel(),
+    run: () => useBottomPanelStore.getState().togglePanel('git'),
   });
   registerCommand({
     id: 'editor.action.marker.next',
