@@ -6,12 +6,9 @@ import { getEditorGroupId, revealPosition, setPendingReveal } from './editorRegi
 import { titleFromPath } from '../commands/builtin/pathUtils';
 import { getOrCreateModel, getModel } from './models';
 import { recordNavigationLocation } from './navigationHistory';
+import { pathFromUri } from '../utils/uriUtils';
 
 let disposable: monaco.IDisposable | undefined;
-
-function pathFromUri(uri: monaco.Uri): string {
-  return uri.scheme === 'file' ? uri.path : uri.toString();
-}
 
 function positionFromSelectionOrPosition(selectionOrPosition?: monaco.IRange | monaco.IPosition): monaco.IPosition | undefined {
   if (!selectionOrPosition) return undefined;
