@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { useBottomPanelStore } from './useBottomPanelStore';
 
 export type ProblemSeverity = 1 | 2 | 3 | 4;
 
@@ -18,23 +17,11 @@ export interface ProblemItem {
 
 interface ProblemsState {
   problems: ProblemItem[];
-  toggleProblems: () => void;
-  openProblems: () => void;
-  closeProblems: () => void;
   setProblems: (problems: ProblemItem[]) => void;
 }
 
 export const useProblemsStore = create<ProblemsState>((set) => ({
   problems: [],
-  toggleProblems: () => {
-    useBottomPanelStore.getState().togglePanel('problems');
-  },
-  openProblems: () => {
-    useBottomPanelStore.getState().openPanel('problems');
-  },
-  closeProblems: () => {
-    useBottomPanelStore.getState().closePanel();
-  },
   setProblems: (problems) => set({ problems }),
 }));
 

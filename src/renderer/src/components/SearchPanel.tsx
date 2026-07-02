@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useEditorStore } from '../store/useEditorStore';
 import { useSearchStore } from '../store/useSearchStore';
+import { useBottomPanelStore } from '../store/useBottomPanelStore';
 import { openSearchResult } from '../search/openSearchResult';
 import { groupByPath } from '../utils/groupByPath';
 import { SearchFileSection } from './SearchFileSection';
@@ -27,7 +28,8 @@ export function SearchPanel() {
 
   // Actions are stable store references; grab them once via getState so they
   // don't need their own subscriptions.
-  const { closeSearch, setQuery, setLoading, setResults, setError } = useSearchStore.getState();
+  const { setQuery, setLoading, setResults, setError } = useSearchStore.getState();
+  const closeSearch = () => useBottomPanelStore.getState().closePanel();
 
   const groupedResults = useMemo(() => groupByPath(results), [results]);
 

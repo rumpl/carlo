@@ -6,6 +6,7 @@ import { getModel } from './models';
 import { pathFromGitDiffUri } from '../git/diffTabs';
 import { titleFromPath } from '../commands/builtin/pathUtils';
 import { activeTabInGroup } from '../store/useEditorStore';
+import { fileUriFromPath } from '../utils/uriUtils';
 
 interface Props {
   groupId: string;
@@ -59,7 +60,7 @@ export function GitDiffEditor({ groupId }: Props) {
     void (async () => {
       const baseline = await window.api.git.baseline(path);
       const originalContent = baseline.isGitRepo ? (baseline.content ?? '') : '';
-      const fileUri = new URL(`file://${path}`).toString();
+      const fileUri = fileUriFromPath(path);
       let modifiedContent = getModel(fileUri)?.getValue();
       if (modifiedContent === undefined) {
         modifiedContent = tab.uri.startsWith('git-diff:') ? undefined : getModel(tab.uri)?.getValue();

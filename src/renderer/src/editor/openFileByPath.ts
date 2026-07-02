@@ -1,10 +1,7 @@
 import { languageIdFromPath } from '@shared/language-registry';
 import { titleFromPath } from '../commands/builtin/pathUtils';
 import { useEditorStore } from '../store/useEditorStore';
-
-function fileUriFromPath(path: string): string {
-  return new URL(`file://${path}`).toString();
-}
+import { fileUriFromPath } from '../utils/uriUtils';
 
 export async function openFileByPath(path: string, uri = fileUriFromPath(path)): Promise<void> {
   const languageId = languageIdFromPath(path);

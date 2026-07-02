@@ -1,11 +1,8 @@
 import * as monaco from '@codingame/monaco-vscode-editor-api';
 import { type ProblemItem, useProblemsStore } from '../store/useProblemsStore';
+import { pathFromUri } from '../utils/uriUtils';
 
 let disposable: monaco.IDisposable | undefined;
-
-function pathFromUri(uri: monaco.Uri): string {
-  return uri.scheme === 'file' ? uri.fsPath : uri.toString();
-}
 
 function problemSeverity(markerSeverity: monaco.MarkerSeverity): ProblemItem['severity'] {
   if (markerSeverity === monaco.MarkerSeverity.Error) return 1;
