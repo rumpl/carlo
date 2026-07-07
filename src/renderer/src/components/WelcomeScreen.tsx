@@ -3,7 +3,7 @@ import { runCommand } from '../commands/registry';
 
 const shortcuts = [
   { label: 'Open File', keys: 'Ctrl+O', command: 'file.open' },
-  { label: 'Open Folder', keys: 'Command Palette', command: 'workspace.openFolder' },
+  { label: 'Open Folder', keys: 'Ctrl+Shift+P → Open Folder', command: 'workspace.openFolder' },
   { label: 'Quick Open', keys: 'Ctrl+P', command: 'workbench.action.quickOpen' },
 ];
 
