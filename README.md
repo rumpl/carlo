@@ -71,24 +71,22 @@ Use `null` for languages that should not start a server.
 
 ## Keyboard shortcuts
 
-| Shortcut | Action |
-| --- | --- |
-| `Ctrl+Shift+P` | Command palette |
-| `Ctrl+P` | Quick open file |
-| `Ctrl+O` | Open file |
-| `Ctrl+S` | Save |
-| `Ctrl+Shift+S` | Save as |
-| `Ctrl+W` | Close tab |
-| `Ctrl+Space` | Trigger suggestions |
-| `Ctrl+[` | Go back |
-| `Ctrl+]` | Go forward |
-| `Ctrl+Alt+Right` | Split editor right |
-| `Ctrl+Alt+Down` | Split editor down |
-| `Ctrl+=` | Zoom in |
-| `Ctrl+-` | Zoom out |
-| `Ctrl+0` | Reset zoom |
-
-On macOS, menu accelerators use `Cmd` where Electron maps `CmdOrCtrl`.
+| Shortcut (Linux/Windows) | Shortcut (macOS) | Action |
+| --- | --- | --- |
+| `Ctrl+Shift+P` | `Cmd+Shift+P` | Command palette |
+| `Ctrl+P` | `Cmd+P` | Quick open file |
+| `Ctrl+O` | `Cmd+O` | Open file |
+| `Ctrl+S` | `Cmd+S` | Save |
+| `Ctrl+Shift+S` | `Cmd+Shift+S` | Save as |
+| `Ctrl+W` | `Cmd+W` | Close tab |
+| `Ctrl+Space` | `Cmd+Space` | Trigger suggestions |
+| `Ctrl+[` | `Cmd+[` | Go back |
+| `Ctrl+]` | `Cmd+]` | Go forward |
+| `Ctrl+Alt+Right` | `Cmd+Option+Right` | Split editor right |
+| `Ctrl+Alt+Down` | `Cmd+Option+Down` | Split editor down |
+| `Ctrl+=` | `Cmd+=` | Zoom in |
+| `Ctrl+-` | `Cmd+-` | Zoom out |
+| `Ctrl+0` | `Cmd+0` | Reset zoom |
 
 ## Philosophy
 
