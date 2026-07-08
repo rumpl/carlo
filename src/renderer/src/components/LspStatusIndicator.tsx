@@ -13,9 +13,10 @@ const lspIcons: Record<string, string> = {
 
 interface LspStatusIndicatorProps {
   languageId: LanguageId | undefined;
+  rootUri: string | undefined;
 }
 
-export function LspStatusIndicator({ languageId }: LspStatusIndicatorProps) {
+export function LspStatusIndicator({ languageId, rootUri }: LspStatusIndicatorProps) {
   const [lsp, setLsp] = useState<{ status: LspStatus; detail?: string }>({ status: 'stopped' });
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export function LspStatusIndicator({ languageId }: LspStatusIndicatorProps) {
       }
       const service = await import('../lsp/LanguageClientService');
       if (disposed) return;
-      setLsp({ status: service.lspStatus(lang) as LspStatus, detail: service.lspStatusDetail(lang) });
+      setLsp({ status: service.lspStatus(lang, rootUri) as LspStatus, detail: service.lspStatusDetail(lang, rootUri) });
       unsubscribe ??= service.subscribeLspStatus(() => void update(lang));
     };
     void update(languageId).catch(console.error);
@@ -36,7 +37,7 @@ export function LspStatusIndicator({ languageId }: LspStatusIndicatorProps) {
       disposed = true;
       unsubscribe?.();
     };
-  }, [languageId]);
+  }, [languageId, rootUri]);
 
   return (
     <span
