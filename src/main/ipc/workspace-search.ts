@@ -90,7 +90,8 @@ async function searchWithRipgrep({
 
 async function searchFallback(rootPath: string, query: string, maxResults: number): Promise<WorkspaceSearchResult> {
   const matches: WorkspaceSearchMatch[] = [];
-  const needle = query.toLowerCase();
+  const isSmartCaseSensitive = query !== query.toLowerCase();
+  const needle = isSmartCaseSensitive ? query : query.toLowerCase();
 
   async function walk(path: string): Promise<void> {
     if (matches.length >= maxResults || isIgnoredPath(path, ignoredNames)) return;
@@ -107,9 +108,12 @@ async function searchFallback(rootPath: string, query: string, maxResults: numbe
     const lines = content.split(/\r?\n/);
     for (let index = 0; index < lines.length && matches.length < maxResults; index += 1) {
       const preview = lines[index]!;
-      const columnIndex = preview.toLowerCase().indexOf(needle);
-      if (columnIndex === -1) continue;
-      matches.push(matchResult(path, index + 1, columnIndex + 1, preview, columnIndex, columnIndex + query.length));
+      const haystack = isSmartCaseSensitive ? preview : preview.toLowerCase();
+      let columnIndex = haystack.indexOf(needle);
+      while (columnIndex !== -1 && matches.length < maxResults) {
+        matches.push(matchResult(path, index + 1, columnIndex + 1, preview, columnIndex, columnIndex + query.length));
+        columnIndex = haystack.indexOf(needle, columnIndex + query.length);
+      }
     }
   }
 
