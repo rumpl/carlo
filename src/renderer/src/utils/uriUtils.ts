@@ -1,11 +1,18 @@
-import * as monaco from '@codingame/monaco-vscode-editor-api';
+export interface UriLike {
+  scheme: string;
+  fsPath: string;
+  toString(): string;
+}
 
 /**
- * Returns a filesystem-friendly path string from a Monaco URI.
+ * Returns a filesystem-friendly path string from a URI-like object.
  * For `file://` URIs this returns `uri.fsPath`; for all other schemes
  * the full URI string is returned.
+ *
+ * The structural type keeps this utility usable with Monaco URI objects
+ * without statically importing Monaco into shell/store modules.
  */
-export function pathFromUri(uri: monaco.Uri): string {
+export function pathFromUri(uri: UriLike): string {
   return uri.scheme === 'file' ? uri.fsPath : uri.toString();
 }
 
