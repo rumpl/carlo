@@ -62,13 +62,20 @@ export function gitStatusForNode(
   if (directStatus || !isDirectory || !gitStatus) return directStatus;
 
   const directoryPrefix = `${normalizeGitStatusPath(path)}/`;
+  let descendantStatus: GitFileStatus | undefined;
+
   for (const [changedPath, changedStatus] of gitStatus.statuses) {
-    if (changedStatus === 'modified' && normalizeGitStatusPath(changedPath).startsWith(directoryPrefix)) {
-      return 'modified';
+    if (changedStatus === 'ignored' || !normalizeGitStatusPath(changedPath).startsWith(directoryPrefix)) {
+      continue;
+    }
+
+    if (!descendantStatus || gitStatusOrder[changedStatus] < gitStatusOrder[descendantStatus]) {
+      descendantStatus = changedStatus;
+      if (descendantStatus === 'conflict') break;
     }
   }
 
-  return undefined;
+  return descendantStatus;
 }
 
 export async function getGitStatusContext(path: string): Promise<GitStatusContext | undefined> {
