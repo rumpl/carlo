@@ -8,6 +8,7 @@ import type { TreeClipboard, TreeContextMenu, TreeCreatePrompt } from './types';
 import { hasValidChildName, parentDirectory } from './treeUtils';
 import { relativePath, titleFromPath } from '../../commands/builtin/pathUtils';
 import { fileUriFromPath } from '../../utils/uriUtils';
+import { loadAfterVscodeServices } from '../../vscode/servicesReady';
 
 type WorkspaceTree = ReturnType<typeof useWorkspaceTree>;
 
@@ -33,8 +34,10 @@ export function useFileTreeOperations({
 
   async function openNode(node: FileTreeNode): Promise<void> {
     const languageId = languageIdFromPath(node.path);
-    const file = await window.api.file.read(node.path);
-    const { getOrCreateModel } = await import('../../editor/models');
+    const [file, { getOrCreateModel }] = await Promise.all([
+      window.api.file.read(node.path),
+      loadAfterVscodeServices(() => import('../../editor/models')),
+    ]);
     getOrCreateModel(node.uri, file.content, languageId);
     useEditorStore
       .getState()
@@ -150,7 +153,7 @@ export function useFileTreeOperations({
         .getState()
         .tabs.filter((tab) => tab.path === oldPath || tab.path.startsWith(`${oldPath}${oldPath.includes('\\') ? '\\' : '/'}`));
       if (tabsToRename.length > 0) {
-        const { replaceModelUri, getModel } = await import('../../editor/models');
+        const { replaceModelUri, getModel } = await loadAfterVscodeServices(() => import('../../editor/models'));
         for (const tab of tabsToRename) {
           const nextPath = tab.path === oldPath ? result.path : `${result.path}${tab.path.slice(oldPath.length)}`;
           const content = getModel(tab.uri)?.getValue();

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { ActivityBar } from './components/ActivityBar';
 import { AppTitleBar } from './components/AppTitleBar';
 import { FileTree } from './components/FileTree';
@@ -7,7 +7,7 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { StatusBar } from './components/StatusBar';
 import { TabBar } from './components/TabBar';
 import { WelcomeScreen } from './components/WelcomeScreen';
-import { ensureVscodeServices } from './vscode/servicesReady';
+import { ensureVscodeServices, loadAfterVscodeServices } from './vscode/servicesReady';
 import { useKeybindings } from './hooks/useKeybindings';
 import { useSidebarResize } from './hooks/useSidebarResize';
 import { useWorkspaceExternalChanges } from './hooks/useWorkspaceExternalChanges';
@@ -19,13 +19,18 @@ import { isGitDiffUri } from './git/diffTabs';
 import { isMarkdownPreviewUri } from './markdown/previewTabs';
 
 const activityBarWidth = 42;
-const MonacoEditor = lazy(() => import('./editor/MonacoEditor').then((module) => ({ default: module.MonacoEditor })));
-const GitDiffEditor = lazy(() => import('./editor/GitDiffEditor').then((module) => ({ default: module.GitDiffEditor })));
+const MonacoEditor = lazy(() =>
+  loadAfterVscodeServices(() => import('./editor/MonacoEditor')).then((module) => ({ default: module.MonacoEditor })),
+);
+const GitDiffEditor = lazy(() =>
+  loadAfterVscodeServices(() => import('./editor/GitDiffEditor')).then((module) => ({ default: module.GitDiffEditor })),
+);
 const MarkdownPreview = lazy(() => import('./components/MarkdownPreview').then((module) => ({ default: module.MarkdownPreview })));
 
 export function App() {
   useKeybindings();
   useWorkspaceExternalChanges();
+  const [warmEditor, setWarmEditor] = useState(false);
   const groups = useEditorStore((state) => state.groups);
   const splitDirection = useEditorStore((state) => state.splitDirection);
   const sidebarVisible = useWorkbenchUiStore((state) => state.sidebarVisible);
@@ -42,6 +47,11 @@ export function App() {
         .catch(console.error);
     });
     return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const idleCallback = window.requestIdleCallback(() => setWarmEditor(true), { timeout: 500 });
+    return () => window.cancelIdleCallback(idleCallback);
   }, []);
 
   useEffect(() => {
@@ -94,9 +104,17 @@ export function App() {
                   <Suspense fallback={<div className="editor-stack" />}>
                     <MarkdownPreview groupId={group.id} />
                   </Suspense>
-                ) : hasActiveTab ? (
-                  <Suspense fallback={<div className="editor-stack" />}>
-                    <MonacoEditor groupId={group.id} />
+                ) : hasActiveTab || warmEditor ? (
+                  <Suspense
+                    fallback={
+                      <div className="editor-stack">
+                        {!hasActiveTab ? <WelcomeScreen /> : null}
+                      </div>
+                    }
+                  >
+                    <MonacoEditor groupId={group.id}>
+                      {!hasActiveTab ? <WelcomeScreen /> : null}
+                    </MonacoEditor>
                   </Suspense>
                 ) : (
                   <div className="editor-stack">

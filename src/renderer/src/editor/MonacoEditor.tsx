@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import type { ReactNode } from 'react';
 import { useEditorStore } from '../store/useEditorStore';
 import { setActiveEditorForGroup } from './editorRegistry';
 import { useActiveEditorModel } from './useActiveEditorModel';
@@ -7,9 +8,10 @@ import { useMonacoEditorInstance } from './useMonacoEditorInstance';
 
 interface Props {
   groupId: string;
+  children?: ReactNode;
 }
 
-export function MonacoEditor({ groupId }: Props) {
+export function MonacoEditor({ groupId, children }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const group = useEditorStore((state) => state.groups.find((candidate) => candidate.id === groupId));
   const markDirty = useEditorStore((state) => state.markDirty);
@@ -29,6 +31,7 @@ export function MonacoEditor({ groupId }: Props) {
           setActiveGroup(groupId);
         }}
       />
+      {children}
     </div>
   );
 }

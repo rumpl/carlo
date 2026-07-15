@@ -42,7 +42,7 @@ export function useActiveEditorModel({
         clearPendingReveal(groupId);
       }
       void updateGitGutter(editor, tab);
+      editor.focus();
     }
-    editor.focus();
   }, [groupId, activeTabId, editorVersion]);
 }
