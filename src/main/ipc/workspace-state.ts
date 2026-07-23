@@ -2,6 +2,7 @@ import { BrowserWindow, type IpcMainInvokeEvent } from 'electron';
 import { watch, type FSWatcher } from 'node:fs';
 import { join } from 'node:path';
 import { IPC } from '@shared/ipc';
+import { initialWorkspacePath } from '../workspace';
 import { ignoredWatchNames, isIgnoredPath } from './ignored-paths';
 
 interface WindowWorkspaceState {
@@ -25,6 +26,10 @@ export function workspaceStateFor(win: BrowserWindow): WindowWorkspaceState {
     windowWorkspaceStates.set(win.webContents.id, state);
   }
   return state;
+}
+
+export function workspaceRootFor(win: BrowserWindow): string {
+  return workspaceStateFor(win).initialRootPath ?? initialWorkspacePath();
 }
 
 export function registerWindowWorkspace(win: BrowserWindow, initialRootPath?: string): void {

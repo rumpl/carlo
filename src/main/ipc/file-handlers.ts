@@ -4,7 +4,6 @@ import { basename, dirname, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { IPC } from '@shared/ipc';
 import { languageIdFromPath } from '@shared/language-registry';
-import { initialWorkspacePath } from '../workspace';
 import {
   assertSafeChildName,
   isPathInsideOrEqual,
@@ -14,7 +13,12 @@ import {
 } from './file-operations';
 import { getGitStatusContext } from './git-status';
 import { searchWorkspace } from './workspace-search';
-import { ensureWorkspaceWatcher, windowFromEvent, workspaceStateFor } from './workspace-state';
+import {
+  ensureWorkspaceWatcher,
+  windowFromEvent,
+  workspaceRootFor,
+  workspaceStateFor,
+} from './workspace-state';
 import { listTree } from './workspace-tree';
 import type {
   FileCopyRequest,
@@ -142,7 +146,7 @@ export function registerFileHandlers(): void {
 
   ipcMain.handle(IPC.workspaceCurrentFolder, async (event) => {
     const win = windowFromEvent(event);
-    const rootPath = workspaceStateFor(win).initialRootPath ?? initialWorkspacePath();
+    const rootPath = workspaceRootFor(win);
     ensureWorkspaceWatcher(win, rootPath);
     return { rootPath, rootUri: pathToFileURL(rootPath).toString(), name: basename(rootPath) };
   });
@@ -169,5 +173,8 @@ export function registerFileHandlers(): void {
     },
   );
 
-  ipcMain.handle(IPC.workspaceSearch, async (_event, request: WorkspaceSearchRequest) => searchWorkspace(request));
+  ipcMain.handle(IPC.workspaceSearch, async (event, request: WorkspaceSearchRequest) => {
+    const rootPath = workspaceRootFor(windowFromEvent(event));
+    return searchWorkspace(rootPath, request);
+  });
 }
