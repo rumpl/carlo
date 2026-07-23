@@ -4,6 +4,7 @@ import { renderMarkdown } from '../markdown/renderMarkdown';
 import { sourceUriFromMarkdownPreviewUri } from '../markdown/previewTabs';
 import {
   localMarkdownAssetPath,
+  markdownAnchorUrl,
   markdownImageUrls,
   resolveMarkdownUrl,
 } from '../markdown/markdownPathUtils';
@@ -101,7 +102,8 @@ export function MarkdownPreview({ groupId }: Props) {
     [content, imageDataUrls, tab?.path],
   );
 
-  if (!sourceUri || !tab) return <div className="markdown-preview empty">No markdown file selected.</div>;
+  if (!sourceUri || !tab)
+    return <div className="markdown-preview empty">No markdown file selected.</div>;
 
   return (
     <div className="markdown-preview">
@@ -121,7 +123,9 @@ export function MarkdownPreview({ groupId }: Props) {
             event.preventDefault();
             const href = anchor.getAttribute('href');
             if (!href || href.startsWith('#')) return;
-            void window.api.shell.openExternal(href).catch(console.error);
+            const externalUrl = markdownAnchorUrl(href);
+            if (!externalUrl || externalUrl.startsWith('#')) return;
+            void window.api.shell.openExternal(externalUrl).catch(console.error);
           }}
         />
       )}

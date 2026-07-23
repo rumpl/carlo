@@ -28,7 +28,7 @@ export function forgetWindowCloseState(webContentsId: number): void {
   closeConfirmedWindowIds.delete(webContentsId);
 }
 
-const allowedExternalProtocols = new Set(['http:', 'https:']);
+const allowedExternalProtocols = new Set(['http:', 'https:', 'mailto:']);
 
 interface ShellOpenExternalRequest {
   url: string;
@@ -38,6 +38,7 @@ export function safeExternalUrl(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;
 
   try {
+    decodeURI(value);
     const url = new URL(value);
     return allowedExternalProtocols.has(url.protocol) ? url.toString() : undefined;
   } catch {
