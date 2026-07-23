@@ -96,6 +96,14 @@ export function setEditorsWordWrap(enabled: boolean): void {
 }
 
 
+export function refreshVisibleGitGuttersForUri(uri: string): void {
+  const tab = useEditorStore.getState().tabs.find((candidate) => candidate.uri === uri);
+  if (!tab) return;
+  for (const editor of editors.values()) {
+    if (editor.getModel()?.uri.toString() === uri) void updateGitGutter(editor, tab);
+  }
+}
+
 export function refreshVisibleGitGuttersForPath(path: string): void {
   const tabs = useEditorStore.getState().tabs.filter((tab) => tab.path === path);
   for (const editor of editors.values()) {
