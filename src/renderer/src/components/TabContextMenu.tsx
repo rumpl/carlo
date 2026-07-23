@@ -13,6 +13,7 @@ interface Props {
   onRunAction: (action: () => void | Promise<void>) => void;
   onSetActive: (tabId: string, groupId: string) => void;
   onCloseTabsWithPrompt: (tabs: EditorTab[]) => Promise<void>;
+  onCloseSavedTabs: (tabs: EditorTab[]) => Promise<void>;
 }
 
 export function TabContextMenu({
@@ -24,6 +25,7 @@ export function TabContextMenu({
   onRunAction,
   onSetActive,
   onCloseTabsWithPrompt,
+  onCloseSavedTabs,
 }: Props) {
   const contextTabIndex = groupTabs.findIndex((tab) => tab.id === contextMenu.tab.id);
   const tabsToRight = contextTabIndex >= 0 ? groupTabs.slice(contextTabIndex + 1) : [];
@@ -65,7 +67,7 @@ export function TabContextMenu({
       <button
         type="button"
         disabled={savedTabs.length === 0}
-        onClick={() => onRunAction(() => onCloseTabsWithPrompt(savedTabs))}
+        onClick={() => onRunAction(() => onCloseSavedTabs(savedTabs))}
       >
         Close Saved
       </button>
