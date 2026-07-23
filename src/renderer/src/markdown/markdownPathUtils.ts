@@ -1,3 +1,47 @@
+const externalLinkProtocols = new Set(['http:', 'https:', 'mailto:']);
+const externalImageProtocols = new Set(['http:', 'https:']);
+
+function urlWithAllowedProtocol(value: string, protocols: ReadonlySet<string>): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed || /[\u0000-\u001f\u007f]/.test(trimmed)) return undefined;
+
+  try {
+    decodeURI(trimmed);
+    const parsed = new URL(trimmed);
+    return protocols.has(parsed.protocol) ? parsed.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function markdownAnchorUrl(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (trimmed.startsWith('#') && !/[\u0000-\u001f\u007f]/.test(trimmed)) return trimmed;
+  return urlWithAllowedProtocol(trimmed, externalLinkProtocols);
+}
+
+export function markdownLocalResourceUrl(value: string): string | undefined {
+  try {
+    decodeURI(value);
+    const parsed = new URL(value);
+    return parsed.protocol === 'carlo-file:' && !parsed.username && !parsed.password
+      ? parsed.toString()
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function markdownExternalImageUrl(value: string): string | undefined {
+  return urlWithAllowedProtocol(value, externalImageProtocols);
+}
+
+export function isSafeResolvedMarkdownImageUrl(value: string): boolean {
+  if (/^data:image\/(?:apng|avif|gif|jpeg|png|svg\+xml|webp);base64,[a-z0-9+/]+=*$/i.test(value))
+    return true;
+  return Boolean(markdownLocalResourceUrl(value));
+}
+
 export function dirname(path: string): string {
   return path.replace(/[\\/]+$/, '').replace(/[\\/][^\\/]*$/, '');
 }
@@ -9,7 +53,10 @@ export function isAbsoluteFilePath(path: string): boolean {
 export function pathToLocalResourceUrl(path: string): string {
   const normalized = path.replaceAll('\\', '/');
   const withLeadingSlash = normalized.startsWith('/') ? normalized : `/${normalized}`;
-  return `carlo-file://${withLeadingSlash.split('/').map((part) => encodeURIComponent(part)).join('/')}`;
+  return `carlo-file://${withLeadingSlash
+    .split('/')
+    .map((part) => encodeURIComponent(part))
+    .join('/')}`;
 }
 
 export function normalizePath(path: string): string {
@@ -23,31 +70,46 @@ export function normalizePath(path: string): string {
 }
 
 export function localMarkdownAssetPath(markdownPath: string, url: string): string | undefined {
-  if (/^(https?|file|mailto|data):/i.test(url) || url.startsWith('#')) return undefined;
+  const trimmed = url.trim();
+  if (
+    !trimmed ||
+    trimmed.startsWith('#') ||
+    trimmed.startsWith('//') ||
+    isAbsoluteFilePath(trimmed) ||
+    /^[A-Za-z][A-Za-z\d+.-]*:/.test(trimmed) ||
+    /[\u0000-\u001f\u007f]/.test(trimmed)
+  ) {
+    return undefined;
+  }
 
-  const suffixIndex = url.search(/[?#]/);
-  const pathPart = suffixIndex >= 0 ? url.slice(0, suffixIndex) : url;
+  const suffixIndex = trimmed.search(/[?#]/);
+  const pathPart = suffixIndex >= 0 ? trimmed.slice(0, suffixIndex) : trimmed;
   if (!pathPart) return undefined;
 
-  let decodedPath = pathPart;
+  let decodedPath: string;
   try {
     decodedPath = decodeURI(pathPart);
   } catch {
-    // Keep the original path if the markdown contains a malformed escape.
+    return undefined;
   }
-  return isAbsoluteFilePath(decodedPath)
-    ? normalizePath(decodedPath)
-    : normalizePath(`${dirname(markdownPath)}/${decodedPath}`);
+  if (isAbsoluteFilePath(decodedPath)) return undefined;
+  return normalizePath(`${dirname(markdownPath)}/${decodedPath}`);
 }
 
-export function resolveMarkdownUrl(markdownPath: string, url: string): string {
+export function resolveMarkdownUrl(markdownPath: string, url: string): string | undefined {
   const localPath = localMarkdownAssetPath(markdownPath, url);
-  if (!localPath) return url;
+  if (!localPath) return undefined;
   const suffixIndex = url.search(/[?#]/);
   const suffix = suffixIndex >= 0 ? url.slice(suffixIndex) : '';
   return `${pathToLocalResourceUrl(localPath)}${suffix}`;
 }
 
 export function markdownImageUrls(markdown: string): string[] {
-  return [...new Set([...markdown.matchAll(/!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)].map((match) => match[1]!).filter(Boolean))];
+  return [
+    ...new Set(
+      [...markdown.matchAll(/!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)]
+        .map((match) => match[1]!)
+        .filter(Boolean),
+    ),
+  ];
 }

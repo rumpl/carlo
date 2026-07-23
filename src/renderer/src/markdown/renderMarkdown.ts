@@ -1,3 +1,10 @@
+import {
+  isSafeResolvedMarkdownImageUrl,
+  markdownAnchorUrl,
+  markdownExternalImageUrl,
+  markdownLocalResourceUrl,
+} from './markdownPathUtils';
+
 function escapeHtml(value: string): string {
   return value
     .replaceAll('&', '&amp;')
@@ -8,35 +15,47 @@ function escapeHtml(value: string): string {
 }
 
 interface RenderMarkdownOptions {
-  resolveUrl?: (url: string) => string;
-  resolveImageUrl?: (url: string) => string;
+  resolveUrl?: (url: string) => string | undefined;
+  resolveImageUrl?: (url: string) => string | undefined;
 }
 
 function safeUrl(value: string, options: RenderMarkdownOptions): string | undefined {
   const trimmed = value.trim();
-  if (!trimmed) return undefined;
-  if (/^(javascript|data|vbscript):/i.test(trimmed)) return undefined;
-  return escapeHtml(options.resolveUrl?.(trimmed) ?? trimmed);
+  const directUrl = markdownAnchorUrl(trimmed);
+  if (directUrl) return escapeHtml(directUrl);
+
+  const resolved = options.resolveUrl?.(trimmed);
+  const localUrl = resolved ? markdownLocalResourceUrl(resolved) : undefined;
+  return localUrl ? escapeHtml(localUrl) : undefined;
 }
 
 function safeImageUrl(value: string, options: RenderMarkdownOptions): string | undefined {
   const trimmed = value.trim();
-  if (/^(file|carlo-file):/i.test(trimmed)) return undefined;
-  return safeUrl(trimmed, { ...options, resolveUrl: options.resolveImageUrl ?? options.resolveUrl });
+  const externalUrl = markdownExternalImageUrl(trimmed);
+  if (externalUrl) return escapeHtml(externalUrl);
+
+  const resolved = options.resolveImageUrl?.(trimmed);
+  return resolved && isSafeResolvedMarkdownImageUrl(resolved) ? escapeHtml(resolved) : undefined;
 }
 
 function inlineMarkdown(value: string, options: RenderMarkdownOptions): string {
   let html = escapeHtml(value);
 
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-  html = html.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g, (_match, alt: string, url: string) => {
-    const src = safeImageUrl(url, options);
-    return src ? `<img src="${src}" alt="${alt}">` : alt;
-  });
-  html = html.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g, (_match, text: string, url: string) => {
-    const href = safeUrl(url, options);
-    return href ? `<a href="${href}" rel="noreferrer">${text}</a>` : text;
-  });
+  html = html.replace(
+    /!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g,
+    (_match, alt: string, url: string) => {
+      const src = safeImageUrl(url, options);
+      return src ? `<img src="${src}" alt="${alt}">` : alt;
+    },
+  );
+  html = html.replace(
+    /\[([^\]]+)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g,
+    (_match, text: string, url: string) => {
+      const href = safeUrl(url, options);
+      return href ? `<a href="${href}" rel="noreferrer">${text}</a>` : text;
+    },
+  );
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
   html = html.replace(/(^|\W)\*([^*]+)\*(?=\W|$)/g, '$1<em>$2</em>');
@@ -108,7 +127,9 @@ export function renderMarkdown(markdown: string, options: RenderMarkdownOptions 
     if (/^[-*+]\s+/.test(line)) {
       const items: string[] = [];
       while (index < lines.length && /^[-*+]\s+/.test(lines[index] ?? '')) {
-        items.push(`<li>${inlineMarkdown((lines[index] ?? '').replace(/^[-*+]\s+/, ''), options)}</li>`);
+        items.push(
+          `<li>${inlineMarkdown((lines[index] ?? '').replace(/^[-*+]\s+/, ''), options)}</li>`,
+        );
         index += 1;
       }
       index -= 1;
@@ -119,7 +140,9 @@ export function renderMarkdown(markdown: string, options: RenderMarkdownOptions 
     if (/^\d+[.)]\s+/.test(line)) {
       const items: string[] = [];
       while (index < lines.length && /^\d+[.)]\s+/.test(lines[index] ?? '')) {
-        items.push(`<li>${inlineMarkdown((lines[index] ?? '').replace(/^\d+[.)]\s+/, ''), options)}</li>`);
+        items.push(
+          `<li>${inlineMarkdown((lines[index] ?? '').replace(/^\d+[.)]\s+/, ''), options)}</li>`,
+        );
         index += 1;
       }
       index -= 1;
