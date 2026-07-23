@@ -2,6 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FileTreeNode, WorkspaceFolderResult } from '@shared/file-types';
 import { findNode, normalizePath, replaceNodeChildren } from './treeUtils';
 
+function isWorkspaceDescendant(normalizedPath: string, normalizedRoot: string): boolean {
+  return normalizedPath.startsWith(`${normalizedRoot}/`);
+}
+
 export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const expandedPathsRef = useRef<Set<string>>(new Set());
@@ -39,7 +43,8 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
           .filter((path) => {
             const normalizedPath = normalizePath(path);
             return (
-              normalizedPath !== normalizedRoot && normalizedPath.startsWith(`${normalizedRoot}/`)
+              normalizedPath !== normalizedRoot &&
+              isWorkspaceDescendant(normalizedPath, normalizedRoot)
             );
           })
           .sort((a, b) => a.length - b.length);
@@ -95,6 +100,8 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
       }
 
       const normalizedPath = normalizePath(path);
+      if (!isWorkspaceDescendant(normalizedPath, normalizedRoot)) return;
+
       fullLoadRequestIdRef.current += 1;
       setLoading(false);
       const requestId = ++directoryRequestIdRef.current;
@@ -103,6 +110,7 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
       setNodes((currentNodes) => {
         if (
           workspaceRootRef.current !== normalizedRoot ||
+          !isWorkspaceDescendant(normalizedPath, normalizedRoot) ||
           directoryRequestsRef.current.get(normalizedPath) !== requestId
         ) {
           return currentNodes;
@@ -117,7 +125,13 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
     async (node: FileTreeNode): Promise<void> => {
       if (!workspace) return;
       const normalizedRoot = normalizePath(workspace.rootPath);
-      if (workspaceRootRef.current !== normalizedRoot) return;
+      const normalizedPath = normalizePath(node.path);
+      if (
+        workspaceRootRef.current !== normalizedRoot ||
+        !isWorkspaceDescendant(normalizedPath, normalizedRoot)
+      ) {
+        return;
+      }
 
       const shouldExpand = !expandedPaths.has(node.path);
       setExpandedPaths((paths) => {
@@ -128,7 +142,6 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
       });
       if (!shouldExpand || node.children !== undefined) return;
 
-      const normalizedPath = normalizePath(node.path);
       fullLoadRequestIdRef.current += 1;
       setLoading(false);
       const requestId = ++directoryRequestIdRef.current;
@@ -139,6 +152,7 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
         setNodes((currentNodes) => {
           if (
             workspaceRootRef.current !== normalizedRoot ||
+            !isWorkspaceDescendant(normalizedPath, normalizedRoot) ||
             directoryRequestsRef.current.get(normalizedPath) !== requestId
           ) {
             return currentNodes;
@@ -156,13 +170,16 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
     async (path: string): Promise<void> => {
       if (!workspace) return;
       const normalizedRoot = normalizePath(workspace.rootPath);
-      if (workspaceRootRef.current !== normalizedRoot || normalizePath(path) === normalizedRoot) {
+      const normalizedPath = normalizePath(path);
+      if (
+        workspaceRootRef.current !== normalizedRoot ||
+        !isWorkspaceDescendant(normalizedPath, normalizedRoot)
+      ) {
         return;
       }
       const node = findNode(nodes, path);
       if (node?.type !== 'directory' || node.children !== undefined) return;
 
-      const normalizedPath = normalizePath(path);
       fullLoadRequestIdRef.current += 1;
       setLoading(false);
       const requestId = ++directoryRequestIdRef.current;
@@ -171,6 +188,7 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
       setNodes((currentNodes) => {
         if (
           workspaceRootRef.current !== normalizedRoot ||
+          !isWorkspaceDescendant(normalizedPath, normalizedRoot) ||
           directoryRequestsRef.current.get(normalizedPath) !== requestId
         ) {
           return currentNodes;
