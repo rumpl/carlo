@@ -14,12 +14,11 @@ interface Props {
 export function MonacoEditor({ groupId, children }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const group = useEditorStore((state) => state.groups.find((candidate) => candidate.id === groupId));
-  const markDirty = useEditorStore((state) => state.markDirty);
   const setActiveGroup = useEditorStore((state) => state.setActiveGroup);
   const editorVersion = useMonacoEditorInstance({ groupId, containerRef, setActiveGroup });
 
   useActiveEditorModel({ groupId, activeTabId: group?.activeTabId ?? undefined, editorVersion });
-  useModelDirtyTracking({ groupId, activeTabId: group?.activeTabId ?? undefined, editorVersion, markDirty });
+  useModelDirtyTracking();
 
   return (
     <div className="editor-stack">
