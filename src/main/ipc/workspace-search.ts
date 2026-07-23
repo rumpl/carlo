@@ -60,7 +60,7 @@ async function searchWithRipgrep({
   rootPath,
   query,
   maxResults = 500,
-}: WorkspaceSearchRequest): Promise<WorkspaceSearchResult> {
+}: WorkspaceSearchRequest & { rootPath: string }): Promise<WorkspaceSearchResult> {
   const ignoredGlob = `!{${[...ignoredNames].join(',')}}/**`;
   const args = [
     '--json',
@@ -121,15 +121,18 @@ async function searchFallback(rootPath: string, query: string, maxResults: numbe
   return { matches, truncated: matches.length >= maxResults };
 }
 
-export async function searchWorkspace(request: WorkspaceSearchRequest): Promise<WorkspaceSearchResult> {
+export async function searchWorkspace(
+  rootPath: string,
+  request: WorkspaceSearchRequest,
+): Promise<WorkspaceSearchResult> {
   const query = request.query.trim();
   const maxResults = Math.min(Math.max(request.maxResults ?? 500, 1), 2000);
   if (!query) return { matches: [], truncated: false };
   try {
-    return await searchWithRipgrep({ ...request, query, maxResults });
+    return await searchWithRipgrep({ ...request, rootPath, query, maxResults });
   } catch (error) {
     const maybeError = error as NodeJS.ErrnoException;
     if (maybeError.code !== 'ENOENT') console.error('workspace search failed, falling back', error);
-    return searchFallback(request.rootPath, query, maxResults);
+    return searchFallback(rootPath, query, maxResults);
   }
 }

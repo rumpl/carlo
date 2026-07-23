@@ -50,7 +50,6 @@ export function SearchPanel() {
     setError(null);
     try {
       const result = await window.api.workspace.search({
-        rootPath: workspace.rootPath,
         query: trimmedQuery,
         maxResults: 500,
       });

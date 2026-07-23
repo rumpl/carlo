@@ -109,7 +109,6 @@ export interface GitStatusResult {
 }
 
 export interface WorkspaceSearchRequest {
-  rootPath: string;
   query: string;
   maxResults?: number;
 }
