@@ -137,7 +137,9 @@ export const api = Object.freeze({
   },
   shell: {
     openExternal: (url: string) =>
-      ipcRenderer.invoke(IPC.shellOpenExternal, { url }) as Promise<{ ok: true }>,
+      ipcRenderer.invoke(IPC.shellOpenExternal, { url }) as Promise<
+        { ok: true } | { ok: false; error: string }
+      >,
   },
 });
 

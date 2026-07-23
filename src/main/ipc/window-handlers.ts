@@ -28,6 +28,23 @@ export function forgetWindowCloseState(webContentsId: number): void {
   closeConfirmedWindowIds.delete(webContentsId);
 }
 
+const allowedExternalProtocols = new Set(['http:', 'https:']);
+
+interface ShellOpenExternalRequest {
+  url: string;
+}
+
+export function safeExternalUrl(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+
+  try {
+    const url = new URL(value);
+    return allowedExternalProtocols.has(url.protocol) ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function registerWindowHandlers(): void {
   ipcMain.handle(IPC.windowZoomIn, (event) => {
     const nextZoomLevel = clamp(event.sender.getZoomLevel() + zoomStep);
@@ -80,8 +97,11 @@ export function registerWindowHandlers(): void {
     return { ok: true };
   });
 
-  ipcMain.handle(IPC.shellOpenExternal, async (_event, { url }: { url: string }) => {
+  ipcMain.handle(IPC.shellOpenExternal, async (_event, request: ShellOpenExternalRequest) => {
+    const url = safeExternalUrl(request?.url);
+    if (!url) return { ok: false as const, error: 'Unsupported external URL.' };
+
     await shell.openExternal(url);
-    return { ok: true };
+    return { ok: true as const };
   });
 }
