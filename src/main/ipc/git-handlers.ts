@@ -4,6 +4,7 @@ import { IPC } from '@shared/ipc';
 import type { GitBaselineResult, GitStatusResult } from '@shared/file-types';
 import { gitExec, gitExecRaw } from './git-exec';
 import { getGitStatus } from './git-status';
+import { authorizeWindowPath, windowFromEvent } from './workspace-state';
 
 async function resolveBaselineContent(path: string): Promise<GitBaselineResult> {
   const cwd = dirname(path);
@@ -31,15 +32,21 @@ async function resolveBaselineContent(path: string): Promise<GitBaselineResult> 
 }
 
 export function registerGitHandlers(): void {
-  ipcMain.handle(IPC.gitStatus, async (_event, { rootPath }: { rootPath: string }): Promise<GitStatusResult> =>
-    getGitStatus(rootPath),
+  ipcMain.handle(
+    IPC.gitStatus,
+    async (event, { rootPath }: { rootPath: string }): Promise<GitStatusResult> =>
+      getGitStatus(await authorizeWindowPath(windowFromEvent(event), rootPath)),
   );
 
-  ipcMain.handle(IPC.gitBaseline, async (_event, { path }: { path: string }): Promise<GitBaselineResult> => {
-    try {
-      return await resolveBaselineContent(path);
-    } catch {
-      return { isGitRepo: false, tracked: false };
-    }
-  });
+  ipcMain.handle(
+    IPC.gitBaseline,
+    async (event, { path }: { path: string }): Promise<GitBaselineResult> => {
+      const authorizedPath = await authorizeWindowPath(windowFromEvent(event), path);
+      try {
+        return await resolveBaselineContent(authorizedPath);
+      } catch {
+        return { isGitRepo: false, tracked: false };
+      }
+    },
+  );
 }

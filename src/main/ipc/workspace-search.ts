@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { readdir, readFile, stat } from 'node:fs/promises';
+import { readdir, readFile, lstat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
@@ -99,8 +99,8 @@ async function searchFallback(rootPath: string, query: string, maxResults: numbe
 
   async function walk(path: string): Promise<void> {
     if (matches.length >= detectionLimit || isIgnoredPath(path, ignoredNames)) return;
-    const stats = await stat(path).catch(() => undefined);
-    if (!stats) return;
+    const stats = await lstat(path).catch(() => undefined);
+    if (!stats || stats.isSymbolicLink()) return;
     if (stats.isDirectory()) {
       const entries = await readdir(path).catch(() => []);
       for (const entry of entries) await walk(join(path, entry));
