@@ -2,7 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { getModel } from '../editor/models';
 import { renderMarkdown } from '../markdown/renderMarkdown';
 import { sourceUriFromMarkdownPreviewUri } from '../markdown/previewTabs';
-import { localMarkdownAssetPath, markdownImageUrls, resolveMarkdownUrl } from '../markdown/markdownPathUtils';
+import {
+  localMarkdownAssetPath,
+  markdownImageUrls,
+  resolveMarkdownUrl,
+} from '../markdown/markdownPathUtils';
 import { useEditorStore } from '../store/useEditorStore';
 
 interface Props {
@@ -72,7 +76,11 @@ export function MarkdownPreview({ groupId }: Props) {
       }),
     ).then((results) => {
       if (cancelled) return;
-      setImageDataUrls(Object.fromEntries(results.filter((entry): entry is readonly [string, string] => Boolean(entry))));
+      setImageDataUrls(
+        Object.fromEntries(
+          results.filter((entry): entry is readonly [string, string] => Boolean(entry)),
+        ),
+      );
     });
 
     return () => {
@@ -84,7 +92,11 @@ export function MarkdownPreview({ groupId }: Props) {
     () =>
       renderMarkdown(content, {
         resolveUrl: (url) => resolveMarkdownUrl(tab?.path ?? '', url),
-        resolveImageUrl: (url) => imageDataUrls[url] ?? resolveMarkdownUrl(tab?.path ?? '', url),
+        resolveImageUrl: (url) => {
+          const dataUrl = imageDataUrls[url];
+          if (dataUrl) return dataUrl;
+          return localMarkdownAssetPath(tab?.path ?? '', url) ? '' : url;
+        },
       }),
     [content, imageDataUrls, tab?.path],
   );

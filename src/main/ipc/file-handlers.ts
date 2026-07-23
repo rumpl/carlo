@@ -1,5 +1,5 @@
 import { dialog, ipcMain, shell } from 'electron';
-import { cp, mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { cp, mkdir, open, readFile, realpath, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { IPC } from '@shared/ipc';
@@ -45,8 +45,33 @@ const imageMimeTypes: Record<string, string> = {
   '.webp': 'image/webp',
 };
 
-function mimeTypeForPath(path: string): string {
-  return imageMimeTypes[extname(path).toLowerCase()] ?? 'application/octet-stream';
+const maxImageFileSize = 10 * 1024 * 1024;
+
+function mimeTypeForPath(path: string): string | undefined {
+  return imageMimeTypes[extname(path).toLowerCase()];
+}
+
+async function readWorkspaceImageDataUrl(path: string, workspaceRoot: string): Promise<string> {
+  const mimeType = mimeTypeForPath(path);
+  if (!mimeType) throw new Error('Unsupported image type');
+
+  const [resolvedPath, resolvedRoot] = await Promise.all([realpath(path), realpath(workspaceRoot)]);
+  if (!isPathInsideOrEqual(resolvedPath, resolvedRoot)) {
+    throw new Error('Image is outside the current workspace');
+  }
+
+  const file = await open(resolvedPath, 'r');
+  try {
+    const fileStats = await file.stat();
+    if (!fileStats.isFile()) throw new Error('Image path is not a file');
+    if (fileStats.size > maxImageFileSize) throw new Error('Image exceeds the 10 MiB size limit');
+    const content = await file.readFile();
+    if (content.byteLength > maxImageFileSize)
+      throw new Error('Image exceeds the 10 MiB size limit');
+    return `data:${mimeType};base64,${content.toString('base64')}`;
+  } finally {
+    await file.close();
+  }
 }
 
 export function registerFileHandlers(): void {
@@ -68,9 +93,10 @@ export function registerFileHandlers(): void {
     content: await readFile(path, 'utf8'),
   }));
 
-  ipcMain.handle(IPC.fileReadDataUrl, async (_event, { path }: ReadFileRequest) => {
-    const content = await readFile(path);
-    return { dataUrl: `data:${mimeTypeForPath(path)};base64,${content.toString('base64')}` };
+  ipcMain.handle(IPC.fileReadDataUrl, async (event, { path }: ReadFileRequest) => {
+    const win = windowFromEvent(event);
+    const workspaceRoot = workspaceStateFor(win).initialRootPath ?? initialWorkspacePath();
+    return { dataUrl: await readWorkspaceImageDataUrl(path, workspaceRoot) };
   });
 
   ipcMain.handle(IPC.fileSave, async (_event, { path, content }: SaveFileRequest) => {
