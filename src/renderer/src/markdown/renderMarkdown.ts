@@ -19,12 +19,18 @@ function safeUrl(value: string, options: RenderMarkdownOptions): string | undefi
   return escapeHtml(options.resolveUrl?.(trimmed) ?? trimmed);
 }
 
+function safeImageUrl(value: string, options: RenderMarkdownOptions): string | undefined {
+  const trimmed = value.trim();
+  if (/^(file|carlo-file):/i.test(trimmed)) return undefined;
+  return safeUrl(trimmed, { ...options, resolveUrl: options.resolveImageUrl ?? options.resolveUrl });
+}
+
 function inlineMarkdown(value: string, options: RenderMarkdownOptions): string {
   let html = escapeHtml(value);
 
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
   html = html.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g, (_match, alt: string, url: string) => {
-    const src = safeUrl(url, { ...options, resolveUrl: options.resolveImageUrl ?? options.resolveUrl });
+    const src = safeImageUrl(url, options);
     return src ? `<img src="${src}" alt="${alt}">` : alt;
   });
   html = html.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g, (_match, text: string, url: string) => {
