@@ -84,6 +84,25 @@ function updateRecentFiles(files: RecentFile[], file: RecentFile): RecentFile[] 
   return next;
 }
 
+function replaceRecentFile(files: RecentFile[], oldUri: string, file: RecentFile): RecentFile[] {
+  const oldIndex = files.findIndex((candidate) => candidate.uri === oldUri);
+  if (oldIndex === -1) return updateRecentFiles(files, file);
+
+  const next = files
+    .map((candidate, index) => (index === oldIndex ? file : candidate))
+    .filter((candidate, index) => candidate.uri !== file.uri || index === oldIndex)
+    .slice(0, maxRecentFiles);
+  storeRecentFiles(next);
+  return next;
+}
+
+function renamedPath(path: string, oldPath: string, newPath: string): string | undefined {
+  if (path === oldPath) return newPath;
+  const oldPrefix = `${oldPath}${oldPath.includes('\\') ? '\\' : '/'}`;
+  if (!path.startsWith(oldPrefix)) return undefined;
+  return `${newPath}${path.slice(oldPath.length)}`;
+}
+
 function currentActiveTabId(groups: EditorGroup[], activeGroupId: string): string | null {
   return groups.find((group) => group.id === activeGroupId)?.activeTabId ?? null;
 }
@@ -184,48 +203,45 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   markDirty: (uri) =>
     set((state) => ({ tabs: state.tabs.map((tab) => (tab.uri === uri ? { ...tab, dirty: true } : tab)) })),
   markSaved: (uri, savedAs) =>
-    set((state) => ({
-      tabs: state.tabs.map((tab) =>
-        tab.uri === uri
-          ? {
-              ...tab,
-              uri: savedAs?.uri ?? tab.uri,
-              languageId: savedAs?.languageId ?? tab.languageId,
-              dirty: false,
-              path: savedAs?.path ?? tab.path,
-              title: savedAs ? titleFromPath(savedAs.path) : tab.title,
-            }
-          : tab,
-      ),
-    })),
+    set((state) => {
+      const savedTab = state.tabs.find((tab) => tab.uri === uri);
+      if (!savedTab) return {};
+
+      const nextTab = {
+        ...savedTab,
+        uri: savedAs?.uri ?? savedTab.uri,
+        languageId: savedAs?.languageId ?? savedTab.languageId,
+        dirty: false,
+        path: savedAs?.path ?? savedTab.path,
+        title: savedAs ? titleFromPath(savedAs.path) : savedTab.title,
+      };
+      return {
+        tabs: state.tabs.map((tab) => (tab.uri === uri ? nextTab : tab)),
+        recentFiles: savedAs
+          ? replaceRecentFile(state.recentFiles, uri, nextTab)
+          : state.recentFiles,
+      };
+    }),
   updateRenamedPath: (oldPath, newPath, newUri) =>
-    set((state) => ({
-      tabs: state.tabs.map((tab) => {
-        if (tab.path === oldPath) {
-          return {
-            ...tab,
-            path: newPath,
-            uri: newUri,
-            languageId: languageIdFromPath(newPath),
-            title: titleFromPath(newPath),
-          };
-        }
-        const oldPrefix = `${oldPath}${oldPath.includes('\\') ? '\\' : '/'}`;
-        if (!tab.path.startsWith(oldPrefix)) return tab;
-        const path = `${newPath}${tab.path.slice(oldPath.length)}`;
+    set((state) => {
+      const renameFile = <T extends RecentFile>(file: T): T => {
+        const path = renamedPath(file.path, oldPath, newPath);
+        if (!path) return file;
         return {
-          ...tab,
+          ...file,
           path,
-          uri: fileUriFromPath(path),
+          uri: file.path === oldPath ? newUri : fileUriFromPath(path),
           languageId: languageIdFromPath(path),
           title: titleFromPath(path),
         };
-      }),
-      recentFiles: state.recentFiles.map((file) => {
-        if (file.path !== oldPath) return file;
-        return { ...file, path: newPath, uri: newUri, languageId: languageIdFromPath(newPath), title: titleFromPath(newPath) };
-      }),
-    })),
+      };
+      const recentFiles = state.recentFiles.map(renameFile);
+      storeRecentFiles(recentFiles);
+      return {
+        tabs: state.tabs.map(renameFile),
+        recentFiles,
+      };
+    }),
 }));
 
 export function activeTab(): EditorTab | undefined {
