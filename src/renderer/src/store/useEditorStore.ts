@@ -263,7 +263,15 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           title: titleFromPath(path),
         };
       };
-      const recentFiles = state.recentFiles.map(renameFile);
+      const seenRecentUris = new Set<string>();
+      const recentFiles = state.recentFiles
+        .map(renameFile)
+        .filter((file) => {
+          if (seenRecentUris.has(file.uri)) return false;
+          seenRecentUris.add(file.uri);
+          return true;
+        })
+        .slice(0, maxRecentFiles);
       storeRecentFiles(recentFiles);
       return {
         tabs: state.tabs.map(renameFile),
