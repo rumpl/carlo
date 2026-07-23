@@ -159,8 +159,8 @@ export function useFileTreeOperations({
           const content = getModel(tab.uri)?.getValue();
           if (content !== undefined) replaceModelUri(tab.uri, fileUriFromPath(nextPath), content, languageIdFromPath(nextPath));
         }
-        useEditorStore.getState().updateRenamedPath(oldPath, result.path, result.uri);
       }
+      useEditorStore.getState().updateRenamedPath(oldPath, result.path, result.uri);
       await tree.refreshDirectory(parentPath);
     });
   }
