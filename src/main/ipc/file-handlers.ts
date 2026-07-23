@@ -119,8 +119,11 @@ export function registerFileHandlers(): void {
 
   ipcMain.handle(IPC.fileCreate, async (event, { parentPath, name }: FileCreateRequest) => {
     assertSafeChildName(name);
-    const authorizedParent = await authorizeWindowPath(windowFromEvent(event), parentPath);
-    const path = join(authorizedParent, name);
+    const win = windowFromEvent(event);
+    const authorizedParent = await authorizeWindowPath(win, parentPath);
+    const path = await authorizeWindowPath(win, join(authorizedParent, name), {
+      allowMissing: true,
+    });
     await writeFile(path, '', { encoding: 'utf8', flag: 'wx' });
     return operationResult(path);
   });
@@ -129,15 +132,21 @@ export function registerFileHandlers(): void {
     IPC.fileCreateDirectory,
     async (event, { parentPath, name }: FileCreateRequest) => {
       assertSafeChildName(name);
-      const authorizedParent = await authorizeWindowPath(windowFromEvent(event), parentPath);
-      const path = join(authorizedParent, name);
+      const win = windowFromEvent(event);
+      const authorizedParent = await authorizeWindowPath(win, parentPath);
+      const path = await authorizeWindowPath(win, join(authorizedParent, name), {
+        allowMissing: true,
+      });
       await mkdir(path);
       return operationResult(path);
     },
   );
 
   ipcMain.handle(IPC.fileDelete, async (event, { path }: FileDeleteRequest) => {
-    await rm(await authorizeWindowPath(windowFromEvent(event), path), {
+    const win = windowFromEvent(event);
+    const authorizedPath = await authorizeWindowPath(win, path);
+    await authorizeWindowPath(win, dirname(authorizedPath));
+    await rm(authorizedPath, {
       recursive: true,
       force: false,
     });
@@ -157,7 +166,11 @@ export function registerFileHandlers(): void {
       ) {
         throw new Error('Cannot copy a folder into itself');
       }
-      const destinationPath = await uniqueCopyDestination(authorizedSource, authorizedDestination);
+      const destinationPath = await authorizeWindowPath(
+        win,
+        await uniqueCopyDestination(authorizedSource, authorizedDestination),
+        { allowMissing: true },
+      );
       await cp(authorizedSource, destinationPath, {
         recursive: sourceStats.isDirectory(),
         errorOnExist: true,
