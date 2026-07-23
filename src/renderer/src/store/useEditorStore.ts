@@ -41,7 +41,9 @@ interface EditorState {
   recentFiles: RecentFile[];
   setWorkspace: (workspace: WorkspaceState) => void;
   openFile: (tab: Omit<EditorTab, 'id' | 'dirty'>) => void;
+  /** Close a tab globally, removing it from every editor group. */
   closeTab: (id: string) => EditorTab | undefined;
+  /** Close only the tab representation in one group. The tab is removed when its last representation closes. */
   closeTabInGroup: (id: string, groupId: string) => EditorTab | undefined;
   setActive: (id: string, groupId?: string) => void;
   setActiveGroup: (id: string) => void;
@@ -279,6 +281,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       };
     }),
 }));
+
+export function isUriOpen(uri: string): boolean {
+  const { tabs, groups } = useEditorStore.getState();
+  const tabIds = new Set(tabs.filter((tab) => tab.uri === uri).map((tab) => tab.id));
+  return groups.some((group) => group.tabIds.some((tabId) => tabIds.has(tabId)));
+}
 
 export function activeTab(): EditorTab | undefined {
   const { tabs, activeTabId } = useEditorStore.getState();

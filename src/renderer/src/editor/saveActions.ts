@@ -1,6 +1,6 @@
 import type { EditorTab } from '../store/useEditorStore';
 import { useSettingsStore } from '../store/useSettingsStore';
-import { activeTab, useEditorStore } from '../store/useEditorStore';
+import { activeTab, isUriOpen, useEditorStore } from '../store/useEditorStore';
 import { disposeModel, getModel, replaceModelUri } from './models';
 import { invalidateGitBaseline } from './gitGutter';
 
@@ -68,11 +68,26 @@ export async function promptToSaveTab(tab: EditorTab): Promise<'saved' | 'discar
   }
 }
 
-export async function closeTabWithPrompt(tab: EditorTab): Promise<boolean> {
-  const result = await promptToSaveTab(tab);
-  if (result === 'cancelled') return false;
-  const closed = useEditorStore.getState().closeTab(tab.id);
-  if (closed) disposeModel(closed.uri);
+export async function closeTabWithPrompt(
+  tab: EditorTab,
+  groupId = useEditorStore.getState().activeGroupId,
+): Promise<boolean> {
+  const state = useEditorStore.getState();
+  const groupContainsTab = state.groups
+    .find((group) => group.id === groupId)
+    ?.tabIds.includes(tab.id);
+  if (!groupContainsTab) return false;
+
+  const isOpenInAnotherGroup = state.groups.some(
+    (group) => group.id !== groupId && group.tabIds.includes(tab.id),
+  );
+  if (!isOpenInAnotherGroup) {
+    const result = await promptToSaveTab(tab);
+    if (result === 'cancelled') return false;
+  }
+
+  const closed = useEditorStore.getState().closeTabInGroup(tab.id, groupId);
+  if (closed && !isUriOpen(closed.uri)) disposeModel(closed.uri);
   return true;
 }
 
