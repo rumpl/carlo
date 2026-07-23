@@ -227,7 +227,8 @@ export function registerFileHandlers(): void {
   );
 
   ipcMain.handle(IPC.workspaceSearch, async (event, request: WorkspaceSearchRequest) => {
-    const rootPath = workspaceRootFor(windowFromEvent(event));
+    const win = windowFromEvent(event);
+    const rootPath = await authorizeWindowPath(win, workspaceRootFor(win));
     return searchWorkspace(rootPath, request);
   });
 }
