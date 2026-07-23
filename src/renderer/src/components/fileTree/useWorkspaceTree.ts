@@ -69,7 +69,10 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
   }, [expandedPaths]);
 
   useEffect(() => {
-    setExpandedPaths(new Set());
+    const nextExpandedPaths = new Set<string>();
+    expandedPathsRef.current = nextExpandedPaths;
+    setExpandedPaths(nextExpandedPaths);
+    setNodes([]);
     if (workspace) {
       void load(workspace.rootPath).catch(console.error);
       return;
@@ -84,12 +87,13 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
   const refreshDirectory = useCallback(
     async (path: string): Promise<void> => {
       if (!workspace) return;
-      if (normalizePath(path) === normalizePath(workspace.rootPath)) {
+      const normalizedRoot = normalizePath(workspace.rootPath);
+      if (workspaceRootRef.current !== normalizedRoot) return;
+      if (normalizePath(path) === normalizedRoot) {
         await load(workspace.rootPath);
         return;
       }
 
-      const normalizedRoot = normalizePath(workspace.rootPath);
       const normalizedPath = normalizePath(path);
       fullLoadRequestIdRef.current += 1;
       setLoading(false);
@@ -111,6 +115,10 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
 
   const toggleDirectory = useCallback(
     async (node: FileTreeNode): Promise<void> => {
+      if (!workspace) return;
+      const normalizedRoot = normalizePath(workspace.rootPath);
+      if (workspaceRootRef.current !== normalizedRoot) return;
+
       const shouldExpand = !expandedPaths.has(node.path);
       setExpandedPaths((paths) => {
         const next = new Set(paths);
@@ -118,9 +126,8 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
         else next.delete(node.path);
         return next;
       });
-      if (!shouldExpand || node.children !== undefined || !workspace) return;
+      if (!shouldExpand || node.children !== undefined) return;
 
-      const normalizedRoot = normalizePath(workspace.rootPath);
       const normalizedPath = normalizePath(node.path);
       fullLoadRequestIdRef.current += 1;
       setLoading(false);
@@ -147,11 +154,14 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
 
   const ensureDirectoryLoaded = useCallback(
     async (path: string): Promise<void> => {
-      if (!workspace || normalizePath(path) === normalizePath(workspace.rootPath)) return;
+      if (!workspace) return;
+      const normalizedRoot = normalizePath(workspace.rootPath);
+      if (workspaceRootRef.current !== normalizedRoot || normalizePath(path) === normalizedRoot) {
+        return;
+      }
       const node = findNode(nodes, path);
       if (node?.type !== 'directory' || node.children !== undefined) return;
 
-      const normalizedRoot = normalizePath(workspace.rootPath);
       const normalizedPath = normalizePath(path);
       fullLoadRequestIdRef.current += 1;
       setLoading(false);
