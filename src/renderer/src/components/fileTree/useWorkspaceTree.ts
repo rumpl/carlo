@@ -11,7 +11,6 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
   const expandedPathsRef = useRef<Set<string>>(new Set());
   const fullLoadRequestIdRef = useRef(0);
   const directoryRequestIdRef = useRef(0);
-  const directoryRequestsRef = useRef<Map<string, number>>(new Map());
   const workspaceRootRef = useRef<string | undefined>(undefined);
   const [nodes, setNodes] = useState<FileTreeNode[]>([]);
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
@@ -28,7 +27,7 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
       if (workspaceRootRef.current !== normalizedRoot) return;
 
       const requestId = ++fullLoadRequestIdRef.current;
-      directoryRequestsRef.current.clear();
+      directoryRequestIdRef.current += 1;
       const { showLoading = true, preserveScroll = false } = options;
       const scrollTop = preserveScroll ? bodyRef.current?.scrollTop : undefined;
       const isCurrentRequest = (): boolean =>
@@ -84,7 +83,7 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
     }
 
     fullLoadRequestIdRef.current += 1;
-    directoryRequestsRef.current.clear();
+    directoryRequestIdRef.current += 1;
     setNodes([]);
     setLoading(false);
   }, [workspace, load]);
@@ -105,13 +104,12 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
       fullLoadRequestIdRef.current += 1;
       setLoading(false);
       const requestId = ++directoryRequestIdRef.current;
-      directoryRequestsRef.current.set(normalizedPath, requestId);
       const children = (await window.api.workspace.listTree(path, { watch: false })).children;
       setNodes((currentNodes) => {
         if (
           workspaceRootRef.current !== normalizedRoot ||
           !isWorkspaceDescendant(normalizedPath, normalizedRoot) ||
-          directoryRequestsRef.current.get(normalizedPath) !== requestId
+          directoryRequestIdRef.current !== requestId
         ) {
           return currentNodes;
         }
@@ -145,7 +143,6 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
       fullLoadRequestIdRef.current += 1;
       setLoading(false);
       const requestId = ++directoryRequestIdRef.current;
-      directoryRequestsRef.current.set(normalizedPath, requestId);
       try {
         const children = (await window.api.workspace.listTree(node.path, { watch: false }))
           .children;
@@ -153,7 +150,7 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
           if (
             workspaceRootRef.current !== normalizedRoot ||
             !isWorkspaceDescendant(normalizedPath, normalizedRoot) ||
-            directoryRequestsRef.current.get(normalizedPath) !== requestId
+            directoryRequestIdRef.current !== requestId
           ) {
             return currentNodes;
           }
@@ -183,13 +180,12 @@ export function useWorkspaceTree(workspace: WorkspaceFolderResult | undefined) {
       fullLoadRequestIdRef.current += 1;
       setLoading(false);
       const requestId = ++directoryRequestIdRef.current;
-      directoryRequestsRef.current.set(normalizedPath, requestId);
       const children = (await window.api.workspace.listTree(path, { watch: false })).children;
       setNodes((currentNodes) => {
         if (
           workspaceRootRef.current !== normalizedRoot ||
           !isWorkspaceDescendant(normalizedPath, normalizedRoot) ||
-          directoryRequestsRef.current.get(normalizedPath) !== requestId
+          directoryRequestIdRef.current !== requestId
         ) {
           return currentNodes;
         }
