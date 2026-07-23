@@ -96,7 +96,7 @@ export function MarkdownPreview({ groupId }: Props) {
         resolveImageUrl: (url) => {
           const dataUrl = imageDataUrls[url];
           if (dataUrl) return dataUrl;
-          return localMarkdownAssetPath(tab?.path ?? '', url) ? '' : url;
+          return undefined;
         },
       }),
     [content, imageDataUrls, tab?.path],

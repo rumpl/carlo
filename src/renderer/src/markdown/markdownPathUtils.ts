@@ -20,11 +20,9 @@ export function markdownAnchorUrl(value: string): string | undefined {
   return urlWithAllowedProtocol(trimmed, externalLinkProtocols);
 }
 
-export function renderedMarkdownAnchorUrl(value: string): string | undefined {
-  const safeUrl = markdownAnchorUrl(value);
-  if (safeUrl) return safeUrl;
-
+export function markdownLocalResourceUrl(value: string): string | undefined {
   try {
+    decodeURI(value);
     const parsed = new URL(value);
     return parsed.protocol === 'carlo-file:' && !parsed.username && !parsed.password
       ? parsed.toString()
@@ -38,17 +36,10 @@ export function markdownExternalImageUrl(value: string): string | undefined {
   return urlWithAllowedProtocol(value, externalImageProtocols);
 }
 
-export function isSafeRenderedMarkdownImageUrl(value: string): boolean {
-  if (markdownExternalImageUrl(value)) return true;
+export function isSafeResolvedMarkdownImageUrl(value: string): boolean {
   if (/^data:image\/(?:apng|avif|gif|jpeg|png|svg\+xml|webp);base64,[a-z0-9+/]+=*$/i.test(value))
     return true;
-
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === 'carlo-file:' && !parsed.username && !parsed.password;
-  } catch {
-    return false;
-  }
+  return Boolean(markdownLocalResourceUrl(value));
 }
 
 export function dirname(path: string): string {

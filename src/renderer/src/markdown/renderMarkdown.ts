@@ -1,4 +1,9 @@
-import { isSafeRenderedMarkdownImageUrl, renderedMarkdownAnchorUrl } from './markdownPathUtils';
+import {
+  isSafeResolvedMarkdownImageUrl,
+  markdownAnchorUrl,
+  markdownExternalImageUrl,
+  markdownLocalResourceUrl,
+} from './markdownPathUtils';
 
 function escapeHtml(value: string): string {
   return value
@@ -15,16 +20,22 @@ interface RenderMarkdownOptions {
 }
 
 function safeUrl(value: string, options: RenderMarkdownOptions): string | undefined {
-  const resolved = options.resolveUrl?.(value.trim()) ?? value.trim();
-  const safe = renderedMarkdownAnchorUrl(resolved);
-  return safe ? escapeHtml(safe) : undefined;
+  const trimmed = value.trim();
+  const directUrl = markdownAnchorUrl(trimmed);
+  if (directUrl) return escapeHtml(directUrl);
+
+  const resolved = options.resolveUrl?.(trimmed);
+  const localUrl = resolved ? markdownLocalResourceUrl(resolved) : undefined;
+  return localUrl ? escapeHtml(localUrl) : undefined;
 }
 
 function safeImageUrl(value: string, options: RenderMarkdownOptions): string | undefined {
   const trimmed = value.trim();
-  if (!trimmed) return undefined;
-  const resolved = options.resolveImageUrl?.(trimmed) ?? trimmed;
-  return resolved && isSafeRenderedMarkdownImageUrl(resolved) ? escapeHtml(resolved) : undefined;
+  const externalUrl = markdownExternalImageUrl(trimmed);
+  if (externalUrl) return escapeHtml(externalUrl);
+
+  const resolved = options.resolveImageUrl?.(trimmed);
+  return resolved && isSafeResolvedMarkdownImageUrl(resolved) ? escapeHtml(resolved) : undefined;
 }
 
 function inlineMarkdown(value: string, options: RenderMarkdownOptions): string {
