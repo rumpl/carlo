@@ -35,6 +35,7 @@ function matchResult(
 
 function parseRipgrepJson(output: string, maxResults: number): WorkspaceSearchResult {
   const matches: WorkspaceSearchMatch[] = [];
+  const detectionLimit = maxResults + 1;
   for (const line of output.split('\n')) {
     if (!line.trim()) continue;
     let event: RgJsonMatch;
@@ -50,7 +51,9 @@ function parseRipgrepJson(output: string, maxResults: number): WorkspaceSearchRe
     if (!path || !preview || !lineNumber) continue;
     for (const submatch of event.data.submatches ?? []) {
       matches.push(matchResult(path, lineNumber, submatch.start + 1, preview, submatch.start, submatch.end));
-      if (matches.length >= maxResults) return { matches, truncated: true };
+      if (matches.length >= detectionLimit) {
+        return { matches: matches.slice(0, maxResults), truncated: true };
+      }
     }
   }
   return { matches, truncated: false };
@@ -90,11 +93,12 @@ async function searchWithRipgrep({
 
 async function searchFallback(rootPath: string, query: string, maxResults: number): Promise<WorkspaceSearchResult> {
   const matches: WorkspaceSearchMatch[] = [];
+  const detectionLimit = maxResults + 1;
   const isSmartCaseSensitive = query !== query.toLowerCase();
   const needle = isSmartCaseSensitive ? query : query.toLowerCase();
 
   async function walk(path: string): Promise<void> {
-    if (matches.length >= maxResults || isIgnoredPath(path, ignoredNames)) return;
+    if (matches.length >= detectionLimit || isIgnoredPath(path, ignoredNames)) return;
     const stats = await stat(path).catch(() => undefined);
     if (!stats) return;
     if (stats.isDirectory()) {
@@ -106,11 +110,11 @@ async function searchFallback(rootPath: string, query: string, maxResults: numbe
     const content = await readFile(path, 'utf8').catch(() => undefined);
     if (content === undefined || content.includes('\0')) return;
     const lines = content.split(/\r?\n/);
-    for (let index = 0; index < lines.length && matches.length < maxResults; index += 1) {
+    for (let index = 0; index < lines.length && matches.length < detectionLimit; index += 1) {
       const preview = lines[index]!;
       const haystack = isSmartCaseSensitive ? preview : preview.toLowerCase();
       let columnIndex = haystack.indexOf(needle);
-      while (columnIndex !== -1 && matches.length < maxResults) {
+      while (columnIndex !== -1 && matches.length < detectionLimit) {
         matches.push(matchResult(path, index + 1, columnIndex + 1, preview, columnIndex, columnIndex + query.length));
         columnIndex = haystack.indexOf(needle, columnIndex + query.length);
       }
@@ -118,7 +122,7 @@ async function searchFallback(rootPath: string, query: string, maxResults: numbe
   }
 
   await walk(rootPath);
-  return { matches, truncated: matches.length >= maxResults };
+  return { matches: matches.slice(0, maxResults), truncated: matches.length > maxResults };
 }
 
 export async function searchWorkspace(
