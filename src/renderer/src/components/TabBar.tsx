@@ -1,4 +1,5 @@
 import { type MouseEvent, useState } from 'react';
+import { disposeModel } from '../editor/models';
 import type { EditorTab } from '../store/useEditorStore';
 import { useEditorStore } from '../store/useEditorStore';
 import { useContextMenuDismiss } from '../hooks/useContextMenuDismiss';
@@ -28,6 +29,18 @@ export function TabBar({ groupId }: Props) {
       const closed = await closeTabWithPrompt(currentTab);
       if (!closed) break;
     }
+  }
+
+  function closeSavedTabsInGroup(tabsToClose: EditorTab[]): Promise<void> {
+    for (const tab of tabsToClose) {
+      const state = useEditorStore.getState();
+      const currentTab = state.tabs.find((candidate) => candidate.id === tab.id);
+      const isInGroup = state.groups.find((candidate) => candidate.id === groupId)?.tabIds.includes(tab.id);
+      if (!currentTab || currentTab.dirty || !isInGroup) continue;
+      const closed = state.closeTabInGroup(tab.id, groupId);
+      if (closed) disposeModel(closed.uri);
+    }
+    return Promise.resolve();
   }
 
   function openContextMenu(event: MouseEvent, tab: EditorTab): void {
@@ -99,6 +112,7 @@ export function TabBar({ groupId }: Props) {
           onRunAction={runContextAction}
           onSetActive={setActive}
           onCloseTabsWithPrompt={closeTabsWithPrompt}
+          onCloseSavedTabs={closeSavedTabsInGroup}
         />
       ) : null}
     </div>

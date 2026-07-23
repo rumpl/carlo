@@ -42,6 +42,7 @@ interface EditorState {
   setWorkspace: (workspace: WorkspaceState) => void;
   openFile: (tab: Omit<EditorTab, 'id' | 'dirty'>) => void;
   closeTab: (id: string) => EditorTab | undefined;
+  closeTabInGroup: (id: string, groupId: string) => EditorTab | undefined;
   setActive: (id: string, groupId?: string) => void;
   setActiveGroup: (id: string) => void;
   splitActive: (direction: 'vertical' | 'horizontal') => void;
@@ -150,6 +151,33 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       };
     });
     return tab;
+  },
+  closeTabInGroup: (id, groupId) => {
+    let removedTab: EditorTab | undefined;
+    set((state) => {
+      const targetGroup = state.groups.find((group) => group.id === groupId);
+      if (!targetGroup?.tabIds.includes(id)) return {};
+
+      let groups = state.groups.map((group) => {
+        if (group.id !== groupId) return group;
+        const tabIds = group.tabIds.filter((candidate) => candidate !== id);
+        const activeTabId = group.activeTabId === id ? (tabIds.at(-1) ?? null) : group.activeTabId;
+        return { ...group, tabIds, activeTabId };
+      });
+      groups = groups.length > 1 ? groups.filter((group) => group.tabIds.length > 0) : groups;
+      const tabIsStillOpen = groups.some((group) => group.tabIds.includes(id));
+      if (!tabIsStillOpen) removedTab = state.tabs.find((candidate) => candidate.id === id);
+      const activeGroupId = groups.some((group) => group.id === state.activeGroupId)
+        ? state.activeGroupId
+        : (groups.at(-1)?.id ?? initialGroupId);
+      return {
+        tabs: tabIsStillOpen ? state.tabs : state.tabs.filter((candidate) => candidate.id !== id),
+        groups,
+        activeGroupId,
+        activeTabId: currentActiveTabId(groups, activeGroupId),
+      };
+    });
+    return removedTab;
   },
   setActive: (id, groupId) =>
     set((state) => {
