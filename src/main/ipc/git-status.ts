@@ -2,6 +2,7 @@ import { join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { GitChangedFile, GitFileStatus, GitStatusResult } from '@shared/file-types';
 import { gitExec, gitExecRaw } from './git-exec';
+import { isPathInsideOrEqual } from './file-operations';
 
 export interface GitStatusContext {
   rootPath: string;
@@ -105,13 +106,20 @@ export async function getGitStatus(path: string): Promise<GitStatusResult> {
   const context = await getGitStatusContext(path);
   if (!context) return { isGitRepo: false, files: [] };
   const files: GitChangedFile[] = [...context.statuses.entries()]
-    .filter(([, status]) => status !== 'ignored')
+    .filter(
+      ([changedPath, status]) =>
+        status !== 'ignored' && isPathInsideOrEqual(changedPath, path),
+    )
     .map(([changedPath, status]) => ({
       path: changedPath,
       uri: pathToFileURL(changedPath).toString(),
-      relativePath: relative(context.rootPath, changedPath),
+      relativePath: relative(path, changedPath),
       status,
     }))
-    .sort((a, b) => gitStatusOrder[a.status] - gitStatusOrder[b.status] || a.relativePath.localeCompare(b.relativePath));
-  return { isGitRepo: true, rootPath: context.rootPath, files };
+    .sort(
+      (a, b) =>
+        gitStatusOrder[a.status] - gitStatusOrder[b.status] ||
+        a.relativePath.localeCompare(b.relativePath),
+    );
+  return { isGitRepo: true, rootPath: path, files };
 }
